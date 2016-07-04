@@ -1,0 +1,238 @@
+
+	// Vulkan::Result result = vulkan.initInstance();
+	// if (result.err != VK_SUCCESS) {
+	// 	cout << "Step: " << result.step << ", error: " << getVkResultString(result.err) << endl;
+	// 	return 1;
+	// }
+
+	// result = vulkan.initDevice(4318, "GTX 770");
+	// if (result.err != VK_SUCCESS) {
+	// 	cout << "Step: " << result.step << ", error: " << getVkResultString(result.err) << endl;
+	// 	return 1;
+	// }
+
+	// VkInstance &instance = vulkan.instance;
+
+	// VkResult err;
+	// uint32_t physicalDeviceCount = 0;
+	// err = vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, nullptr);
+	// if (err) {
+	// 	cout << "Error: " << getVkResultString(err) << endl;
+	// 	return 1;
+	// }
+
+	// vector<VkPhysicalDevice> physicalDevices(physicalDeviceCount);
+	// err = vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, physicalDevices.data());
+	// if (err) {
+	// 	cout << "Error: " << getVkResultString(err) << endl;
+	// 	return 1;
+	// }
+
+	// size_t selectedDeviceIdx = physicalDevices.size();
+	// vector<VkPhysicalDeviceProperties> physicalDeviceProperties(physicalDeviceCount);
+	// vector<VkPhysicalDeviceMemoryProperties> physicalDeviceMemoryProperties(physicalDeviceCount);
+	// vector<VkPhysicalDeviceFeatures> physicalDeviceFeatures(physicalDeviceCount);
+	// for (size_t i = 0; i < physicalDevices.size(); i++) {
+	// 	vkGetPhysicalDeviceProperties(physicalDevices[i], &physicalDeviceProperties[i]);
+	// 	vkGetPhysicalDeviceMemoryProperties(physicalDevices[i], &physicalDeviceMemoryProperties[i]);
+	// 	vkGetPhysicalDeviceFeatures(physicalDevices[i], &physicalDeviceFeatures[i]);
+
+	// 	if (physicalDeviceProperties[i].deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+	// 		// cout << "  memoryTypeCount=" << physicalDeviceMemoryProperties[i].memoryTypeCount << endl;
+
+	// 		// for (size_t j = 0; j < physicalDeviceMemoryProperties[i].memoryTypeCount; j++) {
+	// 		// 	cout << "    j=" << j << endl;
+	// 		// 	cout << "    propertyFlags=";
+	// 		// 	if (physicalDeviceMemoryProperties[i].memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
+	// 		// 		cout << "VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT ";
+	// 		// 	}
+	// 		// 	if (physicalDeviceMemoryProperties[i].memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
+	// 		// 		cout << "VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT ";
+	// 		// 	}
+	// 		// 	if (physicalDeviceMemoryProperties[i].memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) {
+	// 		// 		cout << "VK_MEMORY_PROPERTY_HOST_COHERENT_BIT ";
+	// 		// 	}
+	// 		// 	if (physicalDeviceMemoryProperties[i].memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT) {
+	// 		// 		cout << "VK_MEMORY_PROPERTY_HOST_CACHED_BIT ";
+	// 		// 	}
+	// 		// 	if (physicalDeviceMemoryProperties[i].memoryTypes[j].propertyFlags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT) {
+	// 		// 		cout << "VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT ";
+	// 		// 	}
+	// 		// 	cout << endl;
+	// 		// 	cout << "    heapIndex=" << physicalDeviceMemoryProperties[i].memoryTypes[j].heapIndex << endl;
+	// 		// }
+
+	// 		// cout << "  memoryHeapCount=" << physicalDeviceMemoryProperties[i].memoryHeapCount << endl;
+	// 		// for (size_t j = 0; j < physicalDeviceMemoryProperties[i].memoryHeapCount; j++) {
+	// 		// 	cout << "    size=" << physicalDeviceMemoryProperties[i].memoryHeaps[j].size << endl;
+	// 		// 	cout << "    flags=";
+	// 		// 	if (physicalDeviceMemoryProperties[i].memoryHeaps[j].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) {
+	// 		// 		cout << "VK_MEMORY_HEAP_DEVICE_LOCAL_BIT";
+	// 		// 	}
+	// 		// 	cout << endl;
+	// 		// }
+
+	// 		selectedDeviceIdx = i;
+	// 		break;
+	// 	}
+	// }
+
+	// if (selectedDeviceIdx == physicalDevices.size()) {
+	// 	cout << "Error: no suitable device found" << endl;
+	// 	return 1;
+	// }
+
+	// VkPhysicalDevice &physicalDevice = physicalDevices[selectedDeviceIdx];
+
+	// uint32_t queueFamilyPropertyCount;
+	// vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyPropertyCount, nullptr);
+
+	// vector<VkQueueFamilyProperties> queueFamilyProperties(queueFamilyPropertyCount);
+	// vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyPropertyCount, queueFamilyProperties.data());
+
+	// uint32_t graphicQueueFamilyIndex = std::numeric_limits<uint32_t>::max();
+	// uint32_t computeQueueFamilyIndex = std::numeric_limits<uint32_t>::max();
+	// uint32_t presentQueueFamilyIndex = std::numeric_limits<uint32_t>::max();
+	// for (uint32_t i = 0; i < queueFamilyPropertyCount; i++) {
+	// 	auto & family = queueFamilyProperties[i];
+
+	// 	if (family.queueCount == 0) {
+	// 		continue;
+	// 	}
+
+	// 	// select first graphic queue family
+	// 	if (family.queueFlags & VK_QUEUE_GRAPHICS_BIT && graphicQueueFamilyIndex == std::numeric_limits<uint32_t>::max()) {
+	// 		graphicQueueFamilyIndex = i;
+	// 	}
+
+	// 	// select first compute queue family
+	// 	if (family.queueFlags & VK_QUEUE_COMPUTE_BIT && computeQueueFamilyIndex == std::numeric_limits<uint32_t>::max()) {
+	// 		computeQueueFamilyIndex = i;
+	// 	}
+
+	// 	bool supportsPresentation = glfwGetPhysicalDevicePresentationSupport(instance, physicalDevice, i);
+
+	// 	// prefer queue family which supports presentation and graphics
+	// 	if (family.queueFlags & VK_QUEUE_GRAPHICS_BIT && supportsPresentation) {
+	// 		graphicQueueFamilyIndex = i;
+	// 		presentQueueFamilyIndex = i;
+	// 	} else {
+	// 		// otherwise, select first queue family which supports presentation
+	// 		if (supportsPresentation && presentQueueFamilyIndex == std::numeric_limits<uint32_t>::max()) {
+	// 			presentQueueFamilyIndex = i;
+	// 		}
+	// 	}
+	// }
+
+	// if (presentQueueFamilyIndex == std::numeric_limits<uint32_t>::max()) {
+	// 	cout << "Error: could not find queue family supporting image presentation" << endl;
+	// 	return 1;
+	// }
+
+	// if (graphicQueueFamilyIndex == std::numeric_limits<uint32_t>::max()) {
+	// 	cout << "Error: could not find queue family supporting graphic" << endl;
+	// 	return 1;
+	// }
+
+	// if (computeQueueFamilyIndex == std::numeric_limits<uint32_t>::max()) {
+	// 	cout << "Error: could not find queue family supporting compute" << endl;
+	// 	return 1;
+	// }
+
+	// vector<VkDeviceQueueCreateInfo> deviceQueueCreateInfos{};
+	// vector<vector<float>> deviceQueueCreateInfoPriorities{};
+	// deviceQueueCreateInfos.reserve(3);
+	// deviceQueueCreateInfoPriorities.reserve(3);
+
+	// size_t presentQueueInfoIndex;
+	// size_t graphicQueueInfoIndex;
+	// size_t computeQueueInfoIndex;
+
+	// {
+	// 	size_t idx = presentQueueFamilyIndex;
+	// 	deviceQueueCreateInfos.emplace_back();
+	// 	deviceQueueCreateInfoPriorities.emplace_back(queueFamilyProperties[idx].queueCount, 0.0f);
+
+	// 	VkDeviceQueueCreateInfo &deviceQueueCreateInfo = deviceQueueCreateInfos.back();
+	// 	deviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	// 	deviceQueueCreateInfo.pNext = nullptr;
+	// 	deviceQueueCreateInfo.flags = 0;
+	// 	deviceQueueCreateInfo.queueFamilyIndex = idx;
+	// 	deviceQueueCreateInfo.queueCount = queueFamilyProperties[idx].queueCount;
+	// 	deviceQueueCreateInfo.pQueuePriorities = deviceQueueCreateInfoPriorities.back().data();
+
+	// 	presentQueueInfoIndex = deviceQueueCreateInfos.size() - 1;
+	// }
+
+	// if (presentQueueFamilyIndex == graphicQueueFamilyIndex) {
+	// 	graphicQueueInfoIndex = presentQueueInfoIndex;
+	// } else {
+	// 	size_t idx = graphicQueueFamilyIndex;
+	// 	deviceQueueCreateInfos.emplace_back();
+	// 	deviceQueueCreateInfoPriorities.emplace_back(queueFamilyProperties[idx].queueCount, 0.0f);
+
+	// 	VkDeviceQueueCreateInfo &deviceQueueCreateInfo = deviceQueueCreateInfos.back();
+	// 	deviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	// 	deviceQueueCreateInfo.pNext = nullptr;
+	// 	deviceQueueCreateInfo.flags = 0;
+	// 	deviceQueueCreateInfo.queueFamilyIndex = idx;
+	// 	deviceQueueCreateInfo.queueCount = queueFamilyProperties[idx].queueCount;
+	// 	deviceQueueCreateInfo.pQueuePriorities = deviceQueueCreateInfoPriorities.back().data();
+
+	// 	graphicQueueInfoIndex = deviceQueueCreateInfos.size() - 1;
+	// }
+
+	// if (presentQueueFamilyIndex == computeQueueFamilyIndex) {
+	// 	computeQueueInfoIndex = presentQueueInfoIndex;
+	// } else if (graphicQueueFamilyIndex == computeQueueFamilyIndex) {
+	// 	computeQueueInfoIndex = graphicQueueInfoIndex;
+	// } else {
+	// 	size_t idx = computeQueueFamilyIndex;
+	// 	deviceQueueCreateInfos.emplace_back();
+	// 	deviceQueueCreateInfoPriorities.emplace_back(queueFamilyProperties[idx].queueCount, 0.0f);
+
+	// 	VkDeviceQueueCreateInfo &deviceQueueCreateInfo = deviceQueueCreateInfos.back();
+	// 	deviceQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	// 	deviceQueueCreateInfo.pNext = nullptr;
+	// 	deviceQueueCreateInfo.flags = 0;
+	// 	deviceQueueCreateInfo.queueFamilyIndex = idx;
+	// 	deviceQueueCreateInfo.queueCount = queueFamilyProperties[idx].queueCount;
+	// 	deviceQueueCreateInfo.pQueuePriorities = deviceQueueCreateInfoPriorities.back().data();
+
+	// 	computeQueueInfoIndex = deviceQueueCreateInfos.size() - 1;
+	// }
+
+	// VkDeviceCreateInfo deviceCreateInfo;
+	// deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	// deviceCreateInfo.pNext = nullptr;
+	// deviceCreateInfo.flags = 0;
+	// deviceCreateInfo.queueCreateInfoCount = deviceQueueCreateInfos.size();
+	// deviceCreateInfo.pQueueCreateInfos = deviceQueueCreateInfos.data();
+	// deviceCreateInfo.enabledLayerCount = enabledLayers.size();
+	// deviceCreateInfo.ppEnabledLayerNames = enabledLayers.data();
+	// deviceCreateInfo.enabledExtensionCount = deviceExtensions.size();
+	// deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
+	// deviceCreateInfo.pEnabledFeatures = nullptr;
+
+	// VkDevice device;
+	// err = vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device);
+	// if (err) {
+	// 	cout << "Error: " << getVkResultString(err) << endl;
+	// 	return 1;
+	// }
+
+	// vector<vector<VkQueue>> queuesList(deviceQueueCreateInfos.size());
+	// for (size_t i = 0; i < deviceQueueCreateInfos.size(); i++) {
+	// 	uint32_t queueCount = deviceQueueCreateInfos[i].queueCount;
+	// 	uint32_t queueFamilyIndex = deviceQueueCreateInfos[i].queueFamilyIndex;
+
+	// 	queuesList[i].resize(queueCount);
+
+	// 	for (size_t j = 0; j < queueCount; j++) {
+	// 		vkGetDeviceQueue(device, queueFamilyIndex, j, &queuesList[i][j]);
+	// 	}
+	// }
+
+	// vector<VkQueue> &presentQueues = queuesList[presentQueueInfoIndex];
+	// vector<VkQueue> &graphicQueues = queuesList[graphicQueueInfoIndex];
+	// vector<VkQueue> &computeQueues = queuesList[computeQueueInfoIndex];
