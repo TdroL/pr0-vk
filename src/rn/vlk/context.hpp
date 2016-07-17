@@ -1,10 +1,8 @@
 #pragma once
 
-#include "instance.hpp"
-#include "surface.hpp"
-#include "physicalDevice.hpp"
-#include "device.hpp"
-#include "swapchain.hpp"
+#include <vulkan/vulkan.h>
+
+#include "instanceWrap.hpp"
 
 namespace rn {
 
@@ -12,23 +10,16 @@ namespace vlk {
 
 class Context {
 public:
-	Instance instance;
-	Surface surface;
-	PhysicalDevice physicalDevice;
-	Device device;
-	Swapchain swapchain;
+	Instance instance{};
 
-	#include "contextDispatch.inl"
+	// VkInstance instance = VK_NULL_HANDLE;
 
-	void loadGlobalVulkanFunctions() {
-		loadGlobalProc(this->vkCreateInstance, "vkCreateInstance");
-		loadGlobalProc(this->vkEnumerateInstanceExtensionProperties, "vkEnumerateInstanceExtensionProperties");
-		loadGlobalProc(this->vkEnumerateInstanceLayerProperties, "vkEnumerateInstanceLayerProperties");
+	// VkDevice device = VK_NULL_HANDLE;
 
-		assert(this->vkCreateInstance);
-		assert(this->vkEnumerateInstanceExtensionProperties);
-		assert(this->vkEnumerateInstanceLayerProperties);
-	}
+	// VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+	// VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties{};
+
+	// VkDebugReportCallbackEXT debugReportCallback = VK_NULL_HANDLE;
 };
 
 } // vlk

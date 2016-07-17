@@ -22,9 +22,6 @@ endforeach()
 list(REMOVE_DUPLICATES INCLUDE_DIRS)
 include_directories(${INCLUDE_DIRS})
 
-# GLM
-include_directories(${CMAKE_SOURCE_DIR}/external/glm)
-
 # Vulkan
 add_definitions(-DVK_NO_PROTOTYPES)
 include_directories("$ENV{VK_SDK_PATH}/Include")
@@ -33,9 +30,12 @@ include_directories("$ENV{VK_SDK_PATH}/Include")
 # message(STATUS "VULKAN: ${VULKAN_1_LIB}")
 # set(LIBS ${LIBS} ${VULKAN_1_LIB})
 
+# GLM
+include_directories(${CMAKE_SOURCE_DIR}/external/glm)
+
 # GLFW
-include_directories(${CMAKE_SOURCE_DIR}/external/glfw-3.2/include)
-find_library(GLFW_LIB NAMES glfw3 glfw glfw3dll glfwdll PATHS ${CMAKE_SOURCE_DIR}/external/glfw-3.2/lib-mingw-w64)
+include_directories(${CMAKE_SOURCE_DIR}/external/glfw/include)
+find_library(GLFW_LIB NAMES glfw3 glfw glfw3dll glfwdll PATHS ${CMAKE_SOURCE_DIR}/external/glfw/lib-mingw-w64)
 message(STATUS "GLFW3: ${GLFW_LIB}")
 set(LIBS ${LIBS} ${GLFW_LIB})
 
