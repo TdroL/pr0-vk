@@ -13,34 +13,40 @@ namespace vlk {
 
 class Instance {
 public:
-	VkInstance handler;
+	VkInstance handle;
 
-	Instance(VkInstance handler)
-		: handler{handler}
+	Instance(VkInstance handle = VK_NULL_HANDLE)
+		: handle{handle}
 	{}
 
 	Instance(Instance &&instance)
-		: handler{instance.handler}
+		: handle{instance.handle}
 	{
-		instance.handler = VK_NULL_HANDLE;
+		instance.handle = VK_NULL_HANDLE;
+	}
+
+	operator =(Instance &&instance) {
+		handle = instance.handle;
+		instance.handle = VK_NULL_HANDLE;
+
+		return *this;
 	}
 
 	Instance(const Instance &instance) = delete;
-	operator =(Instance &&instance) = delete;
 	operator =(const Instance &instance) = delete;
 
 	operator VkInstance() const {
-		return handler;
+		return handle;
 	}
 
 	operator bool() const {
-		return handler != VK_NULL_HANDLE;
+		return handle != VK_NULL_HANDLE;
 	}
 
 	void destroy() {
-		if (handler != VK_NULL_HANDLE) {
-			vkDestroyInstance(instance, nullptr);
-			handler = VK_NULL_HANDLE;
+		if (handle != VK_NULL_HANDLE) {
+			vkDestroyInstance(handle, nullptr);
+			handle = VK_NULL_HANDLE;
 		}
 	}
 

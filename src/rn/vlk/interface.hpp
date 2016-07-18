@@ -177,8 +177,6 @@ public:
 	PFN_vkCmdDebugMarkerEndEXT CmdDebugMarkerEndEXT = nullptr;
 	PFN_vkCmdDebugMarkerInsertEXT CmdDebugMarkerInsertEXT = nullptr;
 
-	void setInstanceProcAddr(PFN_vkGetInstanceProcAddr GetInstanceProcAddr);
-
 	template<typename T>
 	void getGlobalProc(T &func, const char *name) {
 		if (this->GetInstanceProcAddr == nullptr) {
@@ -206,20 +204,20 @@ public:
 			return;
 		}
 
-		if (this->vkGetDeviceProcAddr == nullptr) {
+		if (this->GetDeviceProcAddr == nullptr) {
 			func = nullptr;
 			return;
 		}
 
-		func = reinterpret_cast<T>(this->vkGetDeviceProcAddr(device, name));
+		func = reinterpret_cast<T>(this->GetDeviceProcAddr(device, name));
 	}
 
 	void unloadInstanceProcs();
 	void unloadDeviceProcs();
 
-	void loadGlobalProcs(PFN_vkGetInstanceProcAddr GetInstanceProcAddr);
-	void loadInstanceProcs(VkInstance instance);
-	void loadDeviceProcs(VkDevice device);
+	bool loadGlobalProcs(void (*GetInstanceProcAddr)());
+	bool loadInstanceProcs(VkInstance instance);
+	bool loadDeviceProcs(VkDevice device);
 };
 
 extern Interface vk;

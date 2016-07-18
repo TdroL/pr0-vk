@@ -1,29 +1,30 @@
 #include "interface.hpp"
+#include <cassert>
 
 namespace rn {
 
 namespace vlk {
 
-void setInstanceProcAddr(PFN_vkGetInstanceProcAddr GetInstanceProcAddr) {
-	this->GetInstanceProcAddr = GetInstanceProcAddr;
-}
+bool Interface::loadGlobalProcs(void (*GetInstanceProcAddr)()) {
+	this->GetInstanceProcAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(GetInstanceProcAddr);
 
-void Interface::loadGlobalProcs(PFN_vkGetInstanceProcAddr GetInstanceProcAddr) {
-	setInstanceProcAddr(GetInstanceProcAddr);
-
-	#define LOAD_GLOBAL_PROC (X) getGlobalProc(this->##X, "vk"#x); assert(this->##X)
+	#define LOAD_GLOBAL_PROC(X) do { getGlobalProc(X, "vk"#X); assert(X); if (X == nullptr) { return false; } } while (0)
+	#define LOAD_OPT_GLOBAL_PROC(X) do { getGlobalProc(X, "vk"#X); } while (0)
 
 	LOAD_GLOBAL_PROC(CreateInstance);
 	LOAD_GLOBAL_PROC(EnumerateInstanceExtensionProperties);
 	LOAD_GLOBAL_PROC(EnumerateInstanceLayerProperties);
 
 	#undef LOAD_GLOBAL_PROC
+	#undef LOAD_OPT_GLOBAL_PROC
+
+	return true;
 }
 
 void Interface::unloadInstanceProcs() {
 	currentInstance = VK_NULL_HANDLE;
 
-	#define UNLOAD_INSTANCE_PROC (X) this->##X = nullptr
+	#define UNLOAD_INSTANCE_PROC(X) X = nullptr
 
 	UNLOAD_INSTANCE_PROC(CreateDevice);
 	UNLOAD_INSTANCE_PROC(DestroyInstance);
@@ -112,7 +113,7 @@ void Interface::unloadInstanceProcs() {
 void Interface::unloadDeviceProcs() {
 	currentDevice = VK_NULL_HANDLE;
 
-	#define UNLOAD_DEVICE_PROC (X) this->##X = nullptr
+	#define UNLOAD_DEVICE_PROC(X) X = nullptr
 
 	UNLOAD_DEVICE_PROC(DestroyDevice);
 	UNLOAD_DEVICE_PROC(GetDeviceQueue);
@@ -195,14 +196,15 @@ void Interface::unloadDeviceProcs() {
 	#undef UNLOAD_DEVICE_PROC
 }
 
-void Interface::loadInstanceProcs(VkInstance instance) {
+bool Interface::loadInstanceProcs(VkInstance instance) {
 	if (currentInstance != VK_NULL_HANDLE && currentInstance != instance) {
 		unloadInstanceProcs();
 	}
 
 	currentInstance = instance;
 
-	#define LOAD_INSTANCE_PROC (X) getInstanceProc(instance, this->##X, "vk"#x); assert(this->##X)
+	#define LOAD_INSTANCE_PROC(X) do { getInstanceProc(instance, X, "vk"#X); assert(X); if (X == nullptr) { return false; } } while (0)
+	#define LOAD_OPT_INSTANCE_PROC(X) do { getInstanceProc(instance, X, "vk"#X); } while (0)
 
 	LOAD_INSTANCE_PROC(CreateDevice);
 	LOAD_INSTANCE_PROC(DestroyInstance);
@@ -275,27 +277,31 @@ void Interface::loadInstanceProcs(VkInstance instance) {
 	LOAD_INSTANCE_PROC(GetPhysicalDeviceSurfaceFormatsKHR);
 	LOAD_INSTANCE_PROC(GetPhysicalDeviceSurfacePresentModesKHR);
 
-	LOAD_INSTANCE_PROC(CreateDebugReportCallbackEXT);
-	LOAD_INSTANCE_PROC(DestroyDebugReportCallbackEXT);
-	LOAD_INSTANCE_PROC(DebugReportMessageEXT);
+	LOAD_OPT_INSTANCE_PROC(CreateDebugReportCallbackEXT);
+	LOAD_OPT_INSTANCE_PROC(DestroyDebugReportCallbackEXT);
+	LOAD_OPT_INSTANCE_PROC(DebugReportMessageEXT);
 
-	LOAD_INSTANCE_PROC(DebugMarkerSetObjectTagEXT);
-	LOAD_INSTANCE_PROC(DebugMarkerSetObjectNameEXT);
-	LOAD_INSTANCE_PROC(CmdDebugMarkerBeginEXT);
-	LOAD_INSTANCE_PROC(CmdDebugMarkerEndEXT);
-	LOAD_INSTANCE_PROC(CmdDebugMarkerInsertEXT);
+	LOAD_OPT_INSTANCE_PROC(DebugMarkerSetObjectTagEXT);
+	LOAD_OPT_INSTANCE_PROC(DebugMarkerSetObjectNameEXT);
+	LOAD_OPT_INSTANCE_PROC(CmdDebugMarkerBeginEXT);
+	LOAD_OPT_INSTANCE_PROC(CmdDebugMarkerEndEXT);
+	LOAD_OPT_INSTANCE_PROC(CmdDebugMarkerInsertEXT);
 
 	#undef LOAD_INSTANCE_PROC
+	#undef LOAD_OPT_INSTANCE_PROC
+
+	return true;
 }
 
-void Interface::loadDeviceProcs(VkDevice device) {
+bool Interface::loadDeviceProcs(VkDevice device) {
 	if (currentDevice != VK_NULL_HANDLE && currentDevice != device) {
 		unloadDeviceProcs();
 	}
 
 	currentDevice = device;
 
-	#define LOAD_DEVICE_PROC (X) getDeviceProc(device, this->##X, "vk"#x); assert(this->##X)
+	#define LOAD_DEVICE_PROC(X) do { getDeviceProc(device, X, "vk"#X); assert(X); if (X == nullptr) { return false; } } while (0)
+	#define LOAD_OPT_DEVICE_PROC(X) do { getDeviceProc(device, X, "vk"#X); } while (0)
 
 	LOAD_DEVICE_PROC(DestroyDevice);
 	LOAD_DEVICE_PROC(GetDeviceQueue);
@@ -376,6 +382,9 @@ void Interface::loadDeviceProcs(VkDevice device) {
 	LOAD_DEVICE_PROC(AcquireNextImageKHR);
 
 	#undef LOAD_DEVICE_PROC
+	#undef LOAD_OPT_DEVICE_PROC
+
+	return true;
 }
 
 Interface vk{};
