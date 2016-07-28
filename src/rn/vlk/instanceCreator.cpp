@@ -73,9 +73,9 @@ VkResult InstanceCreator::run(Context &context) {
 	VkApplicationInfo applicationInfo {
 		/*.sType=*/              VK_STRUCTURE_TYPE_APPLICATION_INFO,
 		/*.pNext=*/              nullptr,
-		/*.pApplicationName=*/   applicationName.c_str(),
+		/*.pApplicationName=*/   applicationName.data(),
 		/*.applicationVersion=*/ VK_MAKE_VERSION(applicationVersion.major, applicationVersion.minor, applicationVersion.patch),
-		/*.pEngineName=*/        engineName.c_str(),
+		/*.pEngineName=*/        engineName.data(),
 		/*.engineVersion=*/      VK_MAKE_VERSION(engineVersion.major, engineVersion.minor, engineVersion.patch),
 		/*.apiVersion=*/         VK_API_VERSION_1_0
 	};
@@ -101,27 +101,13 @@ VkResult InstanceCreator::run(Context &context) {
 		/*.ppEnabledExtensionNames=*/ requestedExtensions.data()
 	};
 
-	std::cout << "requestedLayers.size()=" << requestedLayers.size() << std::endl;
-	for (const auto layer : requestedLayers) {
-		std::cout << "  " << layer << std::endl;
-	}
-	std::cout << "requestedExtensions.size()=" << requestedExtensions.size() << std::endl;
-	for (const auto extension : requestedExtensions) {
-		std::cout << "  " << extension << std::endl;
-	}
-	std::cout << "vkCreateInstance=" << reinterpret_cast<void *>(vkCreateInstance) << std::endl;
-
-	Instance instance{};
-	std::cout << "instance.handle=" << reinterpret_cast<void *>(&instance.handle) << std::endl;
-
-	VkResult err = vkCreateInstance(&instanceCreateInfo, nullptr, &instance.handle);
-	return VK_SUCCESS;
-
+	VkInstance instance{};
+	VkResult err = vkCreateInstance(&instanceCreateInfo, nullptr, &instance);
 	if (err != VK_SUCCESS) {
 		return err;
 	}
 
-	context.instance = std::move(instance);
+	context.instance = instance;
 
 	return VK_SUCCESS;
 }

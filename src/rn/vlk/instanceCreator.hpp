@@ -7,8 +7,6 @@
 
 #include <vulkan/vulkan.h>
 
-#include "instance.hpp"
-
 namespace rn {
 
 namespace vlk {

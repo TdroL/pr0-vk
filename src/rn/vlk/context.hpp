@@ -7,7 +7,6 @@
 #include <GLFW/glfw3.h>
 
 #include "interface.hpp"
-#include "instance.hpp"
 #include "instanceCreator.hpp"
 
 namespace rn {
@@ -16,16 +15,11 @@ namespace vlk {
 
 class Context {
 public:
-	Instance instance{};
+	VkInstance instance{};
 	bool debugAvailable = false;
 
 	void init() {
 		initGLFW();
-
-		auto getInstanceProcAddress = glfwGetInstanceProcAddress(nullptr, "vkGetInstanceProcAddr");
-		if ( ! vk.loadGlobalProcs(getInstanceProcAddress)) {
-			throw std::runtime_error{"Failed to load global Vulkan functions"};
-		}
 
 		initInstance();
 		initDebug();
@@ -39,6 +33,16 @@ public:
 		if (glfwVulkanSupported() != GLFW_TRUE) {
 			throw std::runtime_error{"Vulkan not supported"};
 		}
+
+		auto getInstanceProcAddress = glfwGetInstanceProcAddress(nullptr, "vkGetInstanceProcAddr");
+		if ( ! vk.loadGlobalProcs(getInstanceProcAddress)) {
+			throw std::runtime_error{"Failed to load global Vulkan functions"};
+		}
+	}
+
+	void deinitGLFW() {
+		vk.unloadGlobalProcs();
+		glfwTerminate();
 	}
 
 	void initInstance() {
@@ -53,8 +57,8 @@ public:
 			}
 		}
 
-		if ( ! instanceCreator.addExtension("VK_EXT_DEBUG_REPORT_EXTENSION_NAME")) {
-			std::clog << "Warn: \"VK_EXT_DEBUG_REPORT_EXTENSION_NAME\" not available" << std::endl;
+		if ( ! instanceCreator.addExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME)) {
+			std::clog << "Warn: \"" VK_EXT_DEBUG_REPORT_EXTENSION_NAME "\" not available" << std::endl;
 			debugAvailable = false;
 		} else {
 			debugAvailable = true;
@@ -68,9 +72,20 @@ public:
 		if (result != VK_SUCCESS) {
 			throw std::runtime_error{"Failed to initialize Vulkan instance (" + resultToString(result) + ")"};
 		}
+
+		if ( ! vk.loadInstanceProcs(instance)) {
+			throw std::runtime_error{"Failed to load instance Vulkan functions"};
+		}
+	}
+
+	void deinitInstance() {
+		vk.destoyHandle(instance);
+		vk.unloadInstanceProcs();
 	}
 
 	void initDebug() {}
+
+	void deinitDebug() {}
 
 	std::string resultToString(VkResult result) {
 		switch (result) {
@@ -102,7 +117,9 @@ public:
 	}
 
 	~Context() {
-		glfwTerminate();
+		deinitDebug();
+		deinitInstance();
+		deinitGLFW();
 	}
 
 	// VkInstance instance = VK_NULL_HANDLE;

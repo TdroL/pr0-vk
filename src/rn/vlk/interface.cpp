@@ -1,24 +1,21 @@
 #include "interface.hpp"
 #include <cassert>
+#include <iostream>
 
 namespace rn {
 
 namespace vlk {
 
-bool Interface::loadGlobalProcs(void (*GetInstanceProcAddr)()) {
-	this->GetInstanceProcAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(GetInstanceProcAddr);
 
-	#define LOAD_GLOBAL_PROC(X) do { getGlobalProc(X, "vk"#X); assert(X); if (X == nullptr) { return false; } } while (0)
-	#define LOAD_OPT_GLOBAL_PROC(X) do { getGlobalProc(X, "vk"#X); } while (0)
+void Interface::unloadGlobalProcs() {
+	#define UNLOAD_GLOBAL_PROC(X) X = nullptr
 
-	LOAD_GLOBAL_PROC(CreateInstance);
-	LOAD_GLOBAL_PROC(EnumerateInstanceExtensionProperties);
-	LOAD_GLOBAL_PROC(EnumerateInstanceLayerProperties);
+	UNLOAD_GLOBAL_PROC(GetInstanceProcAddr);
+	UNLOAD_GLOBAL_PROC(CreateInstance);
+	UNLOAD_GLOBAL_PROC(EnumerateInstanceExtensionProperties);
+	UNLOAD_GLOBAL_PROC(EnumerateInstanceLayerProperties);
 
-	#undef LOAD_GLOBAL_PROC
-	#undef LOAD_OPT_GLOBAL_PROC
-
-	return true;
+	#undef UNLOAD_GLOBAL_PROC
 }
 
 void Interface::unloadInstanceProcs() {
@@ -196,14 +193,27 @@ void Interface::unloadDeviceProcs() {
 	#undef UNLOAD_DEVICE_PROC
 }
 
-bool Interface::loadInstanceProcs(VkInstance instance) {
-	if (currentInstance != VK_NULL_HANDLE && currentInstance != instance) {
-		unloadInstanceProcs();
-	}
+bool Interface::loadGlobalProcs(void (*GetInstanceProcAddr)()) {
+	this->GetInstanceProcAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(GetInstanceProcAddr);
 
+	#define LOAD_GLOBAL_PROC(X) do { getGlobalProc(X, "vk"#X); assert(X); if (X == nullptr) { return false; } } while (0)
+	#define LOAD_OPT_GLOBAL_PROC(X) do { getGlobalProc(X, "vk"#X); } while (0)
+
+	LOAD_GLOBAL_PROC(CreateInstance);
+	LOAD_GLOBAL_PROC(EnumerateInstanceExtensionProperties);
+	LOAD_GLOBAL_PROC(EnumerateInstanceLayerProperties);
+
+	#undef LOAD_GLOBAL_PROC
+	#undef LOAD_OPT_GLOBAL_PROC
+
+	return true;
+}
+
+
+bool Interface::loadInstanceProcs(VkInstance instance) {
 	currentInstance = instance;
 
-	#define LOAD_INSTANCE_PROC(X) do { getInstanceProc(instance, X, "vk"#X); assert(X); if (X == nullptr) { return false; } } while (0)
+	#define LOAD_INSTANCE_PROC(X) do { getInstanceProc(instance, X, "vk"#X); assert(X); if (X == nullptr) { unloadInstanceProcs(); return false; } } while (0)
 	#define LOAD_OPT_INSTANCE_PROC(X) do { getInstanceProc(instance, X, "vk"#X); } while (0)
 
 	LOAD_INSTANCE_PROC(CreateDevice);
@@ -294,13 +304,9 @@ bool Interface::loadInstanceProcs(VkInstance instance) {
 }
 
 bool Interface::loadDeviceProcs(VkDevice device) {
-	if (currentDevice != VK_NULL_HANDLE && currentDevice != device) {
-		unloadDeviceProcs();
-	}
-
 	currentDevice = device;
 
-	#define LOAD_DEVICE_PROC(X) do { getDeviceProc(device, X, "vk"#X); assert(X); if (X == nullptr) { return false; } } while (0)
+	#define LOAD_DEVICE_PROC(X) do { getDeviceProc(device, X, "vk"#X); assert(X); if (X == nullptr) { unloadDeviceProcs(); return false; } } while (0)
 	#define LOAD_OPT_DEVICE_PROC(X) do { getDeviceProc(device, X, "vk"#X); } while (0)
 
 	LOAD_DEVICE_PROC(DestroyDevice);
@@ -386,6 +392,236 @@ bool Interface::loadDeviceProcs(VkDevice device) {
 
 	return true;
 }
+
+void Interface::destoyHandle(VkInstance &handle) {
+	if (handle != VK_NULL_HANDLE) {
+		if (DestroyInstance != nullptr) {
+			DestroyInstance(handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+void Interface::destoyHandle(VkDevice &handle) {
+	if (handle != VK_NULL_HANDLE) {
+		if (DestroyDevice != nullptr) {
+			DestroyDevice(handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkInstance instance, VkSurfaceKHR &handle) {
+	if (instance != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroySurfaceKHR != nullptr) {
+			DestroySurfaceKHR(instance, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkInstance instance, VkDebugReportCallbackEXT &handle) {
+	if (instance != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroyDebugReportCallbackEXT != nullptr) {
+			DestroyDebugReportCallbackEXT(instance, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkDevice device, VkFence &handle) {
+	if (device != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroyFence != nullptr) {
+			DestroyFence(device, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkDevice device, VkSemaphore &handle) {
+	if (device != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroySemaphore != nullptr) {
+			DestroySemaphore(device, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkDevice device, VkEvent &handle) {
+	if (device != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroyEvent != nullptr) {
+			DestroyEvent(device, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkDevice device, VkQueryPool &handle) {
+	if (device != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroyQueryPool != nullptr) {
+			DestroyQueryPool(device, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkDevice device, VkBuffer &handle) {
+	if (device != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroyBuffer != nullptr) {
+			DestroyBuffer(device, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkDevice device, VkBufferView &handle) {
+	if (device != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroyBufferView != nullptr) {
+			DestroyBufferView(device, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkDevice device, VkImage &handle) {
+	if (device != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroyImage != nullptr) {
+			DestroyImage(device, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkDevice device, VkImageView &handle) {
+	if (device != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroyImageView != nullptr) {
+			DestroyImageView(device, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkDevice device, VkShaderModule &handle) {
+	if (device != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroyShaderModule != nullptr) {
+			DestroyShaderModule(device, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkDevice device, VkPipelineCache &handle) {
+	if (device != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroyPipelineCache != nullptr) {
+			DestroyPipelineCache(device, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkDevice device, VkPipeline &handle) {
+	if (device != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroyPipeline != nullptr) {
+			DestroyPipeline(device, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkDevice device, VkPipelineLayout &handle) {
+	if (device != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroyPipelineLayout != nullptr) {
+			DestroyPipelineLayout(device, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkDevice device, VkSampler &handle) {
+	if (device != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroySampler != nullptr) {
+			DestroySampler(device, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkDevice device, VkDescriptorSetLayout &handle) {
+	if (device != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroyDescriptorSetLayout != nullptr) {
+			DestroyDescriptorSetLayout(device, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkDevice device, VkDescriptorPool &handle) {
+	if (device != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroyDescriptorPool != nullptr) {
+			DestroyDescriptorPool(device, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkDevice device, VkFramebuffer &handle) {
+	if (device != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroyFramebuffer != nullptr) {
+			DestroyFramebuffer(device, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkDevice device, VkRenderPass &handle) {
+	if (device != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroyRenderPass != nullptr) {
+			DestroyRenderPass(device, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkDevice device, VkCommandPool &handle) {
+	if (device != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroyCommandPool != nullptr) {
+			DestroyCommandPool(device, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
+void Interface::destoyHandle(VkDevice device, VkSwapchainKHR &handle) {
+	if (device != VK_NULL_HANDLE && handle != VK_NULL_HANDLE) {
+		if (DestroySwapchainKHR != nullptr) {
+			DestroySwapchainKHR(device, handle, nullptr);
+		}
+
+		handle = VK_NULL_HANDLE;
+	}
+}
+
 
 Interface vk{};
 

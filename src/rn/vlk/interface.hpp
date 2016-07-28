@@ -212,12 +212,37 @@ public:
 		func = reinterpret_cast<T>(this->GetDeviceProcAddr(device, name));
 	}
 
+	void unloadGlobalProcs();
 	void unloadInstanceProcs();
 	void unloadDeviceProcs();
 
 	bool loadGlobalProcs(void (*GetInstanceProcAddr)());
 	bool loadInstanceProcs(VkInstance instance);
 	bool loadDeviceProcs(VkDevice device);
+
+	void destoyHandle(VkInstance &handle);
+	void destoyHandle(VkDevice &handle);
+	void destoyHandle(VkInstance instance, VkSurfaceKHR &handle);
+	void destoyHandle(VkInstance instance, VkDebugReportCallbackEXT &handle);
+	void destoyHandle(VkDevice device, VkFence &handle);
+	void destoyHandle(VkDevice device, VkSemaphore &handle);
+	void destoyHandle(VkDevice device, VkEvent &handle);
+	void destoyHandle(VkDevice device, VkQueryPool &handle);
+	void destoyHandle(VkDevice device, VkBuffer &handle);
+	void destoyHandle(VkDevice device, VkBufferView &handle);
+	void destoyHandle(VkDevice device, VkImage &handle);
+	void destoyHandle(VkDevice device, VkImageView &handle);
+	void destoyHandle(VkDevice device, VkShaderModule &handle);
+	void destoyHandle(VkDevice device, VkPipelineCache &handle);
+	void destoyHandle(VkDevice device, VkPipeline &handle);
+	void destoyHandle(VkDevice device, VkPipelineLayout &handle);
+	void destoyHandle(VkDevice device, VkSampler &handle);
+	void destoyHandle(VkDevice device, VkDescriptorSetLayout &handle);
+	void destoyHandle(VkDevice device, VkDescriptorPool &handle);
+	void destoyHandle(VkDevice device, VkFramebuffer &handle);
+	void destoyHandle(VkDevice device, VkRenderPass &handle);
+	void destoyHandle(VkDevice device, VkCommandPool &handle);
+	void destoyHandle(VkDevice device, VkSwapchainKHR &handle);
 };
 
 extern Interface vk;
