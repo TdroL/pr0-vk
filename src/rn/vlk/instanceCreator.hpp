@@ -15,6 +15,8 @@ class Context;
 
 class InstanceCreator {
 public:
+	Context &context;
+
 	struct Version {
 		uint32_t major = 0;
 		uint32_t minor = 0;
@@ -45,13 +47,16 @@ public:
 	std::string engineName = "ngn";
 	Version engineVersion = {0, 0, 0};
 
-	InstanceCreator();
+	InstanceCreator(Context &context)
+		: context(context) {}
+
+	void preloadData();
 
 	bool addLayer(const std::string &layer);
 
 	bool addExtension(const std::string &extension);
 
-	VkResult run(Context &context);
+	VkResult init();
 };
 
 } // vlk

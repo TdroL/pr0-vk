@@ -7,7 +7,7 @@ namespace rn {
 
 namespace vlk {
 
-InstanceCreator::InstanceCreator() {
+void InstanceCreator::loadAvailableLayersAndExtensions() {
 	VkResult err;
 
 	// load available instance layers
@@ -69,8 +69,8 @@ bool InstanceCreator::addExtension(const std::string &extension) {
 	return true;
 }
 
-VkResult InstanceCreator::run(Context &context) {
-	VkApplicationInfo applicationInfo {
+void InstanceCreator::init() {
+	vk::ApplicationInfo applicationInfo {
 		/*.sType=*/              VK_STRUCTURE_TYPE_APPLICATION_INFO,
 		/*.pNext=*/              nullptr,
 		/*.pApplicationName=*/   applicationName.data(),
@@ -80,17 +80,17 @@ VkResult InstanceCreator::run(Context &context) {
 		/*.apiVersion=*/         VK_API_VERSION_1_0
 	};
 
+	auto getRawData = [] (const std::string &value) {
+		return value.data();
+	};
+
 	std::vector<const char *> requestedLayers(layers.size());
-	std::transform(std::begin(layers), std::end(layers), std::begin(requestedLayers), [] (const std::string &layer) {
-		return layer.data();
-	});
+	std::transform(std::begin(layers), std::end(layers), std::begin(requestedLayers), getRawData);
 
 	std::vector<const char *> requestedExtensions(extensions.size());
-	std::transform(std::begin(extensions), std::end(extensions), std::begin(requestedExtensions), [] (const std::string &extension) {
-		return extension.data();
-	});
+	std::transform(std::begin(extensions), std::end(extensions), std::begin(requestedExtensions), getRawData);
 
-	VkInstanceCreateInfo instanceCreateInfo {
+	vk::InstanceCreateInfo instanceCreateInfo {
 		/*.sType=*/                   VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
 		/*.pNext=*/                   nullptr,
 		/*.flags=*/                   0,
@@ -101,15 +101,7 @@ VkResult InstanceCreator::run(Context &context) {
 		/*.ppEnabledExtensionNames=*/ requestedExtensions.data()
 	};
 
-	VkInstance instance{};
-	VkResult err = vkCreateInstance(&instanceCreateInfo, nullptr, &instance);
-	if (err != VK_SUCCESS) {
-		return err;
-	}
-
-	context.instance = instance;
-
-	return VK_SUCCESS;
+	context.instance = vk::createInstance(instanceCreateInfo);
 }
 
 } // vlk

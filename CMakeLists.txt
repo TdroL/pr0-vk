@@ -23,12 +23,14 @@ list(REMOVE_DUPLICATES INCLUDE_DIRS)
 include_directories(${INCLUDE_DIRS})
 
 # Vulkan
-add_definitions(-DVK_NO_PROTOTYPES)
-include_directories("$ENV{VK_SDK_PATH}/Include")
-# link_directories("$ENV{VK_SDK_PATH}/Source/lib")
-# find_library(VULKAN_1_LIB NAMES vulkan-1)
-# message(STATUS "VULKAN: ${VULKAN_1_LIB}")
-# set(LIBS ${LIBS} ${VULKAN_1_LIB})
+include_directories($ENV{VK_SDK_PATH}/Include)
+link_directories($ENV{VK_SDK_PATH}/Source/lib)
+find_library(VULKAN_1_LIB NAMES vulkan-1)
+message(STATUS "VULKAN: ${VULKAN_1_LIB}")
+set(LIBS ${LIBS} ${VULKAN_1_LIB})
+
+# Vulkan.hpp
+include_directories(${CMAKE_SOURCE_DIR}/external/vulkan-hpp)
 
 # GLM
 include_directories(${CMAKE_SOURCE_DIR}/external/glm)

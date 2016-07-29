@@ -11,7 +11,7 @@ namespace rn {
 
 namespace vlk {
 
-class DeviceInit {
+class DeviceCreator {
 public:
 	std::vector<const char *> desiredDeviceExtensions{
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME
