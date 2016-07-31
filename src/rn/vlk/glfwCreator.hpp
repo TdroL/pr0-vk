@@ -10,9 +10,14 @@ namespace rn {
 
 namespace vlk {
 
+class Context;
+
 class GLFWCreator {
 public:
-	void init(Context &context) {
+	Context &context;
+	GLFWCreator(Context &context) : context(context) {}
+
+	void init() {
 		if (glfwInit() != GLFW_TRUE) {
 			throw std::runtime_error{"Failed to initialize GLFW"};
 		}
@@ -35,7 +40,7 @@ public:
 		// return extensionVector;
 	}
 
-	void deinit(Context &context) {
+	void deinit() {
 		glfwTerminate();
 	}
 };

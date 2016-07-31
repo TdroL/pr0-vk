@@ -57,7 +57,7 @@ public:
 			debugAvailable = false;
 		}
 
-		if ( ! creators.instance.addLayer("VK_LAYER_LUNARG_standard_validation")) {
+		if (debugAvailable && ! creators.instance.addLayer("VK_LAYER_LUNARG_standard_validation")) {
 			std::clog << "Warn: \"VK_LAYER_LUNARG_standard_validation\" not available" << std::endl;
 		}
 
@@ -65,7 +65,7 @@ public:
 	}
 
 	void deinitInstance() {
-		creators.instance.deinit();
+		// creators.instance.deinit();
 	}
 
 	void initDebug() {}

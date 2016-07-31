@@ -70,15 +70,12 @@ bool InstanceCreator::addExtension(const std::string &extension) {
 }
 
 void InstanceCreator::init() {
-	vk::ApplicationInfo applicationInfo {
-		/*.sType=*/              VK_STRUCTURE_TYPE_APPLICATION_INFO,
-		/*.pNext=*/              nullptr,
-		/*.pApplicationName=*/   applicationName.data(),
-		/*.applicationVersion=*/ VK_MAKE_VERSION(applicationVersion.major, applicationVersion.minor, applicationVersion.patch),
-		/*.pEngineName=*/        engineName.data(),
-		/*.engineVersion=*/      VK_MAKE_VERSION(engineVersion.major, engineVersion.minor, engineVersion.patch),
-		/*.apiVersion=*/         VK_API_VERSION_1_0
-	};
+	vk::ApplicationInfo applicationInfo{};
+	applicationInfo.pApplicationName   = applicationName.data();
+	applicationInfo.applicationVersion = VK_MAKE_VERSION(applicationVersion.major, applicationVersion.minor, applicationVersion.patch);
+	applicationInfo.pEngineName        = engineName.data();
+	applicationInfo.engineVersion      = VK_MAKE_VERSION(engineVersion.major, engineVersion.minor, engineVersion.patch);
+	applicationInfo.apiVersion         = VK_API_VERSION_1_0;
 
 	auto getRawData = [] (const std::string &value) {
 		return value.data();
@@ -90,16 +87,12 @@ void InstanceCreator::init() {
 	std::vector<const char *> requestedExtensions(extensions.size());
 	std::transform(std::begin(extensions), std::end(extensions), std::begin(requestedExtensions), getRawData);
 
-	vk::InstanceCreateInfo instanceCreateInfo {
-		/*.sType=*/                   VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-		/*.pNext=*/                   nullptr,
-		/*.flags=*/                   0,
-		/*.pApplicationInfo=*/        &applicationInfo,
-		/*.enabledLayerCount=*/       static_cast<uint32_t>(requestedLayers.size()),
-		/*.ppEnabledLayerNames=*/     requestedLayers.data(),
-		/*.enabledExtensionCount=*/   static_cast<uint32_t>(requestedExtensions.size()),
-		/*.ppEnabledExtensionNames=*/ requestedExtensions.data()
-	};
+	vk::InstanceCreateInfo instanceCreateInfo{};
+	instanceCreateInfo.pApplicationInfo        = &applicationInfo;
+	instanceCreateInfo.enabledLayerCount       = static_cast<uint32_t>(requestedLayers.size());
+	instanceCreateInfo.ppEnabledLayerNames     = requestedLayers.data();
+	instanceCreateInfo.enabledExtensionCount   = static_cast<uint32_t>(requestedExtensions.size());
+	instanceCreateInfo.ppEnabledExtensionNames = requestedExtensions.data();
 
 	context.instance = vk::createInstance(instanceCreateInfo);
 }

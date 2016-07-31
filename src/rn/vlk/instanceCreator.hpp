@@ -47,16 +47,15 @@ public:
 	std::string engineName = "ngn";
 	Version engineVersion = {0, 0, 0};
 
-	InstanceCreator(Context &context)
-		: context(context) {}
+	InstanceCreator(Context &context) : context(context) {}
 
-	void preloadData();
+	void loadAvailableLayersAndExtensions();
 
 	bool addLayer(const std::string &layer);
 
 	bool addExtension(const std::string &extension);
 
-	VkResult init();
+	void init();
 };
 
 } // vlk

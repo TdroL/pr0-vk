@@ -1,5 +1,3 @@
-#include <vulkan/vulkan.h>
-#include <GLFW/glfw3.h>
 #include <algorithm>
 #include <chrono>
 #include <cassert>
@@ -13,9 +11,6 @@
 #include <functional>
 #include <stdexcept>
 
-// #include "Vulkan.hpp"
-
-#include "rn/vlk/interface.hpp"
 #include "rn/vlk/context.hpp"
 
 int windowWidth = 1600;
