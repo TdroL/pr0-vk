@@ -7,6 +7,7 @@
 
 #include "glfwCreator.hpp"
 #include "instanceCreator.hpp"
+#include "debugCreator.hpp"
 
 namespace rn {
 
@@ -15,7 +16,6 @@ namespace vlk {
 class Context {
 public:
 	vk::Instance instance{};
-	bool debugAvailable = false;
 
 	struct Creators {
 		Context &context;
@@ -23,13 +23,46 @@ public:
 
 		GLFWCreator glfw{context};
 		InstanceCreator instance{context};
+		DebugCreator debug{context};
 	} creators{*this};
 
 	void init() {
 		initGLFW();
-
 		initInstance();
 		initDebug();
+	}
+
+	void deinit() {
+		deinitDebug();
+		deinitInstance();
+		deinitGLFW();
+	}
+
+	void appendGLFWExtensionsAndLayers() {
+		std::vector<std::string> glfwExtensions = creators.glfw.getRequiredInstanceExtensions();
+		for (const std::string &extension : glfwExtensions) {
+			if ( ! creators.instance.addExtension(extension)) {
+				throw std::runtime_error{"Required GLFW extension \"" + extension + "\" is not available"};
+			}
+		}
+	}
+
+	void appendDebugExtensionsAndLayers() {
+		creators.debug.isAvailable = true;
+
+		for (const auto &extension : creators.debug.requiredExtensions) {
+			if ( ! creators.instance.addExtension(extension)) {
+				std::clog << "Warn: required debug extension \"" << extension << "\" not available, debugging disabled" << std::endl;
+				creators.debug.isAvailable = false;
+				return;
+			}
+		}
+
+		for (const auto &layer : creators.debug.optionalLayers) {
+			if ( ! creators.instance.addLayer(layer)) {
+				std::clog << "Warn: optional debug layer \"" << layer << "\" not available, debugging info might be limited" << std::endl;
+			}
+		}
 	}
 
 	void initGLFW() {
@@ -44,48 +77,28 @@ public:
 		creators.instance.applicationName = "pr0-vk";
 
 		creators.instance.loadAvailableLayersAndExtensions();
-		std::vector<std::string> glfwExtensions = creators.glfw.getRequiredInstanceExtensions();
-		for (const std::string &extension : glfwExtensions) {
-			if ( ! creators.instance.addExtension(extension)) {
-				throw std::runtime_error{"Required GLFW extension \"" + extension + "\" is not available"};
-			}
-		}
 
-		debugAvailable = true;
-		if ( ! creators.instance.addExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME)) {
-			std::clog << "Warn: \"" VK_EXT_DEBUG_REPORT_EXTENSION_NAME "\" not available" << std::endl;
-			debugAvailable = false;
-		}
-
-		if (debugAvailable && ! creators.instance.addLayer("VK_LAYER_LUNARG_standard_validation")) {
-			std::clog << "Warn: \"VK_LAYER_LUNARG_standard_validation\" not available" << std::endl;
-		}
+		appendGLFWExtensionsAndLayers();
+		appendDebugExtensionsAndLayers();
 
 		creators.instance.init();
 	}
 
 	void deinitInstance() {
-		// creators.instance.deinit();
+		creators.instance.deinit();
 	}
 
-	void initDebug() {}
+	void initDebug() {
+		creators.debug.init();
+	}
 
-	void deinitDebug() {}
+	void deinitDebug() {
+		creators.debug.deinit();
+	}
 
 	~Context() {
-		deinitDebug();
-		deinitInstance();
-		deinitGLFW();
+		deinit();
 	}
-
-	// VkInstance instance = VK_NULL_HANDLE;
-
-	// VkDevice device = VK_NULL_HANDLE;
-
-	// VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-	// VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties{};
-
-	// VkDebugReportCallbackEXT debugReportCallback = VK_NULL_HANDLE;
 };
 
 } // vlk

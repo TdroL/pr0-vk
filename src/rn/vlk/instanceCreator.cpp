@@ -1,6 +1,7 @@
 #include "instanceCreator.hpp"
 #include "context.hpp"
 
+#include <algorithm>
 #include <iostream>
 
 namespace rn {
@@ -8,41 +9,19 @@ namespace rn {
 namespace vlk {
 
 void InstanceCreator::loadAvailableLayersAndExtensions() {
-	VkResult err;
-
 	// load available instance layers
-	availableLayers.empty();
-	std::vector<VkLayerProperties> layerProperties{};
-	uint32_t layerPropertiesCount = 0;
-	err = vkEnumerateInstanceLayerProperties(&layerPropertiesCount, nullptr);
-	if (err == VK_SUCCESS) {
-		layerProperties.resize(layerPropertiesCount);
-
-		err = vkEnumerateInstanceLayerProperties(&layerPropertiesCount, layerProperties.data());
-		if (err == VK_SUCCESS) {
-			availableLayers.resize(layerProperties.size());
-			std::transform(std::begin(layerProperties), std::end(layerProperties), std::begin(availableLayers), [] (const VkLayerProperties &properties) {
-				return std::string{properties.layerName};
-			});
-		}
-	}
+	std::vector<vk::LayerProperties> layerProperties = vk::enumerateInstanceLayerProperties();
+	availableLayers.resize(layerProperties.size());
+	std::transform(std::begin(layerProperties), std::end(layerProperties), std::begin(availableLayers), [] (const vk::LayerProperties &properties) {
+		return std::string{properties.layerName};
+	});
 
 	// load available instance extensions
-	availableExtensions.empty();
-	std::vector<VkExtensionProperties> extensionProperties{};
-	uint32_t extensionPropertiesCount = 0;
-	err = vkEnumerateInstanceExtensionProperties(nullptr, &extensionPropertiesCount, nullptr);
-	if (err == VK_SUCCESS) {
-		extensionProperties.resize(extensionPropertiesCount);
-
-		err = vkEnumerateInstanceExtensionProperties(nullptr, &extensionPropertiesCount, extensionProperties.data());
-		if (err == VK_SUCCESS) {
-			availableExtensions.resize(extensionProperties.size());
-			std::transform(std::begin(extensionProperties), std::end(extensionProperties), std::begin(availableExtensions), [] (const VkExtensionProperties &properties) {
-				return std::string{properties.extensionName};
-			});
-		}
-	}
+	std::vector<vk::ExtensionProperties> extensionProperties = vk::enumerateInstanceExtensionProperties();
+	availableExtensions.resize(extensionProperties.size());
+	std::transform(std::begin(extensionProperties), std::end(extensionProperties), std::begin(availableExtensions), [] (const vk::ExtensionProperties &properties) {
+		return std::string{properties.extensionName};
+	});
 }
 
 bool InstanceCreator::addLayer(const std::string &layer) {
@@ -95,6 +74,11 @@ void InstanceCreator::init() {
 	instanceCreateInfo.ppEnabledExtensionNames = requestedExtensions.data();
 
 	context.instance = vk::createInstance(instanceCreateInfo);
+}
+
+void InstanceCreator::deinit() {
+	context.instance.destroy();
+	context.instance = VK_NULL_HANDLE;
 }
 
 } // vlk
