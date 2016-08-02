@@ -5,13 +5,15 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "debugCallbackWrapper.hpp"
+
 namespace rn {
 
 namespace vlk {
 
 class Context;
 
-class DebugCreator {
+class DebugCallbackCreator {
 public:
 	Context &context;
 
@@ -25,14 +27,10 @@ public:
 		"VK_LAYER_LUNARG_standard_validation"
 	};
 
-	DebugCreator(Context &context) : context(context) {}
+	DebugCallbackCreator(Context &context) : context(context) {}
 
-	void init() {
-		//
-	}
-
-	void deinit() {
-		//
+	DebugCallbackWrapper create() {
+		return DebugCallbackWrapper{};
 	}
 };
 

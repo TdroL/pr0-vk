@@ -48,7 +48,7 @@ bool InstanceCreator::addExtension(const std::string &extension) {
 	return true;
 }
 
-void InstanceCreator::init() {
+InstanceWrapper InstanceCreator::create() {
 	vk::ApplicationInfo applicationInfo{};
 	applicationInfo.pApplicationName   = applicationName.data();
 	applicationInfo.applicationVersion = VK_MAKE_VERSION(applicationVersion.major, applicationVersion.minor, applicationVersion.patch);
@@ -73,12 +73,7 @@ void InstanceCreator::init() {
 	instanceCreateInfo.enabledExtensionCount   = static_cast<uint32_t>(requestedExtensions.size());
 	instanceCreateInfo.ppEnabledExtensionNames = requestedExtensions.data();
 
-	context.instance = vk::createInstance(instanceCreateInfo);
-}
-
-void InstanceCreator::deinit() {
-	context.instance.destroy();
-	context.instance = VK_NULL_HANDLE;
+	return InstanceWrapper{vk::createInstance(instanceCreateInfo)};
 }
 
 } // vlk

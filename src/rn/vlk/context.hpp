@@ -7,7 +7,7 @@
 
 #include "glfwCreator.hpp"
 #include "instanceCreator.hpp"
-#include "debugCreator.hpp"
+#include "debugCallbackCreator.hpp"
 
 namespace rn {
 
@@ -15,7 +15,14 @@ namespace vlk {
 
 class Context {
 public:
-	vk::Instance instance{};
+	struct Wrappers {
+		GLFWWrapper glfw{};
+		InstanceWrapper instance{};
+		DebugCallbackWrapper debugCallback{};
+	} wrappers{};
+
+	GLFW &glfw = wrappers.glfw.handle;
+	vk::Instance &instance = wrappers.instance.handle;
 
 	struct Creators {
 		Context &context;
@@ -23,81 +30,63 @@ public:
 
 		GLFWCreator glfw{context};
 		InstanceCreator instance{context};
-		DebugCreator debug{context};
+		DebugCallbackCreator debugCallback{context};
 	} creators{*this};
 
 	void init() {
-		initGLFW();
-		initInstance();
-		initDebug();
+		createGLFW();
+		createInstance();
+		createDebugCallback();
 	}
 
-	void deinit() {
-		deinitDebug();
-		deinitInstance();
-		deinitGLFW();
+	void appendExtensionsAndLayers(InstanceCreator &instanceCreator) {
+		appendGLFWExtensionsAndLayers(instanceCreator);
+		appendDebugExtensionsAndLayers(instanceCreator);
 	}
 
-	void appendGLFWExtensionsAndLayers() {
-		std::vector<std::string> glfwExtensions = creators.glfw.getRequiredInstanceExtensions();
+	void appendGLFWExtensionsAndLayers(InstanceCreator &instanceCreator) {
+		std::vector<std::string> glfwExtensions = glfw.getRequiredInstanceExtensions();
 		for (const std::string &extension : glfwExtensions) {
-			if ( ! creators.instance.addExtension(extension)) {
+			if ( ! instanceCreator.addExtension(extension)) {
 				throw std::runtime_error{"Required GLFW extension \"" + extension + "\" is not available"};
 			}
 		}
 	}
 
-	void appendDebugExtensionsAndLayers() {
-		creators.debug.isAvailable = true;
+	void appendDebugExtensionsAndLayers(InstanceCreator &instanceCreator) {
+		creators.debugCallback.isAvailable = true;
 
-		for (const auto &extension : creators.debug.requiredExtensions) {
-			if ( ! creators.instance.addExtension(extension)) {
+		for (const auto &extension : creators.debugCallback.requiredExtensions) {
+			if ( ! instanceCreator.addExtension(extension)) {
 				std::clog << "Warn: required debug extension \"" << extension << "\" not available, debugging disabled" << std::endl;
-				creators.debug.isAvailable = false;
+				creators.debugCallback.isAvailable = false;
 				return;
 			}
 		}
 
-		for (const auto &layer : creators.debug.optionalLayers) {
-			if ( ! creators.instance.addLayer(layer)) {
+		for (const auto &layer : creators.debugCallback.optionalLayers) {
+			if ( ! instanceCreator.addLayer(layer)) {
 				std::clog << "Warn: optional debug layer \"" << layer << "\" not available, debugging info might be limited" << std::endl;
 			}
 		}
 	}
 
-	void initGLFW() {
-		creators.glfw.init();
+	void createGLFW() {
+		wrappers.glfw = creators.glfw.create();
 	}
 
-	void deinitGLFW() {
-		creators.glfw.deinit();
-	}
-
-	void initInstance() {
+	void createInstance() {
 		creators.instance.applicationName = "pr0-vk";
 
 		creators.instance.loadAvailableLayersAndExtensions();
 
-		appendGLFWExtensionsAndLayers();
-		appendDebugExtensionsAndLayers();
+		appendExtensionsAndLayers(creators.instance);
 
-		creators.instance.init();
+		wrappers.instance = creators.instance.create();
 	}
 
-	void deinitInstance() {
-		creators.instance.deinit();
-	}
-
-	void initDebug() {
-		creators.debug.init();
-	}
-
-	void deinitDebug() {
-		creators.debug.deinit();
-	}
-
-	~Context() {
-		deinit();
+	void createDebugCallback() {
+		wrappers.debugCallback = creators.debugCallback.create();
 	}
 };
 

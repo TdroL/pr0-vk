@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 
+#include "instanceWrapper.hpp"
+
 namespace rn {
 
 namespace vlk {
@@ -38,8 +40,7 @@ public:
 
 	bool addExtension(const std::string &extension);
 
-	void init();
-	void deinit();
+	InstanceWrapper create();
 };
 
 } // vlk

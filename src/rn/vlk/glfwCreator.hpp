@@ -4,7 +4,7 @@
 #include <string>
 #include <GLFW/glfw3.h>
 
-#include "context.hpp"
+#include "glfwWrapper.hpp"
 
 namespace rn {
 
@@ -17,31 +17,18 @@ public:
 	Context &context;
 	GLFWCreator(Context &context) : context(context) {}
 
-	void init() {
+	GLFWWrapper create() {
 		if (glfwInit() != GLFW_TRUE) {
 			throw std::runtime_error{"Failed to initialize GLFW"};
 		}
 
+		GLFWWrapper glfw{GLFW{true}};
+
 		if (glfwVulkanSupported() != GLFW_TRUE) {
 			throw std::runtime_error{"Vulkan not supported"};
 		}
-	}
 
-	std::vector<std::string> getRequiredInstanceExtensions() {
-		uint32_t count;
-		const char **extensions = glfwGetRequiredInstanceExtensions(&count);
-
-		return std::vector<std::string>(extensions, extensions + count);
-		// std::vector<std::string> extensionVector{};
-		// extensionVector.reserve(count);
-		// for (uint32_t i = 0; i < count; ++i) {
-		// 	extensionVector.emplace_back(extensions[i]);
-		// }
-		// return extensionVector;
-	}
-
-	void deinit() {
-		glfwTerminate();
+		return glfw;
 	}
 };
 
