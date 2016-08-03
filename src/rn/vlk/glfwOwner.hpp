@@ -10,32 +10,38 @@ namespace rn {
 
 namespace vlk {
 
-class GLFWWrapper {
+class GLFWOwner {
 public:
 	GLFW handle{};
 
-	GLFWWrapper() = default;
-	explicit GLFWWrapper(GLFW &&glfw)
+	GLFWOwner() = default;
+	explicit GLFWOwner(GLFW &&glfw)
 		: handle{std::move(glfw)} {
 		glfw = GLFW{};
+		if (handle) {
+			std::cout << "creating GLFW" << std::endl;
+		}
 	}
 
-	GLFWWrapper(GLFWWrapper &&rhs)
+	GLFWOwner(GLFWOwner &&rhs)
 		: handle{std::move(rhs.handle)} {
 		rhs.handle = GLFW{};
+		if (handle) {
+			std::cout << "creating GLFW" << std::endl;
+		}
 	}
 
-	GLFWWrapper & operator=(GLFWWrapper &&rhs) {
+	GLFWOwner & operator=(GLFWOwner &&rhs) {
 		handle = std::move(rhs.handle);
 		rhs.handle = GLFW{};
 
 		return *this;
 	}
 
-	GLFWWrapper(const GLFWWrapper &rhs) = delete;
-	GLFWWrapper & operator=(const GLFWWrapper &rhs) = delete;
+	GLFWOwner(const GLFWOwner &rhs) = delete;
+	GLFWOwner & operator=(const GLFWOwner &rhs) = delete;
 
-	~GLFWWrapper() {
+	~GLFWOwner() {
 		if (handle) {
 			std::cout << "destroying GLFW" << std::endl;
 			handle.terminate();

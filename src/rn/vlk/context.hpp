@@ -15,23 +15,20 @@ namespace vlk {
 
 class Context {
 public:
-	struct Wrappers {
-		GLFWWrapper glfw{};
-		InstanceWrapper instance{};
-		DebugCallbackWrapper debugCallback{};
-	} wrappers{};
+	struct Owners {
+		GLFWOwner glfw{};
+		InstanceOwner instance{};
+		DebugCallbackOwner debugCallback{};
+	} owners{};
 
-	GLFW &glfw = wrappers.glfw.handle;
-	vk::Instance &instance = wrappers.instance.handle;
+	GLFW &glfw = owners.glfw.handle;
+	vk::Instance &instance = owners.instance.handle;
 
 	struct Creators {
-		Context &context;
-		Creators(Context &context) : context(context) {}
-
-		GLFWCreator glfw{context};
-		InstanceCreator instance{context};
-		DebugCallbackCreator debugCallback{context};
-	} creators{*this};
+		GLFWCreator glfw{};
+		InstanceCreator instance{};
+		DebugCallbackCreator debugCallback{};
+	} creators{};
 
 	void init() {
 		createGLFW();
@@ -72,7 +69,7 @@ public:
 	}
 
 	void createGLFW() {
-		wrappers.glfw = creators.glfw.create();
+		owners.glfw = creators.glfw.create();
 	}
 
 	void createInstance() {
@@ -82,11 +79,11 @@ public:
 
 		appendExtensionsAndLayers(creators.instance);
 
-		wrappers.instance = creators.instance.create();
+		owners.instance = creators.instance.create();
 	}
 
 	void createDebugCallback() {
-		wrappers.debugCallback = creators.debugCallback.create();
+		owners.debugCallback = creators.debugCallback.create();
 	}
 };
 

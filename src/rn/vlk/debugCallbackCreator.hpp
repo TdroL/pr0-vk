@@ -5,18 +5,14 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include "debugCallbackWrapper.hpp"
+#include "debugCallbackOwner.hpp"
 
 namespace rn {
 
 namespace vlk {
 
-class Context;
-
 class DebugCallbackCreator {
 public:
-	Context &context;
-
 	bool enabled = true;
 	bool isAvailable = false;
 	std::vector<std::string> requiredExtensions {
@@ -27,10 +23,8 @@ public:
 		"VK_LAYER_LUNARG_standard_validation"
 	};
 
-	DebugCallbackCreator(Context &context) : context(context) {}
-
-	DebugCallbackWrapper create() {
-		return DebugCallbackWrapper{};
+	DebugCallbackOwner create() {
+		return DebugCallbackOwner{};
 	}
 };
 

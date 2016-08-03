@@ -23,7 +23,7 @@ public:
 		desiredDeviceExtensions.insert(end(desiredDeviceExtensions), begin(additionalDeviceExtensions), end(additionalDeviceExtensions));
 	}
 
-	VkResult init(Context &context) {
+	VkResult create() {
 		return VK_SUCCESS;
 	}
 };

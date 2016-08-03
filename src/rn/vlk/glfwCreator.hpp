@@ -4,7 +4,7 @@
 #include <string>
 #include <GLFW/glfw3.h>
 
-#include "glfwWrapper.hpp"
+#include "glfwOwner.hpp"
 
 namespace rn {
 
@@ -14,15 +14,12 @@ class Context;
 
 class GLFWCreator {
 public:
-	Context &context;
-	GLFWCreator(Context &context) : context(context) {}
-
-	GLFWWrapper create() {
+	GLFWOwner create() {
 		if (glfwInit() != GLFW_TRUE) {
 			throw std::runtime_error{"Failed to initialize GLFW"};
 		}
 
-		GLFWWrapper glfw{GLFW{true}};
+		GLFWOwner glfw{GLFW{true}};
 
 		if (glfwVulkanSupported() != GLFW_TRUE) {
 			throw std::runtime_error{"Vulkan not supported"};
