@@ -32,10 +32,20 @@ public:
 	}
 
 	GLFWOwner & operator=(GLFWOwner &&rhs) {
+		destroy();
+
 		handle = std::move(rhs.handle);
 		rhs.handle = GLFW{};
 
 		return *this;
+	}
+
+	void destroy() {
+		if (handle) {
+			std::cout << "destroying GLFW" << std::endl;
+			handle.terminate();
+			handle = GLFW{};
+		}
 	}
 
 	GLFWOwner(const GLFWOwner &rhs) = delete;

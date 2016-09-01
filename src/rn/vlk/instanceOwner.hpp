@@ -13,7 +13,7 @@ public:
 
 	InstanceOwner() = default;
 	explicit InstanceOwner(vk::Instance &&instance)
-		: handle{instance} {
+		: handle{std::move(instance)} {
 		instance = vk::Instance{};
 		if (handle) {
 			std::cout << "creating vk::Instance" << std::endl;
@@ -21,7 +21,7 @@ public:
 	}
 
 	InstanceOwner(InstanceOwner &&rhs)
-		: handle{rhs.handle} {
+		: handle{std::move(rhs.handle)} {
 		rhs.handle = vk::Instance{};
 		if (handle) {
 			std::cout << "creating vk::Instance" << std::endl;
@@ -29,20 +29,27 @@ public:
 	}
 
 	InstanceOwner & operator=(InstanceOwner &&rhs) {
-		handle = rhs.handle;
+		destroy();
+
+		handle = std::move(rhs.handle);
 		rhs.handle = vk::Instance{};
 
 		return *this;
+	}
+
+	void destroy() {
+		if (handle) {
+			std::cout << "destroying vk::Instance" << std::endl;
+			handle.destroy();
+			handle = vk::Instance{};
+		}
 	}
 
 	InstanceOwner(const InstanceOwner &rhs) = delete;
 	InstanceOwner & operator=(const InstanceOwner &rhs) = delete;
 
 	~InstanceOwner() {
-		if (handle) {
-			std::cout << "destroying vk::Instance" << std::endl;
-			handle.destroy();
-		}
+		destroy();
 	}
 };
 

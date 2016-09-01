@@ -28,19 +28,26 @@ public:
 	}
 
 	DebugCallbackOwner & operator=(DebugCallbackOwner &&rhs) {
+		destroy();
+
 		handle = std::move(rhs.handle);
 		rhs.handle = vk::DebugReportCallbackEXT{};
 
 		return *this;
 	}
 
+	void destroy() {
+		if (handle) {
+			std::cout << "destroying vk::DebugCallback" << std::endl;
+			handle = vk::DebugReportCallbackEXT{};
+		}
+	}
+
 	DebugCallbackOwner(const DebugCallbackOwner &rhs) = delete;
 	DebugCallbackOwner & operator=(const DebugCallbackOwner &rhs) = delete;
 
 	~DebugCallbackOwner() {
-		if (handle) {
-			std::cout << "destroying vk::DebugCallback" << std::endl;
-		}
+		destroy();
 	}
 };
 
