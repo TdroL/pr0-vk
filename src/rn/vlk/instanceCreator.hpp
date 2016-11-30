@@ -16,23 +16,29 @@ class Context;
 class InstanceCreator {
 public:
 	struct Version {
-		uint32_t major = 0;
-		uint32_t minor = 0;
-		uint32_t patch = 0;
+		uint32_t major;
+		uint32_t minor;
+		uint32_t patch;
 	};
 
 	std::vector<std::string> layers{};
 	std::vector<std::string> extensions{};
 
 	std::vector<std::string> availableLayers{};
+	bool availableLayersLoaded = false;
 	std::vector<std::string> availableExtensions{};
+	bool availableExtensionsLoaded = false;
 
 	std::string applicationName = "Unnamed application";
 	Version applicationVersion = {0, 0, 0};
 	std::string engineName = "ngn";
 	Version engineVersion = {0, 0, 0};
 
-	void loadAvailableLayersAndExtensions() {
+	void initAvailableLayers() {
+		if (availableLayersLoaded) {
+			return;
+		}
+
 		// load available instance layers
 		std::vector<vk::LayerProperties> layerProperties = vk::enumerateInstanceLayerProperties();
 		availableLayers.resize(layerProperties.size());
@@ -40,16 +46,37 @@ public:
 			return std::string{properties.layerName};
 		});
 
+		availableLayersLoaded = true;
+	}
+	void initAvailableExtensions() {
+		if (availableExtensionsLoaded) {
+			return;
+		}
+
 		// load available instance extensions
 		std::vector<vk::ExtensionProperties> extensionProperties = vk::enumerateInstanceExtensionProperties();
 		availableExtensions.resize(extensionProperties.size());
 		std::transform(std::begin(extensionProperties), std::end(extensionProperties), std::begin(availableExtensions), [] (const vk::ExtensionProperties &properties) {
 			return std::string{properties.extensionName};
 		});
+
+		availableExtensionsLoaded = true;
 	}
 
-	bool addLayer(const std::string &layer) {
-		if (std::find(std::begin(availableLayers), std::end(availableLayers), layer) == std::end(availableLayers)) {
+	bool validateLayer(const std::string &layer) {
+		initAvailableLayers();
+
+		return std::find(std::begin(availableLayers), std::end(availableLayers), layer) != std::end(availableLayers);
+	}
+
+	bool validateExtension(const std::string &extension) {
+		initAvailableExtensions();
+
+		return std::find(std::begin(availableExtensions), std::end(availableExtensions), extension) != std::end(availableExtensions);
+	}
+
+	bool appendLayer(const std::string &layer) {
+		if ( ! validateLayer(layer)) {
 			return false;
 		}
 
@@ -60,8 +87,8 @@ public:
 		return true;
 	}
 
-	bool addExtension(const std::string &extension) {
-		if (std::find(std::begin(availableExtensions), std::end(availableExtensions), extension) == std::end(availableExtensions)) {
+	bool appendExtension(const std::string &extension) {
+		if ( ! validateExtension(extension)) {
 			return false;
 		}
 

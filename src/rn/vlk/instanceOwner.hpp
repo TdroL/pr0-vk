@@ -3,9 +3,17 @@
 #include <iostream>
 #include <vulkan/vulkan.hpp>
 
+#include "../../ngn/event.hpp"
+
 namespace rn {
 
 namespace vlk {
+
+NGN_EVENT(EventInstanceDestroy) {
+	const vk::Instance &instance;
+
+	explicit EventInstanceDestroy(const vk::Instance &instance) : instance(instance) {}
+};
 
 class InstanceOwner {
 public:
@@ -40,6 +48,8 @@ public:
 	void destroy() {
 		if (handle) {
 			std::cout << "destroying vk::Instance" << std::endl;
+			ngn::event::emit(EventInstanceDestroy{handle});
+
 			handle.destroy();
 			handle = vk::Instance{};
 		}

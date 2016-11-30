@@ -10,27 +10,23 @@ namespace vlk {
 class DebugCallbackOwner {
 public:
 	vk::DebugReportCallbackEXT handle{};
+	vk::Instance instance{};
 
 	DebugCallbackOwner() = default;
-	explicit DebugCallbackOwner(vk::DebugReportCallbackEXT &&debugCallback)
-		: handle{std::move(debugCallback)} {
+	explicit DebugCallbackOwner(const vk::Instance &instance, vk::DebugReportCallbackEXT &&debugCallback)
+		: handle{std::move(debugCallback)}, instance{instance} {
 		debugCallback = vk::DebugReportCallbackEXT{};
-		if (handle) {
-			std::cout << "creating vk::DebugCallback" << std::endl;
-		}
 	}
 	DebugCallbackOwner(DebugCallbackOwner &&rhs)
-		: handle{std::move(rhs.handle)} {
+		: handle{std::move(rhs.handle)}, instance{rhs.instance} {
 		rhs.handle = vk::DebugReportCallbackEXT{};
-		if (handle) {
-			std::cout << "creating vk::DebugCallback" << std::endl;
-		}
 	}
 
 	DebugCallbackOwner & operator=(DebugCallbackOwner &&rhs) {
 		destroy();
 
 		handle = std::move(rhs.handle);
+		instance = rhs.instance;
 		rhs.handle = vk::DebugReportCallbackEXT{};
 
 		return *this;
@@ -38,7 +34,7 @@ public:
 
 	void destroy() {
 		if (handle) {
-			std::cout << "destroying vk::DebugCallback" << std::endl;
+			instance.destroyDebugReportCallbackEXT(handle);
 			handle = vk::DebugReportCallbackEXT{};
 		}
 	}

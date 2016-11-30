@@ -4,11 +4,28 @@ set(NAME pr0-vk)
 
 project(${NAME})
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR
-	"${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-	add_definitions("-Wall -Wextra -Wfatal-errors -std=c++14 -m64")
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
-endif()
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake/Modules")
+
+if (NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE "Debug")
+endif ()
+
+# if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR
+# 	"${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if (CMAKE_COMPILER_IS_GNUCXX)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wfatal-errors -std=c++17 -m64 -pthread")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g -Og -Weffc++ -Winvalid-pch")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O3 -funroll-loops -msse2")
+
+	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -m64 -static" )
+	set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -m64 -static" )
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -m64 -static" )
+elseif (CMAKE_CL_64)
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+else ()
+	message(FATAL_ERROR "Unsupported compiler ${CMAKE_CXX_COMPILER_ID}")
+endif ()
 
 # Project files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
@@ -22,24 +39,28 @@ endforeach()
 list(REMOVE_DUPLICATES INCLUDE_DIRS)
 include_directories(${INCLUDE_DIRS})
 
-# Vulkan
-include_directories($ENV{VK_SDK_PATH}/Include)
-link_directories($ENV{VK_SDK_PATH}/Source/lib)
-find_library(VULKAN_1_LIB NAMES vulkan-1)
-message(STATUS "VULKAN: ${VULKAN_1_LIB}")
-set(LIBS ${LIBS} ${VULKAN_1_LIB})
+# GLFW
+find_package(GLFW REQUIRED)
+include_directories(${GLFW_INCLUDE_DIR})
+list(APPEND LIBS ${GLFW_LIBRARY})
 
-# Vulkan.hpp
-include_directories(${CMAKE_SOURCE_DIR}/external/vulkan-hpp)
+# Vulkan
+find_package(Vulkan REQUIRED)
+include_directories(${VULKAN_INCLUDE_DIR})
+list(APPEND LIBS ${VULKAN_LIBRARIES})
 
 # GLM
-include_directories(${CMAKE_SOURCE_DIR}/external/glm)
+find_package(GLM REQUIRED)
+include_directories(${GLM_INCLUDE_DIR})
 
-# GLFW
-include_directories(${CMAKE_SOURCE_DIR}/external/glfw/include)
-find_library(GLFW_LIB NAMES glfw3 glfw glfw3dll glfwdll PATHS ${CMAKE_SOURCE_DIR}/external/glfw/lib-mingw-w64)
-message(STATUS "GLFW3: ${GLFW_LIB}")
-set(LIBS ${LIBS} ${GLFW_LIB})
+# JSON
+find_package(JSON REQUIRED)
+include_directories(${JSON_INCLUDE_DIR})
 
+# Spdlog
+find_package(Spdlog REQUIRED)
+include_directories(${SPDLOG_INCLUDE_DIR})
+
+# executable
 add_executable(${NAME} ${SOURCES})
 target_link_libraries(${NAME} ${LIBS})

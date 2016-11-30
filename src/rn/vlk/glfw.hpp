@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <GLFW/glfw3.h>
+#include <vulkan/vulkan.hpp>
 
 namespace rn {
 
@@ -35,7 +36,7 @@ public:
 		return initialized;
 	}
 
-	operator !() const {
+	bool operator !() const {
 		return !initialized;
 	}
 
@@ -46,7 +47,7 @@ public:
 		}
 	}
 
-	std::vector<std::string> getRequiredInstanceExtensions() {
+	std::vector<std::string> requiredInstanceExtensions() const {
 		if ( ! initialized) {
 			throw std::runtime_error{"GLFW not initialized"};
 		}
@@ -55,6 +56,23 @@ public:
 		const char **extensions = glfwGetRequiredInstanceExtensions(&count);
 
 		return std::vector<std::string>(extensions, extensions + count);
+	}
+
+	bool physicalDeviceSupported(const vk::Instance &instance, const vk::PhysicalDevice &physicalDevice) const {
+		if ( ! initialized) {
+			throw std::runtime_error{"GLFW not initialized"};
+		}
+
+		uint32_t queueFamilyPropertyCount;
+		physicalDevice.getQueueFamilyProperties(&queueFamilyPropertyCount, nullptr);
+
+		for (size_t i = 0; i < queueFamilyPropertyCount; i++) {
+			if (glfwGetPhysicalDevicePresentationSupport(instance, physicalDevice, i)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 };
 

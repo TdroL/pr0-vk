@@ -1,0 +1,13 @@
+# Find Spdlog
+#
+# SPDLOG_INCLUDE_DIR
+# SPDLOG_FOUND
+
+find_path(SPDLOG_INCLUDE_DIR NAMES spdlog/spdlog.h HINTS
+	"$ENV{SPDLOG_SDK}"
+	"${CMAKE_SOURCE_DIR}/external/spdlog/include")
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(SPDLOG DEFAULT_MSG SPDLOG_INCLUDE_DIR)
+
+mark_as_advanced(SPDLOG_INCLUDE_DIR)

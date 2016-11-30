@@ -1,24 +1,28 @@
-#include <algorithm>
-#include <chrono>
-#include <cassert>
-#include <cstdlib>
-#include <cstring>
+// #include <algorithm>
+// #include <chrono>
+// #include <cassert>
+// #include <cstdlib>
+// #include <cstring>
 #include <iostream>
-#include <memory>
-#include <set>
-#include <string>
-#include <vector>
-#include <functional>
-#include <stdexcept>
+// #include <memory>
+// #include <set>
+// #include <string>
+// #include <vector>
+// #include <functional>
+// #include <stdexcept>
 
+#include "rn/vlk/contextCreator.hpp"
 #include "rn/vlk/context.hpp"
 
 int windowWidth = 1600;
 int windowHeight = 900;
 
 int vlk() {
-	rn::vlk::Context context{};
-	context.init();
+	rn::vlk::ContextCreator contextCreator{};
+	rn::vlk::Context context = contextCreator.create();
+
+	// std::cout << "init" << std::endl;
+	// context.init();
 
 	return EXIT_SUCCESS;
 }

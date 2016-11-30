@@ -18,17 +18,11 @@ public:
 	explicit GLFWOwner(GLFW &&glfw)
 		: handle{std::move(glfw)} {
 		glfw = GLFW{};
-		if (handle) {
-			std::cout << "creating GLFW" << std::endl;
-		}
 	}
 
 	GLFWOwner(GLFWOwner &&rhs)
 		: handle{std::move(rhs.handle)} {
 		rhs.handle = GLFW{};
-		if (handle) {
-			std::cout << "creating GLFW" << std::endl;
-		}
 	}
 
 	GLFWOwner & operator=(GLFWOwner &&rhs) {
@@ -42,7 +36,6 @@ public:
 
 	void destroy() {
 		if (handle) {
-			std::cout << "destroying GLFW" << std::endl;
 			handle.terminate();
 			handle = GLFW{};
 		}
@@ -53,7 +46,6 @@ public:
 
 	~GLFWOwner() {
 		if (handle) {
-			std::cout << "destroying GLFW" << std::endl;
 			handle.terminate();
 		}
 	}

@@ -2,8 +2,7 @@
 
 #include <vector>
 #include <string>
-
-#include <vulkan/vulkan.hpp>
+#include <iostream>
 
 #include "debugCallbackOwner.hpp"
 
@@ -11,11 +10,26 @@ namespace rn {
 
 namespace vlk {
 
+VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+	VkDebugReportFlagsEXT flags,
+	VkDebugReportObjectTypeEXT objectType,
+	uint64_t object,
+	size_t location,
+	int32_t messageCode,
+	const char *pLayerPrefix,
+	const char *pMessage,
+	void* pUserData);
+
+void initDebugReportCallbackDispatch(vk::Instance &instance);
+
 class DebugCallbackCreator {
 public:
 	bool enabled = true;
 	bool isAvailable = false;
-	std::vector<std::string> requiredExtensions {
+
+	int logLevel = 0;
+
+	std::vector<std::string> optionalExtensions {
 		VK_EXT_DEBUG_REPORT_EXTENSION_NAME
 	};
 
@@ -23,8 +37,28 @@ public:
 		"VK_LAYER_LUNARG_standard_validation"
 	};
 
-	DebugCallbackOwner create() {
-		return DebugCallbackOwner{};
+	DebugCallbackOwner create(vk::Instance &instance) {
+		if ( ! isAvailable) {
+			return DebugCallbackOwner{};
+		}
+
+		initDebugReportCallbackDispatch(instance);
+
+		vk::DebugReportFlagsEXT flags{};
+
+		switch (logLevel) {
+			case 0: flags = flags | vk::DebugReportFlagBitsEXT::eDebug;
+			case 1: flags = flags | vk::DebugReportFlagBitsEXT::eInformation;
+			case 2: flags = flags | vk::DebugReportFlagBitsEXT::eWarning;
+			case 3: flags = flags | vk::DebugReportFlagBitsEXT::ePerformanceWarning;
+			case 4: flags = flags | vk::DebugReportFlagBitsEXT::eError;
+		}
+
+		vk::DebugReportCallbackCreateInfoEXT debugReportCallbackCreateInfo{};
+		debugReportCallbackCreateInfo.flags       = flags;
+		debugReportCallbackCreateInfo.pfnCallback = debugCallback;
+
+		return DebugCallbackOwner{instance, instance.createDebugReportCallbackEXT(debugReportCallbackCreateInfo)};
 	}
 };
 

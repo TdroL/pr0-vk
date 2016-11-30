@@ -35,7 +35,7 @@ std::string contents(const std::string &fileName, bool throws) {
 	}
 
 	if (throws) {
-		throw std::string{"ngn::fs::contents(\"" + fileName + "\") - failed to read the file"};
+		throw std::runtime_error{"ngn::fs::contents(\"" + fileName + "\") - failed to read the file"};
 	}
 
 	return std::string{};
@@ -57,7 +57,7 @@ std::vector<char> contents(const std::string &fileName, bool throws) {
 	}
 
 	if (throws) {
-		throw std::string{"ngn::fs::contents(\"" + fileName + "\") - failed to read the file"};
+		throw std::runtime_error{"ngn::fs::contents(\"" + fileName + "\") - failed to read the file"};
 	}
 
 	return std::vector<char>{};
@@ -65,6 +65,21 @@ std::vector<char> contents(const std::string &fileName, bool throws) {
 
 std::string contents(const std::string &fileName, bool throws) {
 	return contents<std::string>(fileName, throws);
+}
+
+bool contents(const std::string &fileName, const std::string &contents, bool throws) {
+	std::ofstream out(find(fileName), std::ios::out | std::ios::trunc | std::ios::binary);
+
+	if (out && out.good()) {
+		out.write(contents.data(), contents.length() * sizeof(contents.data()[0]));
+		return true;
+	}
+
+	if (throws) {
+		throw std::runtime_error{"ngn::fs::contents(\"" + fileName + "\") - failed to write to the file"};
+	}
+
+	return false;
 }
 
 std::string find(const std::string &fileName, bool throws)
@@ -79,7 +94,7 @@ std::string find(const std::string &fileName, bool throws)
 	}
 
 	if (throws) {
-		throw std::string{"ngn::fs::find(\"" + fileName + "\") - could not find the file"};
+		throw std::runtime_error{"ngn::fs::find(\"" + fileName + "\") - could not find the file"};
 	}
 
 	return "";
