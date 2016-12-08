@@ -13,7 +13,7 @@ public:
 	vk::Instance instance{};
 
 	DebugCallbackOwner() = default;
-	explicit DebugCallbackOwner(const vk::Instance &instance, vk::DebugReportCallbackEXT &&debugCallback)
+	DebugCallbackOwner(vk::DebugReportCallbackEXT &&debugCallback, const vk::Instance &instance)
 		: handle{std::move(debugCallback)}, instance{instance} {
 		debugCallback = vk::DebugReportCallbackEXT{};
 	}
@@ -27,7 +27,9 @@ public:
 
 		handle = std::move(rhs.handle);
 		instance = rhs.instance;
+
 		rhs.handle = vk::DebugReportCallbackEXT{};
+		rhs.instance = vk::Instance{};
 
 		return *this;
 	}
@@ -35,7 +37,9 @@ public:
 	void destroy() {
 		if (handle) {
 			instance.destroyDebugReportCallbackEXT(handle);
+
 			handle = vk::DebugReportCallbackEXT{};
+			instance = vk::Instance{};
 		}
 	}
 

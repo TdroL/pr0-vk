@@ -1917,7 +1917,7 @@ public:
 
 	VkSurfaceFormatKHR selectSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &surfaceFormats) {
 		VkFormat preferredFormat = VK_FORMAT_B8G8R8A8_UNORM;
-		VkColorSpaceKHR preferredColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+		VkColorSpaceKHR preferredColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 
 		if (surfaceFormats.size() == 0) {
 			return {

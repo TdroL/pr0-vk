@@ -8,11 +8,16 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "../../ngn/log.hpp"
+#include "../../ngn/str.hpp"
+
 #include "context.hpp"
 #include "glfwCreator.hpp"
 #include "instanceCreator.hpp"
 #include "debugCallbackCreator.hpp"
+#include "physicalDeviceCreator.hpp"
 #include "deviceCreator.hpp"
+#include "queuesCreator.hpp"
 
 namespace rn {
 
@@ -24,35 +29,39 @@ public:
 		GLFWCreator glfw{};
 		InstanceCreator instance{};
 		DebugCallbackCreator debugCallback{};
+		PhysicalDeviceCreator physicalDevice{};
 		DeviceCreator device{};
+		QueuesCreator queues{};
 	} creators{};
 
 	Context create() {
 		Context context{};
 
-		context.owners.glfw = createGLFW(context);
-		context.owners.instance = createInstance(context);
-		context.owners.debugCallback = createDebugCallback(context);
-		context.owners.device = createDevice(context);
+		context.owners.glfw = createGLFW(context.owners);
+		context.owners.instance = createInstance(context.owners);
+		context.owners.debugCallback = createDebugCallback(context.owners);
+		context.owners.physicalDevice = createPhysicalDevice(context.owners);
+		context.owners.device = createDevice(context.owners);
+		context.owners.queues = createQueues(context.owners);
 
 		return context;
 	}
 
-	GLFWOwner createGLFW(Context &/*context*/) {
+	GLFWOwner createGLFW(Context::Owners &/*context*/) {
 		return creators.glfw.create();
 	}
 
-	InstanceOwner createInstance(Context &context) {
+	InstanceOwner createInstance(Context::Owners &owners) {
 		creators.instance.applicationName = "pr0-vk";
 
 		// glfw
-		appendRequiredExtensions(context.glfw.requiredInstanceExtensions());
+		appendRequiredExtensions(owners.glfw.handle.requiredInstanceExtensions());
 
 		// debugCallback
 		std::vector<std::string> notFoundResults;
 		notFoundResults = appendOptionalExtensions(creators.debugCallback.optionalExtensions);
 		if ( ! notFoundResults.empty()) {
-			std::clog << "Warn: debug callback disabled, missing " << notFoundResults.size() << " extension(s): " << implode(notFoundResults) << std::endl;
+			ngn::log::warn("Debug callback disabled, missing {} extension(s): {}", notFoundResults.size(), ngn::str::implode(notFoundResults));
 			creators.debugCallback.isAvailable = false;
 		} else {
 			creators.debugCallback.isAvailable = true;
@@ -60,45 +69,27 @@ public:
 			notFoundResults = appendOptionalLayers(creators.debugCallback.optionalLayers);
 
 			if ( ! notFoundResults.empty()) {
-				std::clog << "Warn: debugging info might be limited, missing " << notFoundResults.size() << " layer(s): " << implode(notFoundResults) << std::endl;
+				ngn::log::warn("Debugging info might be limited, missing {} layer(s): {}", notFoundResults.size(), ngn::str::implode(notFoundResults));
 			}
 		}
 
 		return creators.instance.create();
 	}
 
-	DebugCallbackOwner createDebugCallback(Context &context) {
-		return creators.debugCallback.create(context.instance);
+	DebugCallbackOwner createDebugCallback(Context::Owners &owners) {
+		return creators.debugCallback.create(owners.instance);
 	}
 
-	DeviceOwner createDevice(Context &context) {
-		return creators.device.create(context.glfw, context.instance);
+	PhysicalDeviceOwner createPhysicalDevice(Context::Owners &owners) {
+		return creators.physicalDevice.create(owners.glfw, owners.instance);
 	}
 
-	std::string implode(const std::vector<std::string> &records) {
-		if (records.size() == 1) {
-			return records[0];
-		}
+	DeviceOwner createDevice(Context::Owners &owners) {
+		return creators.device.create(owners.glfw, owners.instance, owners.physicalDevice);
+	}
 
-		std::string delim = ", ";
-		size_t reserveSize = 0;
-
-		for (const auto &item : records) {
-			reserveSize += item.size();
-			reserveSize += delim.size();
-		}
-
-		std::string result{};
-		result.reserve(reserveSize - delim.size());
-
-		for (size_t i = 0, l = records.size() - 1; i < l; i++) {
-			result += records[i];
-			result += delim;
-		}
-
-		result += records[records.size() - 1];
-
-		return result;
+	QueuesOwner createQueues(Context::Owners &owners) {
+		return creators.queues.create(owners.glfw, owners.instance, owners.physicalDevice, owners.device);
 	}
 
 	void appendRequiredLayers(const std::vector<std::string> &layers) {

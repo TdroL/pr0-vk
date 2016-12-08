@@ -67,12 +67,16 @@ public:
 		physicalDevice.getQueueFamilyProperties(&queueFamilyPropertyCount, nullptr);
 
 		for (size_t i = 0; i < queueFamilyPropertyCount; i++) {
-			if (glfwGetPhysicalDevicePresentationSupport(instance, physicalDevice, i)) {
+			if (getFamilyQueuePresentationSupport(instance, physicalDevice, i)) {
 				return true;
 			}
 		}
 
 		return false;
+	}
+
+	bool getFamilyQueuePresentationSupport(const vk::Instance &instance, const vk::PhysicalDevice &physicalDevice, uint32_t familyIndex) const {
+		return glfwGetPhysicalDevicePresentationSupport(instance, physicalDevice, familyIndex);
 	}
 };
 

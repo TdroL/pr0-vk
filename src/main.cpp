@@ -21,9 +21,6 @@ int vlk() {
 	rn::vlk::ContextCreator contextCreator{};
 	rn::vlk::Context context = contextCreator.create();
 
-	// std::cout << "init" << std::endl;
-	// context.init();
-
 	return EXIT_SUCCESS;
 }
 

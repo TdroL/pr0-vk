@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 
+#include "instanceOwner.hpp"
 #include "debugCallbackOwner.hpp"
 
 namespace rn {
@@ -18,7 +19,8 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 	int32_t messageCode,
 	const char *pLayerPrefix,
 	const char *pMessage,
-	void* pUserData);
+	void* pUserData
+);
 
 void initDebugReportCallbackDispatch(vk::Instance &instance);
 
@@ -37,10 +39,12 @@ public:
 		"VK_LAYER_LUNARG_standard_validation"
 	};
 
-	DebugCallbackOwner create(vk::Instance &instance) {
+	DebugCallbackOwner create(InstanceOwner &instanceOwner) {
 		if ( ! isAvailable) {
 			return DebugCallbackOwner{};
 		}
+
+		vk::Instance &instance = instanceOwner.handle;
 
 		initDebugReportCallbackDispatch(instance);
 
@@ -58,7 +62,7 @@ public:
 		debugReportCallbackCreateInfo.flags       = flags;
 		debugReportCallbackCreateInfo.pfnCallback = debugCallback;
 
-		return DebugCallbackOwner{instance, instance.createDebugReportCallbackEXT(debugReportCallbackCreateInfo)};
+		return DebugCallbackOwner{instance.createDebugReportCallbackEXT(debugReportCallbackCreateInfo), instance};
 	}
 };
 

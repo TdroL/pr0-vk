@@ -1,0 +1,92 @@
+#pragma once
+
+#include <iostream>
+#include <vulkan/vulkan.hpp>
+
+#include "../../ngn/log.hpp"
+
+namespace rn {
+
+namespace vlk {
+
+class PhysicalDeviceOwner {
+public:
+	vk::PhysicalDevice handle{};
+	vk::PhysicalDeviceProperties properties{};
+	vk::PhysicalDeviceMemoryProperties memoryProperties{};
+	vk::PhysicalDeviceFeatures availableFeatures{};
+	vk::PhysicalDeviceFeatures requiredFeatures{};
+
+	PhysicalDeviceOwner() = default;
+	PhysicalDeviceOwner(
+		vk::PhysicalDevice &&physicalDevice,
+		vk::PhysicalDeviceProperties &&properties,
+		vk::PhysicalDeviceMemoryProperties &&memoryProperties,
+		vk::PhysicalDeviceFeatures &&availableFeatures,
+		const vk::PhysicalDeviceFeatures &requiredFeatures
+	) :
+		handle{std::move(physicalDevice)},
+		properties{std::move(properties)},
+		memoryProperties{std::move(memoryProperties)},
+		availableFeatures{std::move(availableFeatures)},
+		requiredFeatures{requiredFeatures} {
+
+		physicalDevice = vk::PhysicalDevice{};
+		properties = vk::PhysicalDeviceProperties{};
+		memoryProperties = vk::PhysicalDeviceMemoryProperties{};
+		availableFeatures = vk::PhysicalDeviceFeatures{};
+	}
+
+	PhysicalDeviceOwner(PhysicalDeviceOwner &&rhs)
+		: handle{std::move(rhs.handle)},
+		properties{std::move(rhs.properties)},
+		memoryProperties{std::move(rhs.memoryProperties)},
+		availableFeatures{std::move(rhs.availableFeatures)},
+		requiredFeatures{std::move(rhs.requiredFeatures)} {
+
+		rhs.handle = vk::PhysicalDevice{};
+		rhs.properties = vk::PhysicalDeviceProperties{};
+		rhs.memoryProperties = vk::PhysicalDeviceMemoryProperties{};
+		rhs.availableFeatures = vk::PhysicalDeviceFeatures{};
+		rhs.requiredFeatures = vk::PhysicalDeviceFeatures{};
+	}
+
+	PhysicalDeviceOwner & operator=(PhysicalDeviceOwner &&rhs) {
+		destroy();
+
+		handle = std::move(rhs.handle);
+		properties = std::move(rhs.properties);
+		memoryProperties = std::move(rhs.memoryProperties);
+		availableFeatures = std::move(rhs.availableFeatures);
+		requiredFeatures = std::move(rhs.requiredFeatures);
+
+		rhs.handle = vk::PhysicalDevice{};
+		rhs.properties = vk::PhysicalDeviceProperties{};
+		rhs.memoryProperties = vk::PhysicalDeviceMemoryProperties{};
+		rhs.availableFeatures = vk::PhysicalDeviceFeatures{};
+		rhs.requiredFeatures = vk::PhysicalDeviceFeatures{};
+
+		return *this;
+	}
+
+	void destroy() {
+		if (handle) {
+			handle = vk::PhysicalDevice{};
+			properties = vk::PhysicalDeviceProperties{};
+			memoryProperties = vk::PhysicalDeviceMemoryProperties{};
+			availableFeatures = vk::PhysicalDeviceFeatures{};
+			requiredFeatures = vk::PhysicalDeviceFeatures{};
+		}
+	}
+
+	PhysicalDeviceOwner(const PhysicalDeviceOwner &rhs) = delete;
+	PhysicalDeviceOwner & operator=(const PhysicalDeviceOwner &rhs) = delete;
+
+	~PhysicalDeviceOwner() {
+		destroy();
+	}
+};
+
+} // vlk
+
+} // rn

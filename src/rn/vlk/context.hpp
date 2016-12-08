@@ -8,9 +8,10 @@
 #include "glfwOwner.hpp"
 #include "instanceOwner.hpp"
 #include "debugCallbackOwner.hpp"
+#include "physicalDeviceOwner.hpp"
 #include "deviceOwner.hpp"
-
-#define HANDLE_ALIAS(name) decltype(owners.name.handle) &name = owners.name.handle
+#include "queuesOwner.hpp"
+#include "swapchainOwner.hpp"
 
 namespace rn {
 
@@ -22,16 +23,20 @@ public:
 		GLFWOwner glfw{};
 		InstanceOwner instance{};
 		DebugCallbackOwner debugCallback{};
+		PhysicalDeviceOwner physicalDevice{};
 		DeviceOwner device{};
+		QueuesOwner queues{};
 	} owners{};
 
-	HANDLE_ALIAS(glfw);
-	HANDLE_ALIAS(instance);
-	HANDLE_ALIAS(device);
+	#define OWNER_HANDLE_ALIAS(name) decltype(owners.name.handle) &name = owners.name.handle
+	OWNER_HANDLE_ALIAS(glfw);
+	OWNER_HANDLE_ALIAS(instance);
+	OWNER_HANDLE_ALIAS(physicalDevice);
+	OWNER_HANDLE_ALIAS(device);
+	#undef OWNER_HANDLE_ALIAS
+
 };
 
 } // vlk
 
 } // rn
-
-#undef HANDLE_ALIAS

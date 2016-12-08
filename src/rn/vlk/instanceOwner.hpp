@@ -23,17 +23,11 @@ public:
 	explicit InstanceOwner(vk::Instance &&instance)
 		: handle{std::move(instance)} {
 		instance = vk::Instance{};
-		if (handle) {
-			std::cout << "creating vk::Instance" << std::endl;
-		}
 	}
 
 	InstanceOwner(InstanceOwner &&rhs)
 		: handle{std::move(rhs.handle)} {
 		rhs.handle = vk::Instance{};
-		if (handle) {
-			std::cout << "creating vk::Instance" << std::endl;
-		}
 	}
 
 	InstanceOwner & operator=(InstanceOwner &&rhs) {
@@ -47,7 +41,6 @@ public:
 
 	void destroy() {
 		if (handle) {
-			std::cout << "destroying vk::Instance" << std::endl;
 			ngn::event::emit(EventInstanceDestroy{handle});
 
 			handle.destroy();

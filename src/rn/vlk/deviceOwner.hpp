@@ -3,6 +3,8 @@
 #include <iostream>
 #include <vulkan/vulkan.hpp>
 
+#include "../../ngn/log.hpp"
+
 namespace rn {
 
 namespace vlk {
@@ -10,59 +12,47 @@ namespace vlk {
 class DeviceOwner {
 public:
 	vk::Device handle{};
-	vk::PhysicalDevice physicalDevice{};
-	vk::PhysicalDeviceProperties physicalDeviceProperties{};
-	// vk::PhysicalDeviceMemoryProperties physicalDeviceMemoryProperties{};
-	// vk::PhysicalDeviceFeatures physicalDeviceFeatures{};
-	// vk::PhysicalDeviceLimits physicalDeviceLimits{};
-	// vk::PhysicalDeviceSparseProperties physicalDeviceSparseProperties{};
-	// std::vector<vk::QueueFamilyProperties> queueFamilyProperties{};
+	vk::PhysicalDeviceFeatures features{};
 
 	DeviceOwner() = default;
 	DeviceOwner(
 		vk::Device &&device,
-		vk::PhysicalDevice &&physicalDevice
+		vk::PhysicalDeviceFeatures &&features
 	) :
 		handle{std::move(device)},
-		physicalDevice{std::move(physicalDevice)} {
+		features{std::move(features)} {
 
 		device = vk::Device{};
-		physicalDevice = vk::PhysicalDevice{};
-
-		if (handle) {
-			std::cout << "creating vk::Device" << std::endl;
-		}
+		features = vk::PhysicalDeviceFeatures{};
 	}
 
 	DeviceOwner(DeviceOwner &&rhs)
-		: handle{std::move(rhs.handle)}, physicalDevice{std::move(rhs.physicalDevice)} {
-		rhs.handle = vk::Device{};
-		rhs.physicalDevice = vk::PhysicalDevice{};
+		: handle{std::move(rhs.handle)},
+		features{std::move(rhs.features)} {
 
-		if (handle) {
-			std::cout << "creating vk::Device" << std::endl;
-		}
+		rhs.handle = vk::Device{};
+		rhs.features = vk::PhysicalDeviceFeatures{};
 	}
 
 	DeviceOwner & operator=(DeviceOwner &&rhs) {
 		destroy();
 
 		handle = std::move(rhs.handle);
-		physicalDevice = std::move(rhs.physicalDevice);
+		features = std::move(rhs.features);
 
 		rhs.handle = vk::Device{};
-		rhs.physicalDevice = vk::PhysicalDevice{};
+		rhs.features = vk::PhysicalDeviceFeatures{};
 
 		return *this;
 	}
 
 	void destroy() {
 		if (handle) {
-			std::cout << "destroying vk::Device" << std::endl;
+			handle.waitIdle();
 			handle.destroy();
 
 			handle = vk::Device{};
-			physicalDevice = vk::PhysicalDevice{};
+			features = vk::PhysicalDeviceFeatures{};
 		}
 	}
 
