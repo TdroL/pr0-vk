@@ -2,12 +2,11 @@
 
 #include <map>
 #include <vector>
+#include <cassert>
 #include <limits>
 #include <algorithm>
 
-#include <vulkan/vulkan.h>
-
-#include "../../ngn/log.hpp"
+#include <vulkan/vulkan.hpp>
 
 namespace rn {
 
@@ -72,6 +71,7 @@ enum QueueType {
 	Compute = 4,
 	Transfer = 8,
 	SparseBinding = 16,
+	AnyOther = 0x40000000,
 	Max_Enum = 0x7FFFFFFF
 };
 
@@ -83,36 +83,87 @@ struct QueuesPlanner {
 	std::vector<vk::QueueFamilyProperties> familyProperties{};
 	std::vector<uint32_t> reservedCount{};
 
-	const GLFW &glfw;
+	const vk::SurfaceKHR &surface;
 	const vk::Instance &instance;
 	const vk::PhysicalDevice &physicalDevice;
 
-	QueuesPlanner(const GLFW &glfw, const vk::Instance &instance, const vk::PhysicalDevice &physicalDevice)
-		: glfw(glfw), instance(instance), physicalDevice(physicalDevice) {
+	QueuesPlanner(const vk::SurfaceKHR &surface, const vk::Instance &instance, const vk::PhysicalDevice &physicalDevice)
+		: surface(surface), instance(instance), physicalDevice(physicalDevice) {
 		familyProperties = physicalDevice.getQueueFamilyProperties();
 		reservedCount.resize(familyProperties.size(), 0u);
 	}
 
 	QueueIndices selectQueueIndices() {
+		reservedCount.clear();
+		reservedCount.resize(familyProperties.size(), 0u);
+
 		QueueIndices indices{};
 
-		indices.graphic = reserveQueue(QueueType::Presentation | QueueType::Graphics);
+		indices.graphic = reserveQueue({
+			QueueType::Presentation | QueueType::Graphics,
+			QueueType::Presentation | QueueType::Graphics | QueueType::Compute,
+			QueueType::Presentation | QueueType::Graphics | QueueType::AnyOther
+		});
+
 		if (indices.graphic) {
 			indices.presentation = indices.graphic;
 		} else {
-			indices.graphic = reserveQueue(QueueType::Graphics);
-			indices.presentation = reserveQueue(QueueType::Presentation);
+			indices.graphic = reserveQueue({
+				QueueType::Graphics,
+				QueueType::Graphics | QueueType::Compute,
+				QueueType::Graphics | QueueType::AnyOther
+			});
+
+			indices.presentation = reserveQueue({
+				QueueType::Presentation,
+				QueueType::Presentation | QueueType::AnyOther
+			});
 		}
 
-		indices.compute = reserveQueue(QueueType::Compute);
+		assert(indices.graphic);
+		assert(indices.presentation);
 
-		indices.transfer = reserveQueue(QueueType::Transfer, {1, 1, 1});
+		indices.compute = reserveQueue({
+			QueueType::Compute,
+			QueueType::Compute | QueueType::Graphics,
+			QueueType::Compute | QueueType::AnyOther
+		});
+
+		if ( ! indices.compute) {
+			indices.compute = shareWith({
+				indices.graphic,
+				indices.presentation
+			}, {
+				QueueType::Compute | QueueType::Graphics,
+				QueueType::Compute | QueueType::Presentation,
+				QueueType::Compute | QueueType::AnyOther
+			});
+		}
+
+		assert(indices.compute);
+
+		indices.transfer = reserveQueue({
+			QueueType::Transfer,
+			QueueType::Transfer | QueueType::Compute,
+			QueueType::Transfer | QueueType::Graphics,
+			QueueType::Transfer | QueueType::AnyOther,
+			// graphic and compute queues can act as a transfer queue
+			QueueType::Compute | QueueType::AnyOther,
+			QueueType::Graphics | QueueType::AnyOther
+		}, {1, 1, 1});
+
 		if ( ! indices.transfer) {
 			indices.transfer = shareWith({
 				indices.graphic,
 				indices.compute
-			}, QueueType::Transfer, {1, 1, 1});
+			}, {
+				QueueType::Transfer | QueueType::AnyOther,
+				QueueType::Compute | QueueType::AnyOther,
+				QueueType::Graphics | QueueType::AnyOther
+			}, {1, 1, 1});
 		}
+
+		assert(indices.transfer);
 
 		return indices;
 	}
@@ -137,7 +188,22 @@ struct QueuesPlanner {
 		return usageCount;
 	}
 
-	QueueFamilyIndex reserveQueue(const QueueTypeMask type, const TransferGranularity granularity = {0, 0, 0}) {
+	QueueFamilyIndex reserveQueue(const std::vector<QueueTypeMask> types, const TransferGranularity granularity = {0, 0, 0}) {
+		int x = 1;
+		for (QueueTypeMask type : types) {
+			for (uint32_t i = 0; i < familyProperties.size(); i++) {
+				if (reservedCount[i] >= familyProperties[i].queueCount) {
+					continue;
+				}
+
+				if (testQueueProperties(type, granularity, i)) {
+					return QueueFamilyIndex{i, reservedCount[i]++};
+				}
+			}
+			x++;
+		}
+
+		/*
 		if (type == QueueType::Graphics) {
 			for (uint32_t i = 0; i < familyProperties.size(); i++) {
 				if (reservedCount[i] >= familyProperties[i].queueCount) {
@@ -194,21 +260,81 @@ struct QueuesPlanner {
 				return QueueFamilyIndex{i, reservedCount[i]++};
 			}
 		}
-
+		*/
 		return QueueFamilyIndex{};
 	}
 
-	QueueFamilyIndex shareWith(const std::vector<QueueFamilyIndex> &queueIndices, const QueueTypeMask type, const TransferGranularity granularity = {0, 0, 0}) {
+	QueueFamilyIndex shareWith(const std::vector<QueueFamilyIndex> &queueIndices, const std::vector<QueueTypeMask> types, const TransferGranularity granularity = {0, 0, 0}) {
+		for (QueueTypeMask type : types) {
+			for (uint32_t i = 0; i < queueIndices.size(); i++) {
+				if (testQueueProperties(type, granularity, queueIndices[i].family)) {
+					return queueIndices[i];
+				}
+			}
+		}
+		/*
 		for (uint32_t i = 0; i < queueIndices.size(); i++) {
 			if (testQueueProperties(type, granularity, queueIndices[i].family)) {
 				return queueIndices[i];
 			}
 		}
-
+		*/
 		return QueueFamilyIndex{};
 	}
 
 	bool testQueueProperties(const QueueTypeMask type, const TransferGranularity &granularity, uint32_t i) {
+		if ((type & QueueType::Presentation)) {
+			if ( ! physicalDevice.getSurfaceSupportKHR(i, surface)) {
+				return false;
+			}
+		}
+
+		if ((type & QueueType::Transfer)) {
+			if (familyProperties[i].minImageTransferGranularity.width > granularity.width) {
+				return false;
+			}
+
+			if (familyProperties[i].minImageTransferGranularity.height > granularity.height) {
+				return false;
+			}
+
+			if (familyProperties[i].minImageTransferGranularity.depth > granularity.depth) {
+				return false;
+			}
+		}
+
+		vk::QueueFlags flags{};
+		if ((type & QueueType::Graphics)) {
+			flags |= vk::QueueFlagBits::eGraphics;
+		}
+
+		if ((type & QueueType::Compute)) {
+			flags |= vk::QueueFlagBits::eCompute;
+		}
+
+		if ((type & QueueType::Transfer)) {
+			flags |= vk::QueueFlagBits::eTransfer;
+		}
+
+		if ((type & QueueType::SparseBinding)) {
+			flags |= vk::QueueFlagBits::eSparseBinding;
+		}
+
+		if (flags) {
+			if ((type & QueueType::AnyOther)) {
+				if ((familyProperties[i].queueFlags & flags) != flags) {
+					return false;
+				}
+			} else {
+				if (familyProperties[i].queueFlags != flags) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+
+		/*
 		if ((type & QueueType::Presentation) && ! glfw.getFamilyQueuePresentationSupport(instance, physicalDevice, i)) {
 			return false;
 		}
@@ -244,6 +370,7 @@ struct QueuesPlanner {
 		}
 
 		return true;
+		*/
 	}
 };
 

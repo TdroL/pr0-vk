@@ -21,7 +21,12 @@ std::vector<std::string> searchDirectories{
 // http://insanecoding.blogspot.com/2011/11/how-to-read-in-file-in-c.html
 template<>
 std::string contents(const std::string &fileName, bool throws) {
-	std::ifstream in(find(fileName), std::ios::in | std::ios::binary);
+	std::string filePath = find(fileName, throws);
+	if (filePath.empty()) {
+		return std::string{};
+	}
+
+	std::ifstream in(filePath, std::ios::in | std::ios::binary);
 
 	if (in && in.good()) {
 		std::string contents{};
@@ -43,7 +48,12 @@ std::string contents(const std::string &fileName, bool throws) {
 
 template<>
 std::vector<char> contents(const std::string &fileName, bool throws) {
-	std::ifstream in(find(fileName), std::ios::in | std::ios::binary);
+	std::string filePath = find(fileName, throws);
+	if (filePath.empty()) {
+		return std::vector<char>{};
+	}
+
+	std::ifstream in(filePath, std::ios::in | std::ios::binary);
 
 	if (in && in.good()) {
 		std::vector<char> contents{};
@@ -68,7 +78,12 @@ std::string contents(const std::string &fileName, bool throws) {
 }
 
 bool contents(const std::string &fileName, const std::string &contents, bool throws) {
-	std::ofstream out(find(fileName), std::ios::out | std::ios::trunc | std::ios::binary);
+	std::string filePath = find(fileName, throws);
+	if (filePath.empty()) {
+		filePath = fileName;
+	}
+
+	std::ofstream out(filePath, std::ios::out | std::ios::trunc | std::ios::binary);
 
 	if (out && out.good()) {
 		out.write(contents.data(), contents.length() * sizeof(contents.data()[0]));

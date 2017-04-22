@@ -1,7 +1,9 @@
 #pragma once
 
-#include <iostream>
+#include <memory>
 #include <vulkan/vulkan.hpp>
+
+#include "exts/debugCallbackDispatchTable.hpp"
 
 namespace rn {
 
@@ -10,15 +12,19 @@ namespace vlk {
 class DebugCallbackOwner {
 public:
 	vk::DebugReportCallbackEXT handle{};
+	std::unique_ptr<int> logLevel{};
 	vk::Instance instance{};
 
 	DebugCallbackOwner() = default;
-	DebugCallbackOwner(vk::DebugReportCallbackEXT &&debugCallback, const vk::Instance &instance)
-		: handle{std::move(debugCallback)}, instance{instance} {
+	DebugCallbackOwner(vk::DebugReportCallbackEXT &&debugCallback, std::unique_ptr<int> &&logLevel, const vk::Instance &instance)
+		: handle{std::move(debugCallback)}, logLevel{std::move(logLevel)}, instance{instance} {
+
+		initDebugCallbackDispatchTable(instance);
+
 		debugCallback = vk::DebugReportCallbackEXT{};
 	}
 	DebugCallbackOwner(DebugCallbackOwner &&rhs)
-		: handle{std::move(rhs.handle)}, instance{rhs.instance} {
+		: handle{std::move(rhs.handle)}, logLevel{std::move(rhs.logLevel)}, instance{rhs.instance} {
 		rhs.handle = vk::DebugReportCallbackEXT{};
 	}
 
@@ -26,9 +32,11 @@ public:
 		destroy();
 
 		handle = std::move(rhs.handle);
+		logLevel = std::move(rhs.logLevel);
 		instance = rhs.instance;
 
 		rhs.handle = vk::DebugReportCallbackEXT{};
+		rhs.logLevel.reset();
 		rhs.instance = vk::Instance{};
 
 		return *this;
@@ -38,7 +46,10 @@ public:
 		if (handle) {
 			instance.destroyDebugReportCallbackEXT(handle);
 
+			releaseDebugCallbackDispatchTable(instance);
+
 			handle = vk::DebugReportCallbackEXT{};
+			logLevel.reset();
 			instance = vk::Instance{};
 		}
 	}

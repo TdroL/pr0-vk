@@ -1,6 +1,12 @@
 {
     "physicalDevice": {
-        "deviceID": 4484,
-        "vendorID": 4318
+        "deviceId": 4484,
+        "vendorId": 4318
+    },
+    "window": {
+        "height": 900,
+        "mode": "borderless",
+        "vsync": "mailbox",
+        "width": 1600
     }
 }

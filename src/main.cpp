@@ -11,24 +11,37 @@
 // #include <functional>
 // #include <stdexcept>
 
-#include "rn/vlk/contextCreator.hpp"
+// #include "rn/glfw.hpp"
+#include "rn/window.hpp"
+#include "rn/vlk/creators/contextCreator.hpp"
 #include "rn/vlk/context.hpp"
 
-int windowWidth = 1600;
-int windowHeight = 900;
-
-int vlk() {
-	rn::vlk::ContextCreator contextCreator{};
-	rn::vlk::Context context = contextCreator.create();
-
-	return EXIT_SUCCESS;
-}
+#include <chrono>
+#include <thread>
 
 int main() {
 	try {
-		return vlk();
+		// rn::GLFW glfw{};
+		rn::Window window{};
+		window.create();
+
+		rn::vlk::Context context = rn::vlk::ContextCreator{window}.create();
+		// ngn::Inputs inputs{context};
+
+		for (int i = 0; i < 120; i++) {
+			glfwPollEvents();
+
+			// if ( ! window.isValid()) {
+			// 	window.refresh();
+			// }
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(16));
+		}
+
+		return EXIT_SUCCESS;
 	} catch (std::runtime_error const &e) {
 		std::cerr << "Runtime exception: " << e.what() << std::endl;
+	} catch (...) {
+		std::cerr << "Unknown exception" << std::endl;
 	}
-	// return proto();
 }

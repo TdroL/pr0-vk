@@ -3,13 +3,14 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <cassert>
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
-#include "physicalDeviceOwner.hpp"
+#include "../physicalDeviceOwner.hpp"
+
 #include "queuesPlanner.hpp"
-#include "../../ngn/config.hpp"
-#include "../../ngn/log.hpp"
+#include "../../../ngn/config.hpp"
 
 namespace rn {
 
@@ -75,53 +76,60 @@ public:
 		/*.inheritedQueries=*/ false,
 	};
 
-	PhysicalDeviceOwner create(GLFWOwner &glfwOwner, InstanceOwner &instanceOwner) {
-		GLFW &glfw = glfwOwner.handle;
+	PhysicalDeviceOwner create(SurfaceOwner &surfaceOwner, InstanceOwner &instanceOwner) {
+		vk::SurfaceKHR &surface = surfaceOwner.handle;
 		vk::Instance &instance = instanceOwner.handle;
+
+		assert(surface);
+		assert(instance);
 
 		std::vector<vk::PhysicalDevice> physicalDevices = instance.enumeratePhysicalDevices();
 
-		physicalDevices = rejectUnsuitablePhysicalDevices(glfw, instance, physicalDevices);
+		physicalDevices = rejectUnsuitablePhysicalDevices(surface, instance, physicalDevices);
 
 		if (physicalDevices.empty()) {
 			throw std::runtime_error{"No valid physical devices available"};
 		}
 
-		auto vendorIDValue = ngn::config::get<uint32_t>("/physicalDevice/vendorID");
-		auto deviceIDValue = ngn::config::get<uint32_t>("/physicalDevice/deviceID");
+		auto vendorIDValue = ngn::config::core.physicalDevice.vendorId();
+		auto deviceIDValue = ngn::config::core.physicalDevice.deviceId();
 
-		vk::PhysicalDevice physicalDevice = findPhysicalDevice(vendorIDValue.value(), deviceIDValue.value(), physicalDevices);
+		vk::PhysicalDevice physicalDevice = findPhysicalDevice(vendorIDValue, deviceIDValue, physicalDevices);
 
 		if ( ! physicalDevice) {
 			physicalDevice = physicalDevices[0]; // select first-fit
 			vk::PhysicalDeviceProperties props = physicalDevice.getProperties();
 
-			ngn::config::set<uint32_t>("/physicalDevice/vendorID", props.vendorID);
-			ngn::config::set<uint32_t>("/physicalDevice/deviceID", props.deviceID);
-
-			ngn::config::flush();
+			ngn::config::core.physicalDevice.vendorId(props.vendorID);
+			ngn::config::core.physicalDevice.deviceId(props.deviceID);
 		}
 
 		vk::PhysicalDeviceProperties properties = physicalDevice.getProperties();
 		vk::PhysicalDeviceMemoryProperties memoryProperties = physicalDevice.getMemoryProperties();
 		vk::PhysicalDeviceFeatures features = physicalDevice.getFeatures();
 
-		return PhysicalDeviceOwner{
+		PhysicalDeviceOwner physicalDeviceOwner{
 			std::move(physicalDevice),
 			std::move(properties),
 			std::move(memoryProperties),
 			std::move(features),
 			requiredFeatures
 		};
+
+		if ( ! physicalDeviceOwner.handle) {
+			throw std::runtime_error{"Vulkan physical device could not be created"};
+		}
+
+		return physicalDeviceOwner;
 	}
 
-	std::vector<vk::PhysicalDevice> rejectUnsuitablePhysicalDevices(const GLFW &glfw, const vk::Instance &instance, const std::vector<vk::PhysicalDevice> &physicalDevices) {
+	std::vector<vk::PhysicalDevice> rejectUnsuitablePhysicalDevices(const vk::SurfaceKHR &surface, const vk::Instance &instance, const std::vector<vk::PhysicalDevice> &physicalDevices) {
 		std::vector<vk::PhysicalDevice> result{physicalDevices};
 
 		result.erase(std::remove_if(std::begin(result), std::end(result), [&] (const vk::PhysicalDevice &physicalDevice) {
 			bool hasFeatures = hasReqiredPhysicalDeviceFeatures(physicalDevice);
-			bool supportsPresentation = glfw.physicalDeviceSupported(instance, physicalDevice);
-			bool hasRequiredQueues = QueuesPlanner{glfw, instance, physicalDevice}.selectQueueIndices();
+			bool supportsPresentation = hasPresentationSupport(surface, physicalDevice);
+			bool hasRequiredQueues = QueuesPlanner{surface, instance, physicalDevice}.selectQueueIndices();
 
 			return ! ( hasFeatures && supportsPresentation && hasRequiredQueues);
 		}), std::end(result));
@@ -205,6 +213,19 @@ public:
 		#undef TEST
 
 		return result;
+	}
+
+	bool hasPresentationSupport(const vk::SurfaceKHR &surface, const vk::PhysicalDevice &physicalDevice) {
+		uint32_t queueFamilyPropertyCount;
+		physicalDevice.getQueueFamilyProperties(&queueFamilyPropertyCount, nullptr);
+
+		for (uint32_t i = 0; i < queueFamilyPropertyCount; i++) {
+			if (physicalDevice.getSurfaceSupportKHR(i, surface)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 };
 

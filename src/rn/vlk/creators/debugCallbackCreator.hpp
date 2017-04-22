@@ -2,10 +2,17 @@
 
 #include <vector>
 #include <string>
-#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <cassert>
 
-#include "instanceOwner.hpp"
-#include "debugCallbackOwner.hpp"
+#include <vulkan/vulkan.hpp>
+// #include "../instanceOwner.hpp"
+// #include "../debugCallbackOwner.hpp"
+#include "../exts/debugCallbackDispatchTable.hpp"
+
+#include "../../../ngn/config.hpp"
+#include "../../../util/scopeExit.hpp"
 
 namespace rn {
 
@@ -19,17 +26,15 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 	int32_t messageCode,
 	const char *pLayerPrefix,
 	const char *pMessage,
-	void* pUserData
+	void *pUserData
 );
-
-void initDebugReportCallbackDispatch(vk::Instance &instance);
 
 class DebugCallbackCreator {
 public:
 	bool enabled = true;
 	bool isAvailable = false;
 
-	int logLevel = 0;
+	int initialLogLevel = 0;
 
 	std::vector<std::string> optionalExtensions {
 		VK_EXT_DEBUG_REPORT_EXTENSION_NAME
@@ -39,18 +44,20 @@ public:
 		"VK_LAYER_LUNARG_standard_validation"
 	};
 
-	DebugCallbackOwner create(InstanceOwner &instanceOwner) {
+	vk::UniqueDebugReportCallbackEXT create(vk::UniqueInstance &instanceOwner) {
 		if ( ! isAvailable) {
-			return DebugCallbackOwner{};
+			return vk::UniqueDebugReportCallbackEXT{};
 		}
 
-		vk::Instance &instance = instanceOwner.handle;
+		vk::Instance instance = instanceOwner.get();
 
-		initDebugReportCallbackDispatch(instance);
+		assert(instance);
+
+		initDebugCallbackDispatchTable(instance);
 
 		vk::DebugReportFlagsEXT flags{};
 
-		switch (logLevel) {
+		switch (ngn::config::core.debug.vulkanLogLevel()) {
 			case 0: flags = flags | vk::DebugReportFlagBitsEXT::eDebug;
 			case 1: flags = flags | vk::DebugReportFlagBitsEXT::eInformation;
 			case 2: flags = flags | vk::DebugReportFlagBitsEXT::eWarning;
@@ -62,7 +69,13 @@ public:
 		debugReportCallbackCreateInfo.flags       = flags;
 		debugReportCallbackCreateInfo.pfnCallback = debugCallback;
 
-		return DebugCallbackOwner{instance.createDebugReportCallbackEXT(debugReportCallbackCreateInfo), instance};
+		vk::UniqueDebugReportCallbackEXT debugCallbackOwner{instance.createDebugReportCallbackEXTUnique(debugReportCallbackCreateInfo)};
+
+		if ( ! debugCallbackOwner) {
+			throw std::runtime_error{"Vulkan debug callback could not be created"};
+		}
+
+		return debugCallbackOwner;
 	}
 };
 

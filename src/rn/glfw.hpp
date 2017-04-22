@@ -1,21 +1,26 @@
 #pragma once
 
-#include <vector>
-#include <string>
 #include <GLFW/glfw3.h>
-#include <vulkan/vulkan.hpp>
 
 namespace rn {
 
-namespace vlk {
-
 class GLFW {
 public:
+	static uint32_t initialized;
+
+	GLFW();
+	~GLFW();
+
+	/*
 	bool initialized = false;
 
 	GLFW() = default;
 	explicit GLFW(bool initialized)
-		: initialized{initialized} {}
+		: initialized{initialized} {
+		if (initialized) {
+			glfwSetErrorCallback(glfwErrorCallback);
+		}
+	}
 
 	GLFW(GLFW &&rhs)
 		: initialized{rhs.initialized} {
@@ -37,7 +42,7 @@ public:
 	}
 
 	bool operator !() const {
-		return !initialized;
+		return ! initialized;
 	}
 
 	void terminate() {
@@ -66,7 +71,7 @@ public:
 		uint32_t queueFamilyPropertyCount;
 		physicalDevice.getQueueFamilyProperties(&queueFamilyPropertyCount, nullptr);
 
-		for (size_t i = 0; i < queueFamilyPropertyCount; i++) {
+		for (uint32_t i = 0; i < queueFamilyPropertyCount; i++) {
 			if (getFamilyQueuePresentationSupport(instance, physicalDevice, i)) {
 				return true;
 			}
@@ -76,10 +81,23 @@ public:
 	}
 
 	bool getFamilyQueuePresentationSupport(const vk::Instance &instance, const vk::PhysicalDevice &physicalDevice, uint32_t familyIndex) const {
+		if ( ! initialized) {
+			throw std::runtime_error{"GLFW not initialized"};
+		}
+
 		return glfwGetPhysicalDevicePresentationSupport(instance, physicalDevice, familyIndex);
 	}
+
+	void pollEvents() {
+		if ( ! initialized) {
+			throw std::runtime_error{"GLFW not initialized"};
+		}
+
+		glfwPollEvents();
+	}
+	*/
 };
 
-} // vlk
+extern GLFW glfw;
 
 } // rn

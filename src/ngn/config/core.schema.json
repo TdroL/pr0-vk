@@ -1,0 +1,100 @@
+{
+	"enums": {
+		"VSync": {
+			"immediate": "Immediate",
+			"double": "Double",
+			"triple": "Triple",
+			"mailbox": "Mailbox"
+		},
+		"WindowMode": {
+			"windowed": "Windowed",
+			"borderless": "Borderless",
+			"fullscreen": "Fullscreen"
+		}
+	},
+	"directory": "",
+	"struct": {
+		"#application": {
+			"name": {
+				"readOnly": true,
+				"type": "std::string",
+				"value": "\"pr0-vk\""
+			},
+			"#version": {
+				"major": {
+					"readOnly": true,
+					"type": "uint32_t",
+					"value": 0
+				},
+				"minor": {
+					"readOnly": true,
+					"type": "uint32_t",
+					"value": 0
+				},
+				"patch": {
+					"readOnly": true,
+					"type": "uint32_t",
+					"value": 0
+				}
+			}
+		},
+		"#engine": {
+			"name": {
+				"readOnly": true,
+				"type": "std::string",
+				"value": "\"ngn\""
+			},
+			"#version": {
+				"major": {
+					"readOnly": true,
+					"type": "uint32_t",
+					"value": 0
+				},
+				"minor": {
+					"readOnly": true,
+					"type": "uint32_t",
+					"value": 0
+				},
+				"patch": {
+					"readOnly": true,
+					"type": "uint32_t",
+					"value": 0
+				}
+			}
+		},
+		"#physicalDevice": {
+			"deviceId": {
+				"type": "uint32_t",
+				"default": 0
+			},
+			"vendorId": {
+				"type": "uint32_t",
+				"default": 0
+			}
+		},
+		"#window": {
+			"width": {
+				"type": "uint32_t",
+				"default": 1600
+			},
+			"height": {
+				"type": "uint32_t",
+				"default": 900
+			},
+			"vsync": {
+				"type": "VSync",
+				"default": "double"
+			},
+			"mode": {
+				"type": "WindowMode",
+				"default": "borderless"
+			}
+		},
+		"#debug": {
+			"vulkanLogLevel": {
+				"type": "uint32_t",
+				"default": 1
+			}
+		}
+	}
+}

@@ -1,30 +1,31 @@
-#include "debugCallbackCreator.hpp"
-#include "instanceOwner.hpp"
-#include "../../ngn/log.hpp"
+#include "debugCallbackDispatchTable.hpp"
+
+#include "../../../ngn/log.hpp"
 
 #include <unordered_map>
+#include <sstream>
 
 namespace rn {
 
 namespace vlk {
 
-struct DebugCallbackDispatchTableCounter {
+struct DebugCallbackDispatchTableCounted {
 	size_t refCount = 0;
 	DebugCallbackDispatchTable dispatch{};
 };
 
-std::unordered_map<VkInstance, DebugCallbackDispatchTableCounter> dispatchCountners{};
+std::unordered_map<VkInstance, DebugCallbackDispatchTableCounted> dispatchMap{};
 
-DebugCallbackDispatchTable loadDebugCallbackDispatchTableCounter(VkInstance instance) {
+DebugCallbackDispatchTable loadDebugCallbackDispatchTable(const vk::Instance &instance) {
 	if ( ! instance) {
-		throw std::runtime_error{"rn::vlk::debugCallbackDispatchTable/loadDebugCallbackDispatchTableCounter() - instance is null"};
+		throw std::runtime_error{"rn::vlk::debugCallbackDispatchTable/loadDebugCallbackDispatchTable() - missing required instance"};
 	}
 
 	DebugCallbackDispatchTable dispatch{};
 	#define LOAD(name) do { \
-		dispatch.name = reinterpret_cast<PFN_name>(vkGetInstanceProcAddr(instance, #name)); \
+		dispatch.name = reinterpret_cast<PFN_##name>(instance.getProcAddr(#name)); \
 		if (dispatch.name == nullptr) { \
-			throw std::runtime_error{"rn::vlk::debugCallbackDispatchTable/loadDebugCallbackDispatchTableCounter() - function " #name " not available"}; \
+			throw std::runtime_error{"rn::vlk::debugCallbackDispatchTable/loadDebugCallbackDispatchTable() - function " #name " not available"}; \
 		} \
 	} while (false)
 
@@ -36,16 +37,52 @@ DebugCallbackDispatchTable loadDebugCallbackDispatchTableCounter(VkInstance inst
 	return dispatch;
 }
 
-void initDebugCallbackDispatchTable(vk::Instance &instance) {
+size_t initDebugCallbackDispatchTable(const vk::Instance &instance) {
+	auto it = dispatchMap.find(instance);
 
+	if (it != std::end(dispatchMap)) {
+		it->second.refCount++;
+		return it->second.refCount;
+	}
+
+	DebugCallbackDispatchTableCounted entry {
+		1,
+		loadDebugCallbackDispatchTable(instance)
+	};
+
+	dispatchMap.insert_or_assign(instance, std::move(entry));
+
+	return entry.refCount;
 }
 
-void deinitDebugCallbackDispatchTable(vk::Instance &instance) {
+size_t releaseDebugCallbackDispatchTable(const vk::Instance &instance) {
+	auto it = dispatchMap.find(instance);
 
+	if (it == std::end(dispatchMap)) {
+		return 0;
+	}
+
+	it->second.refCount--;
+
+	size_t refCount = it->second.refCount;
+
+	if ( ! refCount) {
+		dispatchMap.erase(it);
+	}
+
+	return refCount;
 }
 
-DebugCallbackDispatchTable & getDebugCallbackDispatchTable(vk::Instance &instance) {
-	return DebugCallbackDispatchTable{};
+DebugCallbackDispatchTable & getDebugCallbackDispatchTable(const vk::Instance &instance) {
+	auto it = dispatchMap.find(instance);
+
+	if (it == std::end(dispatchMap)) {
+		initDebugCallbackDispatchTable(instance);
+
+		it = dispatchMap.find(instance);
+	}
+
+	return it->second.dispatch;
 }
 
 } // vlk

@@ -2,14 +2,14 @@
 
 #include <map>
 #include <vector>
-#include <string>
+#include <cassert>
+#include <stdexcept>
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
-#include "deviceOwner.hpp"
+// #include "../deviceOwner.hpp"
+#include "../physicalDeviceHandle.hpp"
 #include "queuesPlanner.hpp"
-#include "../../ngn/config.hpp"
-#include "../../ngn/log.hpp"
 
 namespace rn {
 
@@ -75,18 +75,22 @@ public:
 		/*.inheritedQueries=*/ false,
 	};
 
-	DeviceOwner create(GLFWOwner &glfwOwner, InstanceOwner &instanceOwner, PhysicalDeviceOwner &physicalDeviceOwner) {
-		GLFW &glfw = glfwOwner.handle;
-		vk::Instance &instance = instanceOwner.handle;
-		vk::PhysicalDevice &physicalDevice = physicalDeviceOwner.handle;
+	vk::UniqueDevice create(vk::UniqueSurfaceKHR &surfaceOwner, vk::UniqueInstance &instanceOwner, PhysicalDeviceHandle &physicalDeviceHandle) {
+		vk::SurfaceKHR surface = surfaceOwner.get();
+		vk::Instance instance = instanceOwner.get();
+		vk::PhysicalDevice physicalDevice = physicalDeviceHandle.handle;
 
-		std::vector<vk::DeviceQueueCreateInfo> deviceQueueCreateInfos = buildDeviceQueueCreateInfos(glfw, instance, physicalDevice).second;
+		assert(surface);
+		assert(instance);
+		assert(physicalDevice);
+
+		std::vector<vk::DeviceQueueCreateInfo> deviceQueueCreateInfos = buildDeviceQueueCreateInfos(surface, instance, physicalDevice).second;
 
 		std::vector<const char *> deviceExtensions{
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
 
-		vk::PhysicalDeviceFeatures physicalDeviceFeatures = buildDeviceFeatures(physicalDeviceOwner.requiredFeatures, physicalDeviceOwner.availableFeatures);
+		vk::PhysicalDeviceFeatures physicalDeviceFeatures = buildDeviceFeatures(physicalDeviceHandle.requiredFeatures, physicalDeviceHandle.availableFeatures);
 
 		vk::DeviceCreateInfo deviceCreateInfo{};
 		deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(deviceQueueCreateInfos.size());
@@ -95,14 +99,17 @@ public:
 		deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
 		deviceCreateInfo.pEnabledFeatures = &physicalDeviceFeatures;
 
-		return DeviceOwner{
-			physicalDevice.createDevice(deviceCreateInfo),
-			std::move(physicalDeviceFeatures)
-		};
+		vk::UniqueDevice deviceOwner{physicalDevice.createDeviceUnique(deviceCreateInfo)};
+
+		if ( ! deviceOwner) {
+			throw std::runtime_error{"Vulkan device could not be created"};
+		}
+
+		return deviceOwner;
 	}
 
-	std::pair<std::vector<std::vector<float>>, std::vector<vk::DeviceQueueCreateInfo>> buildDeviceQueueCreateInfos(const GLFW &glfw, const vk::Instance &instance, const vk::PhysicalDevice &physicalDevice) {
-		std::map<uint32_t, uint32_t> usageCount = QueuesPlanner{glfw, instance, physicalDevice}.countQueueFamilyUsage();
+	std::pair<std::vector<std::vector<float>>, std::vector<vk::DeviceQueueCreateInfo>> buildDeviceQueueCreateInfos(const vk::SurfaceKHR &surface, const vk::Instance &instance, const vk::PhysicalDevice &physicalDevice) {
+		std::map<uint32_t, uint32_t> usageCount = QueuesPlanner{surface, instance, physicalDevice}.countQueueFamilyUsage();
 
 		std::vector<vk::DeviceQueueCreateInfo> createInfos{};
 		createInfos.reserve(usageCount.size());

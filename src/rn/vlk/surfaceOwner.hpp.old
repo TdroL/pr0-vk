@@ -1,0 +1,54 @@
+#pragma once
+
+#include <vulkan/vulkan.hpp>
+
+namespace rn {
+
+namespace vlk {
+
+class SurfaceOwner {
+public:
+	vk::SurfaceKHR handle{};
+	vk::Instance instance{};
+
+	SurfaceOwner() = default;
+	explicit SurfaceOwner(vk::SurfaceKHR &&surface, const vk::Instance &instance)
+		: handle{std::move(surface)}, instance{instance} {
+		surface = vk::SurfaceKHR{};
+	}
+
+	SurfaceOwner(SurfaceOwner &&rhs)
+		: handle{std::move(rhs.handle)}, instance{rhs.instance} {
+		rhs.handle = vk::SurfaceKHR{};
+		rhs.instance = vk::Instance{};
+	}
+
+	SurfaceOwner & operator=(SurfaceOwner &&rhs) {
+		handle = std::move(rhs.handle);
+		instance = rhs.instance;
+
+		rhs.handle = vk::SurfaceKHR{};
+		rhs.instance = vk::Instance{};
+
+		return *this;
+	}
+
+	void destroy() {
+		if (handle) {
+			instance.destroySurfaceKHR(handle);
+			handle = vk::SurfaceKHR{};
+			instance= vk::Instance{};
+		}
+	}
+
+	SurfaceOwner(const SurfaceOwner &rhs) = delete;
+	SurfaceOwner & operator=(const SurfaceOwner &rhs) = delete;
+
+	~SurfaceOwner() {
+		destroy();
+	}
+};
+
+} // vlk
+
+} // rn

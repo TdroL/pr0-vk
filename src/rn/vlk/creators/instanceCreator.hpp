@@ -3,9 +3,14 @@
 #include <vector>
 #include <string>
 #include <algorithm>
-#include <iostream>
+#include <stdexcept>
 
-#include "instanceOwner.hpp"
+#include <vulkan/vulkan.hpp>
+
+// #include "../instanceOwner.hpp"
+
+#include "../../glfw.hpp"
+#include "../../../ngn/config/core.hpp"
 
 namespace rn {
 
@@ -29,11 +34,6 @@ public:
 	std::vector<std::string> availableExtensions{};
 	bool availableExtensionsLoaded = false;
 
-	std::string applicationName = "Unnamed application";
-	Version applicationVersion = {0, 0, 0};
-	std::string engineName = "ngn";
-	Version engineVersion = {0, 0, 0};
-
 	void initAvailableLayers() {
 		if (availableLayersLoaded) {
 			return;
@@ -48,6 +48,7 @@ public:
 
 		availableLayersLoaded = true;
 	}
+
 	void initAvailableExtensions() {
 		if (availableExtensionsLoaded) {
 			return;
@@ -99,12 +100,51 @@ public:
 		return true;
 	}
 
-	InstanceOwner create() {
+	void requireExtensions(const std::vector<std::string> &extensions) {
+		for (const std::string &extension : extensions) {
+			if ( ! appendExtension(extension)) {
+				throw std::runtime_error{"Required extension \"" + extension + "\" is not available"};
+			}
+		}
+	}
+
+	std::vector<std::string> findMissingExtensions(const std::vector<std::string> &extensions) {
+		std::vector<std::string> notFound{};
+
+		for (const std::string &extension : extensions) {
+			if ( ! validateExtension(extension)) {
+				notFound.push_back(extension);
+			}
+		}
+
+		return notFound;
+	}
+
+	std::vector<std::string> tryIncludeLayers(const std::vector<std::string> &layers) {
+		std::vector<std::string> notFound{};
+
+		for (const std::string &layer : layers) {
+			if ( ! creators.instance.appendLayer(layer)) {
+				notFound.push_back(layer);
+			}
+		}
+
+		return notFound;
+	}
+
+	vk::UniqueInstance create() {
+		if (glfwVulkanSupported() != GLFW_TRUE) {
+			throw std::runtime_error{"Vulkan not supported"};
+		}
+
+		auto &appConfig = ngn::config::core.application;
+		auto &engineConfig = ngn::config::core.engine;
+
 		vk::ApplicationInfo applicationInfo{};
-		applicationInfo.pApplicationName   = applicationName.data();
-		applicationInfo.applicationVersion = VK_MAKE_VERSION(applicationVersion.major, applicationVersion.minor, applicationVersion.patch);
-		applicationInfo.pEngineName        = engineName.data();
-		applicationInfo.engineVersion      = VK_MAKE_VERSION(engineVersion.major, engineVersion.minor, engineVersion.patch);
+		applicationInfo.pApplicationName   = appConfig.name().data();
+		applicationInfo.applicationVersion = VK_MAKE_VERSION(appConfig.version.major(), appConfig.version.minor(), appConfig.version.patch());
+		applicationInfo.pEngineName        = engineConfig.name().data();
+		applicationInfo.engineVersion      = VK_MAKE_VERSION(engineConfig.version.major(), engineConfig.version.minor(), engineConfig.version.patch());
 		applicationInfo.apiVersion         = VK_API_VERSION_1_0;
 
 		auto getRawData = [] (const std::string &value) {
@@ -124,7 +164,13 @@ public:
 		instanceCreateInfo.enabledExtensionCount   = static_cast<uint32_t>(requestedExtensions.size());
 		instanceCreateInfo.ppEnabledExtensionNames = requestedExtensions.data();
 
-		return InstanceOwner{vk::createInstance(instanceCreateInfo)};
+		vk::UniqueInstance instanceOwner{vk::createInstanceUnique(instanceCreateInfo)};
+
+		if ( ! instanceOwner) {
+			throw std::runtime_error{"Vulkan instance could not be created"};
+		}
+
+		return instanceOwner;
 	}
 };
 
