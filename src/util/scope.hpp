@@ -2,8 +2,7 @@
 
 #include <exception>
 
-namespace util
-{
+namespace util {
 
 template <typename F>
 class ScopeExit {
