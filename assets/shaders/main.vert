@@ -1,11 +1,16 @@
-#version 440 core
+#version 450 core
+#extension GL_ARB_separate_shader_objects : enable
+
+out gl_PerVertex {
+	vec4 gl_Position;
+};
 
 void main() {
-	vec2 pos[3] = vec2[3](
-		vec2(-0.7, 0.7),
-		vec2(0.7, 0.7),
-		vec2(0.0, -0.7)
+	vec4 vertices[3] = vec4[3](
+		vec4( 0.0, -0.5, 0.0, 1.0),
+		vec4( 0.5,  0.5, 0.0, 1.0),
+		vec4(-0.5,  0.5, 0.0, 1.0)
 	);
 
-	gl_Position = vec4(pos[gl_VertexIndex], 0.0, 1.0);
+	gl_Position = vertices[gl_VertexIndex];
 }

@@ -66,10 +66,10 @@ public:
 		}
 
 		return QueuesHandle{
-			std::move(presentation),
-			std::move(graphic),
-			std::move(compute),
-			std::move(transfer)
+			{ std::move(presentation), indices.presentation.family },
+			{ std::move(graphic), indices.graphic.family },
+			{ std::move(compute), indices.compute.family },
+			{ std::move(transfer), indices.transfer.family }
 		};
 	}
 };

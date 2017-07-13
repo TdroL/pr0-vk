@@ -2,14 +2,17 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
 
+const dirName = path.dirname(process.argv[1]);
 const name = process.argv[2];
 if ( ! name) {
 	throw new Error('name is missing');
 }
 
+
 const ucName = name.replace(/^[a-z]/, (char) => char.toUpperCase());
-const schema = require('./' + name + '.schema.json');
+const schema = require(path.join(dirName, name + '.schema.json'));
 
 const save = process.argv[3];
 
@@ -158,8 +161,8 @@ const generateAccessor = (subName, def, schema) => {
 }`;
 
 	const accessorTemplateSetter = `void {{subName}}({{setterType}}newValue) {
+	root.dirty(prop_{{subName}} != newValue);
 	prop_{{subName}} = newValue;
-	root.dirty(true);
 }`;
 
 	let defaultValue = def.readOnly ? def.value : def.default;
@@ -291,10 +294,13 @@ const generateLoader = (path, def, schema) => {
 	{{getter}}
 } catch (const std::out_of_range &/*e*/) {
 	{{path}}({{defaultValue}});
+	dirty(true);
 } catch (const std::domain_error &/*e*/) {
 	{{path}}({{defaultValue}});
+	dirty(true);
 } catch (const std::invalid_argument &/*e*/) {
 	{{path}}({{defaultValue}});
+	dirty(true);
 }`;
 
 	let defaultValue = 'defaultValue';
@@ -481,8 +487,8 @@ namespace config {
 };
 
 if (save) {
-	fs.writeFileSync('./' + name + '.hpp', generateHeader(schema));
-	fs.writeFileSync('./' + name + '.cpp', generateSource(schema));
+	fs.writeFileSync(path.join(dirName, name + '.hpp'), generateHeader(schema));
+	fs.writeFileSync(path.join(dirName, name + '.cpp'), generateSource(schema));
 	console.log('done');
 } else {
 	console.log(generateHeader(schema));

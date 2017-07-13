@@ -12,7 +12,6 @@
 #include "../exts/debugCallbackDispatchTable.hpp"
 
 #include "../../../ngn/config.hpp"
-#include "../../../util/scopeExit.hpp"
 
 namespace rn {
 

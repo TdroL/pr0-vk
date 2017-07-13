@@ -29,10 +29,12 @@ std::string contents(const std::string &fileName, bool throws) {
 	std::ifstream in(filePath, std::ios::in | std::ios::binary);
 
 	if (in && in.good()) {
+		const int64_t fileSize = size(in);
+
 		std::string contents{};
-		size_t fileSize = size(in) / sizeof(char);
-		contents.reserve(fileSize);
-		contents[fileSize - 1] = '\0';
+		if (fileSize >= 0) {
+			contents.reserve(fileSize);
+		}
 
 		contents.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
 
@@ -55,13 +57,12 @@ std::vector<char> contents(const std::string &fileName, bool throws) {
 
 	std::ifstream in(filePath, std::ios::in | std::ios::binary);
 
-	if (in && in.good()) {
+	const int64_t fileSize = size(in);
+	if (fileSize >= 0) {
 		std::vector<char> contents{};
-		size_t fileSize = size(in) / sizeof(char);
-		contents.reserve(fileSize);
-		contents[fileSize - 1] = '\0';
+		contents.resize(fileSize);
 
-		contents.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
+		in.read(reinterpret_cast<char *>(contents.data()), fileSize);
 
 		return contents;
 	}
@@ -71,6 +72,33 @@ std::vector<char> contents(const std::string &fileName, bool throws) {
 	}
 
 	return std::vector<char>{};
+}
+
+template<>
+std::vector<uint32_t> contents(const std::string &fileName, bool throws) {
+	std::string filePath = find(fileName, throws);
+	if (filePath.empty()) {
+		return std::vector<uint32_t>{};
+	}
+
+	std::ifstream in(filePath, std::ios::in | std::ios::binary);
+
+	const int64_t fileSize = size(in);
+	if (fileSize >= 0) {
+		const int64_t padding = (sizeof(uint32_t) - (fileSize % sizeof(uint32_t))) % sizeof(uint32_t);
+		std::vector<uint32_t> contents{};
+		contents.resize((fileSize + padding) / sizeof(uint32_t));
+
+		in.read(reinterpret_cast<char *>(contents.data()), fileSize);
+
+		return contents;
+	}
+
+	if (throws) {
+		throw std::runtime_error{"ngn::fs::contents(\"" + fileName + "\") - failed to read the file"};
+	}
+
+	return std::vector<uint32_t>{};
 }
 
 std::string contents(const std::string &fileName, bool throws) {
@@ -125,16 +153,16 @@ std::string ext(const std::string &fileName) {
 	return "";
 }
 
-size_t size(const std::string &fileName) {
-	std::ifstream in(find(fileName), std::ios::binary);
+int64_t size(const std::string &fileName) {
+	std::ifstream in(find(fileName), std::ios::ate | std::ios::binary);
 
-	return size(in);
+	return static_cast<int64_t>(in.tellg());
 }
 
-size_t size(std::ifstream &in) {
+int64_t size(std::ifstream &in) {
 	if (in && in.good()) {
 		in.seekg(0, std::ios::end);
-		size_t length = in.tellg();
+		int64_t length = static_cast<int64_t>(in.tellg());
 		in.seekg(0, std::ios::beg);
 
 		return length;

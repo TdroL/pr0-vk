@@ -217,10 +217,9 @@ public:
 	}
 
 	bool hasPresentationSupport(const vk::SurfaceKHR &surface, const vk::PhysicalDevice &physicalDevice) {
-		uint32_t queueFamilyPropertyCount;
-		physicalDevice.getQueueFamilyProperties(&queueFamilyPropertyCount, nullptr);
+		std::vector<vk::QueueFamilyProperties> familyProperties = physicalDevice.getQueueFamilyProperties();
 
-		for (uint32_t i = 0; i < queueFamilyPropertyCount; i++) {
+		for (uint32_t i = 0; i < familyProperties.size(); i++) {
 			if (physicalDevice.getSurfaceSupportKHR(i, surface)) {
 				return true;
 			}

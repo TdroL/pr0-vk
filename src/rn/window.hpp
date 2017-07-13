@@ -18,6 +18,7 @@ public:
 		std::string title{};
 		int width{};
 		int height{};
+		int monitor{-1};
 		WindowMode mode{};
 	};
 
@@ -37,6 +38,7 @@ public:
 		nextProperties.title = ngn::config::core.application.name();
 		nextProperties.width = ngn::config::core.window.width();
 		nextProperties.height = ngn::config::core.window.height();
+		nextProperties.monitor = ngn::config::core.window.monitor();
 		nextProperties.mode = ngn::config::core.window.mode();
 	}
 
@@ -45,8 +47,13 @@ public:
 			currentProperties.title != nextProperties.title ||
 			currentProperties.width != nextProperties.width ||
 			currentProperties.height != nextProperties.height ||
+			currentProperties.monitor != nextProperties.monitor ||
 			currentProperties.mode != nextProperties.mode
 		);
+	}
+
+	void refresh() {
+		currentProperties = nextProperties;
 	}
 
 	void create() {
@@ -78,7 +85,25 @@ public:
 			glfwWindowHint(GLFW_DECORATED, GL_FALSE);
 			glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-			monitor = glfwGetPrimaryMonitor();
+			if (nextProperties.monitor < 0) {
+				monitor = glfwGetPrimaryMonitor();
+			} else {
+				int count;
+				GLFWmonitor** monitors = glfwGetMonitors(&count);
+
+				if (count <= 0) {
+					ngn::log::error("Could not fetch monitors");
+				} else if (monitors == nullptr) {
+					ngn::log::error("No monitors found");
+				} else if (nextProperties.monitor >= count) {
+					ngn::log::warn("Monitor index out of bounds: {} >= {}", nextProperties.monitor, count);
+
+					monitor = glfwGetPrimaryMonitor();
+					nextProperties.monitor = -1;
+				} else {
+					monitor = monitors[nextProperties.monitor];
+				}
+			}
 
 			const GLFWvidmode *vidmode = glfwGetVideoMode(monitor);
 			glfwWindowHint(GLFW_RED_BITS, vidmode->redBits);
@@ -88,7 +113,7 @@ public:
 		break;
 		}
 
-		ngn::log::debug("Creating window: {} x {} as \"{}\"", nextProperties.width, nextProperties.height, nextProperties.title);
+		ngn::log::debug("Creating window: {} x {} with title \"{}\"", nextProperties.width, nextProperties.height, nextProperties.title);
 
 		handle = glfwCreateWindow(nextProperties.width, nextProperties.height, nextProperties.title.c_str(), monitor, nullptr);
 
@@ -99,10 +124,7 @@ public:
 		glfwSetWindowUserPointer(handle, this);
 		glfwSetWindowSizeCallback(handle, Window::onResize);
 
-		currentProperties.title = nextProperties.title;
-		currentProperties.width = nextProperties.width;
-		currentProperties.height = nextProperties.height;
-		currentProperties.mode = nextProperties.mode;
+		currentProperties = nextProperties;
 	}
 
 	void destroy() {
@@ -129,13 +151,15 @@ public:
 		return vk::SurfaceKHR{surface};
 	}
 
-	static void onResize(GLFWwindow* handle, int width, int height) {
+	static void onResize(GLFWwindow *handle, int width, int height) {
 		if (width == 0 || height == 0) {
 			return;
 		}
 
-		Window* self = reinterpret_cast<Window *>(glfwGetWindowUserPointer(handle));
-		// self->dispatchResize(width, height);
+		ngn::log::debug("Window resize: {} {}", width, height);
+		Window* window = reinterpret_cast<Window *>(glfwGetWindowUserPointer(handle));
+		window->nextProperties.width = width;
+		window->nextProperties.height = height;
 	}
 };
 

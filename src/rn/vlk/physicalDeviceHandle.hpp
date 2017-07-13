@@ -29,7 +29,8 @@ public:
 		properties{std::move(properties)},
 		memoryProperties{std::move(memoryProperties)},
 		availableFeatures{std::move(availableFeatures)},
-		requiredFeatures{requiredFeatures} {
+		requiredFeatures{requiredFeatures}
+	{
 
 		physicalDevice = vk::PhysicalDevice{};
 		properties = vk::PhysicalDeviceProperties{};
@@ -37,12 +38,13 @@ public:
 		availableFeatures = vk::PhysicalDeviceFeatures{};
 	}
 
-	PhysicalDeviceHandle(PhysicalDeviceHandle &&rhs)
-		: handle{std::move(rhs.handle)},
+	PhysicalDeviceHandle(PhysicalDeviceHandle &&rhs) :
+		handle{std::move(rhs.handle)},
 		properties{std::move(rhs.properties)},
 		memoryProperties{std::move(rhs.memoryProperties)},
 		availableFeatures{std::move(rhs.availableFeatures)},
-		requiredFeatures{std::move(rhs.requiredFeatures)} {
+		requiredFeatures{std::move(rhs.requiredFeatures)}
+	{
 
 		rhs.handle = vk::PhysicalDevice{};
 		rhs.properties = vk::PhysicalDeviceProperties{};
@@ -67,8 +69,8 @@ public:
 		return *this;
 	}
 
-	PhysicalDeviceHandle(const PhysicalDeviceHandle &rhs) = delete;
-	PhysicalDeviceHandle & operator=(const PhysicalDeviceHandle &rhs) = delete;
+	PhysicalDeviceHandle(const PhysicalDeviceHandle &rhs) = default;
+	PhysicalDeviceHandle & operator=(const PhysicalDeviceHandle &rhs) = default;
 };
 
 } // vlk

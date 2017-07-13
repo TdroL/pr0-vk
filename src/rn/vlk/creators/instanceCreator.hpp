@@ -8,9 +8,13 @@
 #include <vulkan/vulkan.hpp>
 
 // #include "../instanceOwner.hpp"
+#include "debugCallbackCreator.hpp"
+#include "surfaceCreator.hpp"
+#include "instancePlanner.hpp"
 
 #include "../../glfw.hpp"
-#include "../../../ngn/config/core.hpp"
+#include "../../../ngn/str.hpp"
+#include "../../../ngn/config.hpp"
 
 namespace rn {
 
@@ -26,116 +30,20 @@ public:
 		uint32_t patch;
 	};
 
-	std::vector<std::string> layers{};
-	std::vector<std::string> extensions{};
-
-	std::vector<std::string> availableLayers{};
-	bool availableLayersLoaded = false;
-	std::vector<std::string> availableExtensions{};
-	bool availableExtensionsLoaded = false;
-
-	void initAvailableLayers() {
-		if (availableLayersLoaded) {
-			return;
-		}
-
-		// load available instance layers
-		std::vector<vk::LayerProperties> layerProperties = vk::enumerateInstanceLayerProperties();
-		availableLayers.resize(layerProperties.size());
-		std::transform(std::begin(layerProperties), std::end(layerProperties), std::begin(availableLayers), [] (const vk::LayerProperties &properties) {
-			return std::string{properties.layerName};
-		});
-
-		availableLayersLoaded = true;
-	}
-
-	void initAvailableExtensions() {
-		if (availableExtensionsLoaded) {
-			return;
-		}
-
-		// load available instance extensions
-		std::vector<vk::ExtensionProperties> extensionProperties = vk::enumerateInstanceExtensionProperties();
-		availableExtensions.resize(extensionProperties.size());
-		std::transform(std::begin(extensionProperties), std::end(extensionProperties), std::begin(availableExtensions), [] (const vk::ExtensionProperties &properties) {
-			return std::string{properties.extensionName};
-		});
-
-		availableExtensionsLoaded = true;
-	}
-
-	bool validateLayer(const std::string &layer) {
-		initAvailableLayers();
-
-		return std::find(std::begin(availableLayers), std::end(availableLayers), layer) != std::end(availableLayers);
-	}
-
-	bool validateExtension(const std::string &extension) {
-		initAvailableExtensions();
-
-		return std::find(std::begin(availableExtensions), std::end(availableExtensions), extension) != std::end(availableExtensions);
-	}
-
-	bool appendLayer(const std::string &layer) {
-		if ( ! validateLayer(layer)) {
-			return false;
-		}
-
-		if (std::find(std::begin(layers), std::end(layers), layer) == std::end(layers)) {
-			layers.push_back(layer);
-		}
-
-		return true;
-	}
-
-	bool appendExtension(const std::string &extension) {
-		if ( ! validateExtension(extension)) {
-			return false;
-		}
-
-		if (std::find(std::begin(extensions), std::end(extensions), extension) == std::end(extensions)) {
-			extensions.push_back(extension);
-		}
-
-		return true;
-	}
-
-	void requireExtensions(const std::vector<std::string> &extensions) {
-		for (const std::string &extension : extensions) {
-			if ( ! appendExtension(extension)) {
-				throw std::runtime_error{"Required extension \"" + extension + "\" is not available"};
-			}
-		}
-	}
-
-	std::vector<std::string> findMissingExtensions(const std::vector<std::string> &extensions) {
-		std::vector<std::string> notFound{};
-
-		for (const std::string &extension : extensions) {
-			if ( ! validateExtension(extension)) {
-				notFound.push_back(extension);
-			}
-		}
-
-		return notFound;
-	}
-
-	std::vector<std::string> tryIncludeLayers(const std::vector<std::string> &layers) {
-		std::vector<std::string> notFound{};
-
-		for (const std::string &layer : layers) {
-			if ( ! creators.instance.appendLayer(layer)) {
-				notFound.push_back(layer);
-			}
-		}
-
-		return notFound;
-	}
-
-	vk::UniqueInstance create() {
+	vk::UniqueInstance create(DebugCallbackCreator &debugCallback, const SurfaceCreator &surface) {
 		if (glfwVulkanSupported() != GLFW_TRUE) {
 			throw std::runtime_error{"Vulkan not supported"};
 		}
+
+		InstancePlannerResult result = InstancePlanner{}.selectExtensionsAndLayers(debugCallback, surface);
+		if ( ! result.all) {
+			throw std::runtime_error{"Missing required " + ngn::str::implode(result.missingList) + " vulkan " + result.missingType + "(s)"};
+		}
+
+		debugCallback.isAvailable = result.debugCallback;
+
+		ngn::log::debug("Enabled {} vulkan extension(s): {}", result.extensions.size(), ngn::str::implode(result.extensions));
+		ngn::log::debug("Enabled {} vulkan layer(s): {}", result.layers.size(), ngn::str::implode(result.layers));
 
 		auto &appConfig = ngn::config::core.application;
 		auto &engineConfig = ngn::config::core.engine;
@@ -147,15 +55,15 @@ public:
 		applicationInfo.engineVersion      = VK_MAKE_VERSION(engineConfig.version.major(), engineConfig.version.minor(), engineConfig.version.patch());
 		applicationInfo.apiVersion         = VK_API_VERSION_1_0;
 
-		auto getRawData = [] (const std::string &value) {
+		const auto getStringData = [] (const std::string &value) -> const char * {
 			return value.data();
 		};
 
-		std::vector<const char *> requestedLayers(layers.size());
-		std::transform(std::begin(layers), std::end(layers), std::begin(requestedLayers), getRawData);
+		std::vector<const char *> requestedLayers(result.layers.size());
+		std::transform(std::begin(result.layers), std::end(result.layers), std::begin(requestedLayers), getStringData);
 
-		std::vector<const char *> requestedExtensions(extensions.size());
-		std::transform(std::begin(extensions), std::end(extensions), std::begin(requestedExtensions), getRawData);
+		std::vector<const char *> requestedExtensions(result.extensions.size());
+		std::transform(std::begin(result.extensions), std::end(result.extensions), std::begin(requestedExtensions), getStringData);
 
 		vk::InstanceCreateInfo instanceCreateInfo{};
 		instanceCreateInfo.pApplicationInfo        = &applicationInfo;

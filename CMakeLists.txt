@@ -13,7 +13,7 @@ endif ()
 # if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR
 # 	"${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 if (CMAKE_COMPILER_IS_GNUCXX)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra -Wfatal-errors -std=c++17 -m64 -pthread")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra -Wfatal-errors -std=c++17 -m64 -pthread -fdiagnostics-color")
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g -Og -Weffc++ -Winvalid-pch")
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O3 -funroll-loops -msse2")
 
