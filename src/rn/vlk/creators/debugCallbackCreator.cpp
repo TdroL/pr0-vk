@@ -15,26 +15,26 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebu
 	int logLevel = ngn::config::core.debug.vulkanLogLevel();
 
 	switch (logLevel) {
-		case 4: {
+		case 4:
 			if (flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT) {
 				return VK_FALSE;
 			}
-		}
-		case 3: {
+			[[fallthrough]];
+		case 3:
 			if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT) {
 				return VK_FALSE;
 			}
-		}
-		case 2: {
+			[[fallthrough]];
+		case 2:
 			if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT) {
 				return VK_FALSE;
 			}
-		}
-		case 1: {
+			[[fallthrough]];
+		case 1:
 			if (flags & VK_DEBUG_REPORT_DEBUG_BIT_EXT) {
 				return VK_FALSE;
 			}
-		}
+			[[fallthrough]];
 		default: {
 			if (logLevel > 4) {
 				return VK_FALSE;

@@ -77,20 +77,17 @@ struct InstancePlanner {
 
 				switch (flow) {
 					case Flow::FAIL_ALL:
-					case Flow::FAIL_STAGE: {
+					case Flow::FAIL_STAGE:
 						missing.list = missingList;
 						missing.type = "extension";
-					}
-					[[fallthrough]]
-					case Flow::SKIP: {
+						[[fallthrough]];
+					case Flow::SKIP:
 						flag = false;
 						found = {};
 						break;
-					}
-					case Flow::IGNORE_MISSING: {
+					case Flow::IGNORE_MISSING:
 						flow = Flow::OK;
 						break;
-					}
 					default: {
 						/* do nothing */
 					}
@@ -127,20 +124,17 @@ struct InstancePlanner {
 
 				switch (flow) {
 					case Flow::FAIL_ALL:
-					case Flow::FAIL_STAGE: {
+					case Flow::FAIL_STAGE:
 						missing.list = missingList;
 						missing.type = "layer";
-					}
-					[[fallthrough]]
-					case Flow::SKIP: {
+						[[fallthrough]];
+					case Flow::SKIP:
 						flag = false;
 						found = {};
 						break;
-					}
-					case Flow::IGNORE_MISSING: {
+					case Flow::IGNORE_MISSING:
 						flow = Flow::OK;
 						break;
-					}
 					default: {
 						/* do nothing */
 					}
@@ -193,15 +187,13 @@ struct InstancePlanner {
 
 		void apply(const Stage &stage) {
 			switch (stage.flow) {
-				[[fallthrough]]
-				case Flow::FAIL_ALL: {
+				case Flow::FAIL_ALL:
 					flow = Flow::FAIL_ALL;
-				}
-				case Flow::FAIL_STAGE: {
+					[[fallthrough]];
+				case Flow::FAIL_STAGE:
 					all = false;
 					break;
-				}
-				case Flow::OK: {
+				case Flow::OK:
 					for (const std::string &extension : stage.requestedExtensions) {
 						if (std::find(std::begin(result.extensions), std::end(result.extensions), extension) == std::end(result.extensions)) {
 							result.extensions.push_back(extension);
@@ -215,7 +207,6 @@ struct InstancePlanner {
 					}
 
 					break;
-				}
 				default: {
 					// IGNORE_MISSING, SKIP
 				}

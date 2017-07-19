@@ -57,11 +57,20 @@ public:
 		vk::DebugReportFlagsEXT flags{};
 
 		switch (ngn::config::core.debug.vulkanLogLevel()) {
-			case 0: flags = flags | vk::DebugReportFlagBitsEXT::eDebug;
-			case 1: flags = flags | vk::DebugReportFlagBitsEXT::eInformation;
-			case 2: flags = flags | vk::DebugReportFlagBitsEXT::eWarning;
-			case 3: flags = flags | vk::DebugReportFlagBitsEXT::ePerformanceWarning;
-			case 4: flags = flags | vk::DebugReportFlagBitsEXT::eError;
+			case 0:
+				flags = flags | vk::DebugReportFlagBitsEXT::eDebug;
+				[[fallthrough]];
+			case 1:
+				flags = flags | vk::DebugReportFlagBitsEXT::eInformation;
+				[[fallthrough]];
+			case 2:
+				flags = flags | vk::DebugReportFlagBitsEXT::eWarning;
+				[[fallthrough]];
+			case 3:
+				flags = flags | vk::DebugReportFlagBitsEXT::ePerformanceWarning;
+				[[fallthrough]];
+			case 4:
+				flags = flags | vk::DebugReportFlagBitsEXT::eError;
 		}
 
 		vk::DebugReportCallbackCreateInfoEXT debugReportCallbackCreateInfo{};

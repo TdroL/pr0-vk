@@ -65,20 +65,20 @@ public:
 		context.handles.physicalDevice = selectPhysicalDevice(context.owners, context.handles);
 
 		context.owners.device = createDevice(context.owners, context.handles);
-		context.device = context.owners.device.get();
+		// context.device = context.owners.device.get();
 
 		context.handles.queues = selectQueues(context.owners, context.handles);
-		context.queues.presentation = context.handles.queues.presentation.handle;
-		context.queues.graphic = context.handles.queues.graphic.handle;
-		context.queues.compute = context.handles.queues.compute.handle;
-		context.queues.transfer = context.handles.queues.transfer.handle;
+		// context.queues.presentation = context.handles.queues.presentation.handle;
+		// context.queues.graphic = context.handles.queues.graphic.handle;
+		// context.queues.compute = context.handles.queues.compute.handle;
+		// context.queues.transfer = context.handles.queues.transfer.handle;
 
 		context.handles.surfaceExtent = selectSurfaceExtent(context.owners, context.handles);
 		context.handles.surfaceFormat = selectSurfaceFormat(context.owners, context.handles);
 		context.owners.swapchain = createSwapchain(context.owners, context.handles);
 		context.handles.surfaceImages = selectSurfaceImages(context.owners, context.handles);
 		context.owners.surfaceImageViews = createSurfaceImageViews(context.owners, context.handles);
-		context.swapchain = context.owners.swapchain.get();
+		// context.swapchain = context.owners.swapchain.get();
 
 		// if (ngn::config::core.dirty() && ! ngn::config::core.store()) {
 		// 	ngn::log::error("Failed to store core config in \"{}\":\n{}", ngn::config::core.source(), ngn::config::core.dump());

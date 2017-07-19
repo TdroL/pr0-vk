@@ -1,17 +1,3 @@
-// #include <algorithm>
-// #include <chrono>
-// #include <cassert>
-// #include <cstdlib>
-// #include <cstring>
-#include <iostream>
-// #include <memory>
-// #include <set>
-// #include <string>
-// #include <vector>
-// #include <functional>
-// #include <stdexcept>
-
-// #include "rn/glfw.hpp"
 #include "rn/window.hpp"
 #include "rn/vlk/creators/contextCreator.hpp"
 #include "rn/vlk/context.hpp"
@@ -19,10 +5,7 @@
 #include "ngn/log.hpp"
 #include "ngn/config.hpp"
 
-#include "app/mainState.hpp"
-
-#include <chrono>
-#include <thread>
+#include "app/main/state.hpp"
 
 int main() {
 	try {
@@ -36,18 +19,27 @@ int main() {
 		rn::Window window{};
 		window.create();
 
+		auto contextStart = glfwGetTime();
 		rn::vlk::Context context = rn::vlk::ContextCreator{window}.create();
+		auto contextEnd = glfwGetTime();
+		ngn::log::debug("context#create: {}ms", 1000.0 * (contextEnd - contextStart));
+
 		// ngn::Inputs inputs{context};
 
 		if (ngn::config::core.dirty()) {
 			ngn::log::warn("Config is dirty after context creation");
 		}
 
-		app::MainState mainState{window, context};
+		app::main::State mainState{window, context};
 
+		auto mainStateStart = glfwGetTime();
 		mainState.init();
+		auto mainStateEnd = glfwGetTime();
+		ngn::log::debug("mainState#init: {}ms", 1000.0 * (mainStateEnd - mainStateStart));
 
-		for (int i = 0; i < 4 && ! glfwWindowShouldClose(window.handle); i++) {
+		auto last = glfwGetTime();
+		for (size_t i = 0; /*i < 6 &&*/ ! glfwWindowShouldClose(window.handle); i++) {
+			auto loopStart = glfwGetTime();
 			glfwPollEvents();
 
 			if ( ! window.needsRefresh()) {
@@ -57,16 +49,31 @@ int main() {
 
 			mainState.render();
 
-			// std::this_thread::sleep_for(std::chrono::milliseconds(16));
-			std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+			auto loopEnd = glfwGetTime();
+			auto now = glfwGetTime();
+
+			std::string title =
+				std::to_string((loopEnd - loopStart) * 1000.0) +
+				"ms / " +
+				std::to_string((now - last) * 1000.0) +
+				"ms | " +
+				std::to_string(1.0 / (loopEnd - loopStart)) +
+				"fps / " +
+				std::to_string(1.0 / (now - last)) +
+				"fps";
+
+			glfwSetWindowTitle(window.handle, title.c_str());
+			last = now;
 		}
 
-		context.device.waitIdle();
+		mainState.deinit();
+
+		context.owners.device.get().waitIdle();
 
 		return EXIT_SUCCESS;
 	} catch (std::runtime_error const &e) {
-		std::cerr << "Runtime exception: " << e.what() << std::endl;
+		ngn::log::critical("Runtime exception: {}", e.what());
 	} catch (...) {
-		std::cerr << "Unknown exception" << std::endl;
+		ngn::log::critical("Unknown exception");
 	}
 }
