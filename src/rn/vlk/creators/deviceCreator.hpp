@@ -115,17 +115,21 @@ public:
 		createInfos.reserve(usageCount.size());
 
 		std::vector<std::vector<float>> prioritiesList{};
-		prioritiesList.reserve(usageCount.size());
+		prioritiesList.resize(usageCount.size());
 
+		uint32_t i = 0;
 		for (const auto &pair : usageCount) {
-			prioritiesList.emplace_back(pair.second, 1.f);
+			// for family [pair.first] request [pair.second] queues, all with equal priority
+			prioritiesList[i].resize(pair.second, 1.f);
 
 			createInfos.emplace_back(
 				vk::DeviceQueueCreateFlags{},
 				pair.first,
-				pair.second,
-				prioritiesList.back().data()
+				prioritiesList[i].size(),
+				prioritiesList[i].data()
 			);
+
+			i++;
 		}
 
 		return {

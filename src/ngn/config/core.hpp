@@ -323,7 +323,7 @@ struct Core {
 		}
 
 		void deviceId(uint32_t newValue) {
-			root.dirty(prop_deviceId != newValue);
+			root.dirty(root.dirty() || prop_deviceId != newValue);
 			prop_deviceId = newValue;
 		}
 
@@ -333,7 +333,7 @@ struct Core {
 		}
 
 		void vendorId(uint32_t newValue) {
-			root.dirty(prop_vendorId != newValue);
+			root.dirty(root.dirty() || prop_vendorId != newValue);
 			prop_vendorId = newValue;
 		}
 	} physicalDevice{root};
@@ -349,7 +349,7 @@ struct Core {
 		}
 
 		void width(uint32_t newValue) {
-			root.dirty(prop_width != newValue);
+			root.dirty(root.dirty() || prop_width != newValue);
 			prop_width = newValue;
 		}
 
@@ -359,7 +359,7 @@ struct Core {
 		}
 
 		void height(uint32_t newValue) {
-			root.dirty(prop_height != newValue);
+			root.dirty(root.dirty() || prop_height != newValue);
 			prop_height = newValue;
 		}
 
@@ -369,7 +369,7 @@ struct Core {
 		}
 
 		void mode(const WindowMode &newValue) {
-			root.dirty(prop_mode != newValue);
+			root.dirty(root.dirty() || prop_mode != newValue);
 			prop_mode = newValue;
 		}
 
@@ -379,7 +379,7 @@ struct Core {
 		}
 
 		void monitor(int32_t newValue) {
-			root.dirty(prop_monitor != newValue);
+			root.dirty(root.dirty() || prop_monitor != newValue);
 			prop_monitor = newValue;
 		}
 
@@ -389,7 +389,7 @@ struct Core {
 		}
 
 		void vsync(const VSync &newValue) {
-			root.dirty(prop_vsync != newValue);
+			root.dirty(root.dirty() || prop_vsync != newValue);
 			prop_vsync = newValue;
 		}
 
@@ -399,7 +399,7 @@ struct Core {
 		}
 
 		void imageBuffers(uint32_t newValue) {
-			root.dirty(prop_imageBuffers != newValue);
+			root.dirty(root.dirty() || prop_imageBuffers != newValue);
 			prop_imageBuffers = newValue;
 		}
 
@@ -409,7 +409,7 @@ struct Core {
 		}
 
 		void surfaceFormat(const SurfaceFormat &newValue) {
-			root.dirty(prop_surfaceFormat != newValue);
+			root.dirty(root.dirty() || prop_surfaceFormat != newValue);
 			prop_surfaceFormat = newValue;
 		}
 
@@ -419,7 +419,7 @@ struct Core {
 		}
 
 		void surfaceColorSpace(const SurfaceColorSpace &newValue) {
-			root.dirty(prop_surfaceColorSpace != newValue);
+			root.dirty(root.dirty() || prop_surfaceColorSpace != newValue);
 			prop_surfaceColorSpace = newValue;
 		}
 	} window{root};
@@ -429,15 +429,31 @@ struct Core {
 
 		Debug(Core &root) : root(root) {}
 
-		uint32_t prop_vulkanLogLevel{1};
-		uint32_t vulkanLogLevel() {
-			return prop_vulkanLogLevel;
-		}
+		struct Vk {
+			Core &root;
 
-		void vulkanLogLevel(uint32_t newValue) {
-			root.dirty(prop_vulkanLogLevel != newValue);
-			prop_vulkanLogLevel = newValue;
-		}
+			Vk(Core &root) : root(root) {}
+
+			bool prop_useRenderDoc{false};
+			bool useRenderDoc() {
+				return prop_useRenderDoc;
+			}
+
+			void useRenderDoc(bool newValue) {
+				root.dirty(root.dirty() || prop_useRenderDoc != newValue);
+				prop_useRenderDoc = newValue;
+			}
+
+			uint32_t prop_logLevel{1};
+			uint32_t logLevel() {
+				return prop_logLevel;
+			}
+
+			void logLevel(uint32_t newValue) {
+				root.dirty(root.dirty() || prop_logLevel != newValue);
+				prop_logLevel = newValue;
+			}
+		} vk{root};
 	} debug{root};
 
 	bool dirty_value = false;

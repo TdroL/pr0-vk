@@ -28,6 +28,8 @@ int main() {
 
 		if (ngn::config::core.dirty()) {
 			ngn::log::warn("Config is dirty after context creation");
+
+			ngn::log::debug("{}", ngn::config::core.dump());
 		}
 
 		app::main::State mainState{window, context};
@@ -37,33 +39,43 @@ int main() {
 		auto mainStateEnd = glfwGetTime();
 		ngn::log::debug("mainState#init: {}ms", 1000.0 * (mainStateEnd - mainStateStart));
 
-		auto last = glfwGetTime();
-		for (size_t i = 0; /*i < 6 &&*/ ! glfwWindowShouldClose(window.handle); i++) {
-			auto loopStart = glfwGetTime();
-			glfwPollEvents();
+		// auto last = glfwGetTime();
+		for (size_t i = 0; /*i < 24 &&*/ ! glfwWindowShouldClose(window.handle); i++) {
+			ngn::prof::Scope profScope{"main loop"};
 
-			if ( ! window.needsRefresh()) {
-				window.refresh();
-				mainState.refresh();
+			{
+				ngn::prof::Scope profScope{"event polling"};
+
+				// auto loopStart = glfwGetTime();
+				glfwPollEvents();
+			}
+
+			{
+				ngn::prof::Scope profScope{"window refreshing"};
+
+				if ( ! window.needsRefresh()) {
+					window.refresh();
+					mainState.refresh();
+				}
 			}
 
 			mainState.render();
 
-			auto loopEnd = glfwGetTime();
-			auto now = glfwGetTime();
+			// auto loopEnd = glfwGetTime();
+			// auto now = glfwGetTime();
 
-			std::string title =
-				std::to_string((loopEnd - loopStart) * 1000.0) +
-				"ms / " +
-				std::to_string((now - last) * 1000.0) +
-				"ms | " +
-				std::to_string(1.0 / (loopEnd - loopStart)) +
-				"fps / " +
-				std::to_string(1.0 / (now - last)) +
-				"fps";
+			// std::string title =
+			// 	std::to_string((loopEnd - loopStart) * 1000.0) +
+			// 	"ms / " +
+			// 	std::to_string((now - last) * 1000.0) +
+			// 	"ms | " +
+			// 	std::to_string(1.0 / (loopEnd - loopStart)) +
+			// 	"fps / " +
+			// 	std::to_string(1.0 / (now - last)) +
+			// 	"fps";
 
-			glfwSetWindowTitle(window.handle, title.c_str());
-			last = now;
+			// glfwSetWindowTitle(window.handle, title.c_str());
+			// last = now;
 		}
 
 		mainState.deinit();

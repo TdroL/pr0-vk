@@ -40,8 +40,14 @@ public:
 	};
 
 	std::vector<std::string> optionalLayers {
-		"VK_LAYER_LUNARG_standard_validation"
+		"VK_LAYER_LUNARG_standard_validation",
 	};
+
+	DebugCallbackCreator() {
+		if (ngn::config::core.debug.vk.useRenderDoc()) {
+			optionalLayers.push_back("VK_LAYER_RENDERDOC_Capture");
+		}
+	}
 
 	vk::UniqueDebugReportCallbackEXT create(vk::UniqueInstance &instanceOwner) {
 		if ( ! isAvailable) {
@@ -56,7 +62,7 @@ public:
 
 		vk::DebugReportFlagsEXT flags{};
 
-		switch (ngn::config::core.debug.vulkanLogLevel()) {
+		switch (ngn::config::core.debug.vk.logLevel()) {
 			case 0:
 				flags = flags | vk::DebugReportFlagBitsEXT::eDebug;
 				[[fallthrough]];

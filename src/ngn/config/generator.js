@@ -161,7 +161,7 @@ const generateAccessor = (subName, def, schema) => {
 }`;
 
 	const accessorTemplateSetter = `void {{subName}}({{setterType}}newValue) {
-	root.dirty(prop_{{subName}} != newValue);
+	root.dirty(root.dirty() || prop_{{subName}} != newValue);
 	prop_{{subName}} = newValue;
 }`;
 

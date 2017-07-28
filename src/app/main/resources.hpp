@@ -6,6 +6,7 @@
 
 #include <ngn/fs.hpp>
 #include <ngn/log.hpp>
+#include <ngn/prof.hpp>
 
 #include <rn/window.hpp>
 #include <rn/vlk/context.hpp>
@@ -35,15 +36,17 @@ struct Handles {
 	vk::RenderPass renderPass{};
 	vk::Pipeline pipeline{};
 
-	uint32_t acquireIndex{};
+	uint32_t imageIndex{};
+
 	vk::Fence acquireFence{};
 	vk::Semaphore acquireSemaphore{};
+
+	vk::Fence submitFence{};
+	vk::Semaphore submitSemaphore{};
 
 	vk::Framebuffer framebuffer{};
 	vk::CommandPool commandPool{};
 	vk::CommandBuffer commandBuffer{};
-	vk::Fence submitFence{};
-	vk::Semaphore submitSemaphore{};
 };
 
 struct PerInstance {
@@ -56,20 +59,46 @@ struct PerInstance {
 struct PerSwapchain {
 	vk::UniqueRenderPass renderPass{};
 	vk::UniquePipeline pipeline{};
+
+	vk::UniqueFence dummyFence{};
 };
 
 struct PerAquire {
+	vk::Fence wait{};
 	vk::UniqueFence fence{};
+	vk::UniqueSemaphore semaphore{};
+};
+
+struct PerSubmit {
+	vk::Fence wait{};
 	vk::UniqueSemaphore semaphore{};
 };
 
 struct PerImage {
+	vk::UniqueFence fence{};
+
 	vk::UniqueFramebuffer framebuffer{};
 	vk::UniqueCommandPool commandPool{};
 	vk::UniqueCommandBuffer commandBuffer{};
-	vk::UniqueFence fence{};
-	vk::UniqueSemaphore semaphore{};
 };
+
+#if defined(DEBUG)
+void * getKey(vk::UniqueFence &fence) {
+	return reinterpret_cast<void *>(static_cast<VkFence>(fence.get()));
+}
+
+void * getKey(vk::Fence &fence) {
+	return reinterpret_cast<void *>(static_cast<VkFence>(fence));
+}
+
+void * getKey(vk::UniqueSemaphore &semaphore) {
+	return reinterpret_cast<void *>(static_cast<VkSemaphore>(semaphore.get()));
+}
+
+void * getKey(vk::Semaphore &semaphore) {
+	return reinterpret_cast<void *>(static_cast<VkSemaphore>(semaphore));
+}
+#endif
 
 class RingPool {
 public:
@@ -79,10 +108,10 @@ public:
 	uint32_t imageCount;
 
 	PerInstance perInstance{};
-
 	PerSwapchain perSwapchain{};
 	std::vector<PerAquire> perAquireList{};
-	std::vector<std::vector<PerImage>> perImageLists{};
+	std::vector<PerSubmit> perSubmitList{};
+	std::vector<PerImage> perImageList{};
 
 	RingPool(rn::Window &window, rn::vlk::Context &context) :
 		window(window), context(context)
@@ -94,20 +123,11 @@ public:
 
 	void init() {
 		imageCount = context.handles.surfaceImages.size();
-
 		perInstance = initPerInstance();
-
 		perSwapchain = initPerSwapchain();
-
-		perAquireList.resize(imageCount);
-		for (uint32_t i = 0; i < imageCount; i++) {
-			perAquireList[i] = initPerAquire();
-		}
-
-		perImageLists.resize(imageCount);
-		for (uint32_t i = 0; i < imageCount; i++) {
-			perImageLists[i].push_back(initPerImage(i));
-		}
+		perAquireList = initPerAquireList(imageCount);
+		perSubmitList = initPerSubmitList(imageCount);
+		perImageList = initPerImageList(imageCount);
 	}
 
 	void deinit() {
@@ -117,41 +137,48 @@ public:
 
 		perInstance.device.waitIdle();
 
-		// wait for all fences not associated with queues
-		std::vector<vk::Fence> fences{};
-		for (uint32_t i = 0; i < imageCount; i++) {
-			fences.push_back(perAquireList[i].fence.get());
-		}
-
-		perInstance.device.waitForFences(fences, true, std::numeric_limits<uint64_t>::max());
-
 		perInstance = {};
 		perSwapchain = {};
 		perAquireList.clear();
-		perImageLists.clear();
+		perImageList.clear();
 	}
 
 	Handles next() {
-		const PerAquire &perAquire = nextAvailablePerAquire();
+		ngn::prof::Scope profScope{"app::main::Resources::next()"};
 
-		perInstance.device.resetFences({
-			perAquire.fence.get()
-		});
-
-		const auto result = perInstance.device.acquireNextImageKHR(perInstance.swapchain, std::numeric_limits<uint64_t>::max(), perAquire.semaphore.get(), perAquire.fence.get());
-
-		if (result.result != vk::Result::eSuccess) {
-			ngn::log::warn("acquireNextImageKHR: {}", vk::to_string(result.result));
+		if (perInstance.device == vk::Device{}) {
+			throw std::runtime_error("app::main::Resource not initialized");
 		}
 
-		uint32_t idx = result.value;
+		auto &perAquire = nextAvailablePerAquire();
+		{
+			ngn::prof::Scope profScope{"reset perAquire fence"};
+			perInstance.device.resetFences({ perAquire.fence.get() });
+		}
 
-		const PerImage &perImage = nextAvailablePerImage(idx);
+		uint32_t idx;
+		{
+			ngn::prof::Scope profScope{"acquire image"};
 
-		perInstance.device.resetFences({
-			perImage.fence.get()
-		});
+			const auto acquireResult = perInstance.device.acquireNextImageKHR(perInstance.swapchain, std::numeric_limits<uint64_t>::max(), perAquire.semaphore.get(), perAquire.fence.get());
+			if (acquireResult.result != vk::Result::eSuccess) {
+				ngn::log::warn("Acquire result: {}", vk::to_string(acquireResult.result));
+			}
 
+			idx = acquireResult.value;
+		}
+
+		auto &perSubmit = nextAvailablePerSubmit(idx, perAquire.fence.get());
+
+		auto &perImage = nextAvailablePerImage(idx);
+		{
+			ngn::prof::Scope profScope{"reset perImage fence"};
+			perInstance.device.resetFences({ perImage.fence.get() });
+		}
+
+		perAquire.wait = perImage.fence.get();
+
+		// assign
 		Handles handles{};
 		handles.device = perInstance.device;
 		handles.queues = perInstance.queues;
@@ -161,53 +188,123 @@ public:
 		handles.renderPass = perSwapchain.renderPass.get();
 		handles.pipeline = perSwapchain.pipeline.get();
 
-		handles.acquireIndex = idx;
+		handles.imageIndex = idx;
+
 		handles.acquireFence = perAquire.fence.get();
 		handles.acquireSemaphore = perAquire.semaphore.get();
+
+		handles.submitFence = perImage.fence.get();
+		handles.submitSemaphore = perSubmit.semaphore.get();
 
 		handles.framebuffer = perImage.framebuffer.get();
 		handles.commandPool = perImage.commandPool.get();
 		handles.commandBuffer = perImage.commandBuffer.get();
-		handles.submitFence = perImage.fence.get();
-		handles.submitSemaphore = perImage.semaphore.get();
 
 		return handles;
 	}
 
-	PerAquire & nextAvailablePerAquire() {
-		for (uint32_t i = 0; i < perAquireList.size(); i++) {
-			const vk::Fence fence = perAquireList[i].fence.get();
-
-			const auto result = perInstance.device.getFenceStatus(fence);
-			if (result == vk::Result::eSuccess) {
-				return perAquireList[i];
+	uint32_t needsWait(const std::vector<vk::Fence> & fences) {
+		for (uint32_t i = 0; i < fences.size(); i++) {
+			if (perInstance.device.getFenceStatus(fences[i]) != vk::Result::eSuccess) {
+				return i;
 			}
 		}
 
-		perAquireList.push_back(initPerAquire());
-		uint32_t last = perAquireList.size() - 1;
+		return std::numeric_limits<uint32_t>::max();
+	}
 
-		return perAquireList[last];
+	PerAquire & nextAvailablePerAquire() {
+		ngn::prof::Scope profScope{"::nextAvailablePerAquire()"};
+		assert(perAquireList.size() > 0);
+
+		std::vector<vk::Fence> fences{};
+		fences.resize(perAquireList.size());
+
+		for (uint32_t i = 0; i < perAquireList.size(); i++) {
+			fences[i] = perAquireList[i].wait;
+		}
+
+		perInstance.device.waitForFences(fences, false, std::numeric_limits<uint64_t>::max());
+
+		const auto found = std::find_if(std::begin(perAquireList), std::end(perAquireList), [&] (const auto &perAquire) {
+			const auto result = perInstance.device.getFenceStatus(perAquire.wait);
+
+			return result == vk::Result::eSuccess;
+		});
+
+		if (found != std::end(perAquireList)) {
+			#if defined(DEBUG)
+			{
+				uint32_t idx = needsWait({ found->fence.get() });
+
+				if (idx != std::numeric_limits<uint32_t>::max()) {
+					ngn::log::debug("nextAvailablePerAquire/found needsWait = {}", idx);
+				}
+			}
+			#endif
+
+			return *found;
+		} else {
+			// should never happen, but handle it anyway -- wait for the first entry
+			ngn::log::warn("No PerAquire available even after the wait for all fences");
+
+			perInstance.device.waitIdle();
+			perInstance.device.waitForFences({ perAquireList[0].wait }, false, std::numeric_limits<uint64_t>::max());
+
+			#if defined(DEBUG)
+			{
+				uint32_t idx = needsWait({ perAquireList[0].fence.get() });
+
+				if (idx != std::numeric_limits<uint32_t>::max()) {
+					ngn::log::debug("nextAvailablePerAquire/backup needsWait = {}", idx);
+				}
+			}
+			#endif
+
+			return perAquireList[0];
+		}
+	}
+
+	PerSubmit & nextAvailablePerSubmit(uint32_t idx, const vk::Fence &acquireFence) {
+		ngn::prof::Scope profScope{"::nextAvailablePerSubmit()"};
+
+		auto &perSubmit = perSubmitList[idx];
+
+		#if defined(DEBUG)
+		{
+			uint32_t idx = needsWait({ perSubmit.wait });
+
+			if (idx != std::numeric_limits<uint32_t>::max()) {
+				ngn::log::debug("nextAvailablePerSubmit needsWait = {}", idx);
+			}
+		}
+		#endif
+
+		perInstance.device.waitForFences({ perSubmit.wait }, false, std::numeric_limits<uint64_t>::max());
+
+		perSubmit.wait = acquireFence;
+
+		return perSubmit;
 	}
 
 	PerImage & nextAvailablePerImage(uint32_t idx) {
-		assert(idx < perImageLists.size());
+		ngn::prof::Scope profScope{"::nextAvailablePerImage()"};
 
-		auto &perImageList = perImageLists[idx];
+		auto &perImage = perImageList[idx];
 
-		for (uint32_t i = 0; i < perImageList.size(); i++) {
-			const vk::Fence fence = perImageList[i].fence.get();
+		#if defined(DEBUG)
+		{
+			uint32_t idx = needsWait({ perImage.fence.get() });
 
-			const auto result = perInstance.device.getFenceStatus(fence);
-			if (result == vk::Result::eSuccess) {
-				return perImageList[i];
+			if (idx != std::numeric_limits<uint32_t>::max()) {
+				ngn::log::debug("nextAvailablePerImage needsWait = {}", idx);
 			}
 		}
+		#endif
 
-		perImageList.push_back(initPerImage(idx));
-		uint32_t last = perImageList.size() - 1;
+		perInstance.device.waitForFences({ perImage.fence.get() }, false, std::numeric_limits<uint64_t>::max());
 
-		return perImageList[last];
+		return perImage;
 	}
 
 	PerInstance initPerInstance() {
@@ -239,27 +336,44 @@ public:
 
 		result.renderPass = createRenderPass();
 		result.pipeline = createGraphicsPipeline(result.renderPass.get());
+		result.dummyFence = createFence();
 
 		return result;
 	}
 
-	PerAquire initPerAquire() {
-		PerAquire result{};
+	std::vector<PerAquire> initPerAquireList(uint32_t imageCount) {
+		std::vector<PerAquire> result(imageCount * 2);
 
-		result.fence = createFence();
-		result.semaphore = createSemaphore();
+		for (uint32_t i = 0; i < result.size(); i++) {
+			result[i].wait = perSwapchain.dummyFence.get();
+			result[i].fence = createFence();
+			result[i].semaphore = createSemaphore();
+		}
 
 		return result;
 	}
 
-	PerImage initPerImage(uint32_t idx) {
-		PerImage result{};
+	std::vector<PerSubmit> initPerSubmitList(uint32_t imageCount) {
+		std::vector<PerSubmit> result(imageCount);
 
-		result.framebuffer = createFramebuffer(idx);
-		result.commandPool = createCommandPool();
-		result.commandBuffer = createCommandBuffer(result.commandPool.get());
-		result.fence = createFence();
-		result.semaphore = createSemaphore();
+		for (uint32_t i = 0; i < result.size(); i++) {
+			result[i].wait = perSwapchain.dummyFence.get();
+			result[i].semaphore = createSemaphore();
+		}
+
+		return result;
+	}
+
+	std::vector<PerImage> initPerImageList(uint32_t imageCount) {
+		std::vector<PerImage> result(imageCount);
+
+		for (uint32_t i = 0; i < result.size(); i++) {
+			result[i].fence = createFence();
+
+			result[i].framebuffer = createFramebuffer(i);
+			result[i].commandPool = createCommandPool();
+			result[i].commandBuffer = createCommandBuffer(result[i].commandPool.get());
+		}
 
 		return result;
 	}

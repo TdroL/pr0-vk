@@ -12,6 +12,10 @@ endif ()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+	add_definitions(-DDEBUG)
+endif ()
+
 # if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR
 # 	"${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 if (CMAKE_COMPILER_IS_GNUCXX OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
@@ -62,6 +66,11 @@ include_directories(${JSON_INCLUDE_DIR})
 # Spdlog
 find_package(Spdlog REQUIRED)
 include_directories(${SPDLOG_INCLUDE_DIR})
+
+# Remotery
+find_package(Remotery REQUIRED)
+include_directories(${REMOTERY_INCLUDE_DIR})
+list(APPEND LIBS ${REMOTERY_LIBRARIES})
 
 # executable
 add_executable(${NAME} ${SOURCES})

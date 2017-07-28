@@ -615,15 +615,28 @@ void Core::load() {
 	}
 
 	try {
-		debug.vulkanLogLevel(body.at("/debug/vulkanLogLevel"_json_pointer).get<uint32_t>());
+		debug.vk.useRenderDoc(body.at("/debug/vk/useRenderDoc"_json_pointer).get<bool>());
 	} catch (const std::out_of_range &/*e*/) {
-		debug.vulkanLogLevel(1);
+		debug.vk.useRenderDoc(false);
 		dirty(true);
 	} catch (const std::domain_error &/*e*/) {
-		debug.vulkanLogLevel(1);
+		debug.vk.useRenderDoc(false);
 		dirty(true);
 	} catch (const std::invalid_argument &/*e*/) {
-		debug.vulkanLogLevel(1);
+		debug.vk.useRenderDoc(false);
+		dirty(true);
+	}
+
+	try {
+		debug.vk.logLevel(body.at("/debug/vk/logLevel"_json_pointer).get<uint32_t>());
+	} catch (const std::out_of_range &/*e*/) {
+		debug.vk.logLevel(1);
+		dirty(true);
+	} catch (const std::domain_error &/*e*/) {
+		debug.vk.logLevel(1);
+		dirty(true);
+	} catch (const std::invalid_argument &/*e*/) {
+		debug.vk.logLevel(1);
 		dirty(true);
 	}
 }
@@ -645,7 +658,10 @@ std::string Core::dump(const int indent) {
 			{"surfaceColorSpace", toString(window.surfaceColorSpace())}
 		}},
 		{"debug", {
-			{"vulkanLogLevel", debug.vulkanLogLevel()}
+			{"vk", {
+				{"useRenderDoc", debug.vk.useRenderDoc()},
+				{"logLevel", debug.vk.logLevel()}
+			}}
 		}}
 	};
 

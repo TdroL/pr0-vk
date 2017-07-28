@@ -12,7 +12,7 @@ namespace vlk {
 
 VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT /*objectType*/, uint64_t /*object*/, size_t /*location*/, int32_t messageCode, const char *pLayerPrefix, const char *pMessage, void */*pUserData*/) {
 
-	int logLevel = ngn::config::core.debug.vulkanLogLevel();
+	int logLevel = ngn::config::core.debug.vk.logLevel();
 
 	switch (logLevel) {
 		case 4:

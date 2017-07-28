@@ -6,6 +6,8 @@
 
 // #include <vulkan/vulkan.hpp>
 
+#include <ngn/prof.hpp>
+
 #include <rn/window.hpp>
 #include <rn/vlk/context.hpp>
 
@@ -37,6 +39,8 @@ public:
 	}
 
 	void recordCommandBuffer(Handles &handles) {
+		ngn::prof::Scope profScope{"::recordCommandBuffer()"};
+
 		vk::ClearValue clearColor{std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}};
 
 		vk::CommandBufferBeginInfo commandBufferBegin{};
@@ -61,10 +65,8 @@ public:
 		handles.commandBuffer.end();
 	}
 
-	void render() {
-		Handles handles = resources.next();
-
-		recordCommandBuffer(handles);
+	void submit(Handles &handles) {
+		ngn::prof::Scope profScope{"::submit()"};
 
 		// submit command buffer to queue
 		vk::Semaphore submitWaitSemaphores[] {
@@ -91,16 +93,36 @@ public:
 		submitInfo.pSignalSemaphores = submitSignalSemaphores;
 
 		handles.queues.graphic.submit({submitInfo}, handles.submitFence);
+	}
+
+	void present(Handles &handles) {
+		ngn::prof::Scope profScope{"::present()"};
+
+		vk::Semaphore presentWaitSemaphores[] {
+			handles.submitSemaphore
+		};
 
 		// present
 		vk::PresentInfoKHR presentInfo{};
-		presentInfo.waitSemaphoreCount = std::size(submitSignalSemaphores);
-		presentInfo.pWaitSemaphores = submitSignalSemaphores;
+		presentInfo.waitSemaphoreCount = std::size(presentWaitSemaphores);
+		presentInfo.pWaitSemaphores = presentWaitSemaphores;
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = &handles.swapchain;
-		presentInfo.pImageIndices = &handles.acquireIndex;
+		presentInfo.pImageIndices = &handles.imageIndex;
 		presentInfo.pResults = nullptr;
 		handles.queues.presentation.presentKHR(presentInfo);
+	}
+
+	void render() {
+		ngn::prof::Scope profScope{"app::main::State::render()"};
+
+		Handles handles = resources.next();
+
+		recordCommandBuffer(handles);
+
+		submit(handles);
+
+		present(handles);
 	}
 };
 

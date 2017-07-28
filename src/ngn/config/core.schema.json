@@ -1,4 +1,111 @@
 {
+	"directory": "",
+	"struct": {
+		"#application": {
+			"name": {
+				"readOnly": true,
+				"type": "std::string",
+				"value": "\"pr0-vk\""
+			},
+			"#version": {
+				"major": {
+					"readOnly": true,
+					"type": "uint32_t",
+					"value": 0
+				},
+				"minor": {
+					"readOnly": true,
+					"type": "uint32_t",
+					"value": 1
+				},
+				"patch": {
+					"readOnly": true,
+					"type": "uint32_t",
+					"value": 0
+				}
+			}
+		},
+		"#engine": {
+			"name": {
+				"readOnly": true,
+				"type": "std::string",
+				"value": "\"ngn\""
+			},
+			"#version": {
+				"major": {
+					"readOnly": true,
+					"type": "uint32_t",
+					"value": 0
+				},
+				"minor": {
+					"readOnly": true,
+					"type": "uint32_t",
+					"value": 1
+				},
+				"patch": {
+					"readOnly": true,
+					"type": "uint32_t",
+					"value": 0
+				}
+			}
+		},
+		"#physicalDevice": {
+			"deviceId": {
+				"type": "uint32_t",
+				"default": 0
+			},
+			"vendorId": {
+				"type": "uint32_t",
+				"default": 0
+			}
+		},
+		"#window": {
+			"width": {
+				"type": "uint32_t",
+				"default": 1600
+			},
+			"height": {
+				"type": "uint32_t",
+				"default": 900
+			},
+			"mode": {
+				"type": "WindowMode",
+				"default": "borderless"
+			},
+			"monitor": {
+				"type": "int32_t",
+				"default": -1
+			},
+			"vsync": {
+				"type": "VSync",
+				"default": "mailbox"
+			},
+			"imageBuffers": {
+				"type": "uint32_t",
+				"default": 3
+			},
+			"surfaceFormat": {
+				"type": "SurfaceFormat",
+				"default": "b8g8r8a8unorm"
+			},
+			"surfaceColorSpace": {
+				"type": "SurfaceColorSpace",
+				"default": "srgbnonlinear"
+			}
+		},
+		"#debug": {
+			"#vk": {
+				"useRenderDoc": {
+					"type": "bool",
+					"default": false
+				},
+				"logLevel": {
+					"type": "uint32_t",
+					"default": 1
+				}
+			}
+		}
+	},
 	"enums": {
 		"VSync": {
 			"immediate": "Immediate",
@@ -220,107 +327,6 @@
 			"adobergblinearext": "AdobergbLinearEXT",
 			"adobergbnonlinearext": "AdobergbNonlinearEXT",
 			"passthroughext": "PassThroughEXT"
-		}
-	},
-	"directory": "",
-	"struct": {
-		"#application": {
-			"name": {
-				"readOnly": true,
-				"type": "std::string",
-				"value": "\"pr0-vk\""
-			},
-			"#version": {
-				"major": {
-					"readOnly": true,
-					"type": "uint32_t",
-					"value": 0
-				},
-				"minor": {
-					"readOnly": true,
-					"type": "uint32_t",
-					"value": 1
-				},
-				"patch": {
-					"readOnly": true,
-					"type": "uint32_t",
-					"value": 0
-				}
-			}
-		},
-		"#engine": {
-			"name": {
-				"readOnly": true,
-				"type": "std::string",
-				"value": "\"ngn\""
-			},
-			"#version": {
-				"major": {
-					"readOnly": true,
-					"type": "uint32_t",
-					"value": 0
-				},
-				"minor": {
-					"readOnly": true,
-					"type": "uint32_t",
-					"value": 1
-				},
-				"patch": {
-					"readOnly": true,
-					"type": "uint32_t",
-					"value": 0
-				}
-			}
-		},
-		"#physicalDevice": {
-			"deviceId": {
-				"type": "uint32_t",
-				"default": 0
-			},
-			"vendorId": {
-				"type": "uint32_t",
-				"default": 0
-			}
-		},
-		"#window": {
-			"width": {
-				"type": "uint32_t",
-				"default": 1600
-			},
-			"height": {
-				"type": "uint32_t",
-				"default": 900
-			},
-			"mode": {
-				"type": "WindowMode",
-				"default": "borderless"
-			},
-			"monitor": {
-				"type": "int32_t",
-				"default": -1
-			},
-			"vsync": {
-				"type": "VSync",
-				"default": "mailbox"
-			},
-			"imageBuffers": {
-				"type": "uint32_t",
-				"default": 3
-			},
-			"surfaceFormat": {
-				"type": "SurfaceFormat",
-				"default": "b8g8r8a8unorm"
-			},
-			"surfaceColorSpace": {
-				"type": "SurfaceColorSpace",
-				"default": "srgbnonlinear"
-			}
-		},
-		"#debug": {
-			"vulkanLogLevel": {
-				"type": "uint32_t",
-				"default": 1
-			}
 		}
 	}
 }
