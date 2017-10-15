@@ -1,26 +1,25 @@
 #pragma once
 
-#include <vector>
-#include <string>
 #include <algorithm>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 #include <vulkan/vulkan.hpp>
 
-// #include "../instanceOwner.hpp"
 #include "debugCallbackCreator.hpp"
 #include "surfaceCreator.hpp"
 #include "instancePlanner.hpp"
 
+#include "../context.hpp"
 #include "../../glfw.hpp"
-#include "../../../ngn/str.hpp"
+
 #include "../../../ngn/config.hpp"
 
-namespace rn {
+#include "../../../util/map.hpp"
+#include "../../../util/implode.hpp"
 
-namespace vlk {
-
-class Context;
+namespace rn::vlk {
 
 class InstanceCreator {
 public:
@@ -30,20 +29,20 @@ public:
 		uint32_t patch;
 	};
 
-	vk::UniqueInstance create(DebugCallbackCreator &debugCallback, const SurfaceCreator &surface) {
+	vk::UniqueInstance create(Context &/*context*/, DebugCallbackCreator &debugCallback, const SurfaceCreator &surface) {
 		if (glfwVulkanSupported() != GLFW_TRUE) {
 			throw std::runtime_error{"Vulkan not supported"};
 		}
 
 		InstancePlannerResult result = InstancePlanner{}.selectExtensionsAndLayers(debugCallback, surface);
 		if ( ! result.all) {
-			throw std::runtime_error{"Missing required " + ngn::str::implode(result.missingList) + " vulkan " + result.missingType + "(s)"};
+			throw std::runtime_error{"Missing required " + util::implode(result.missingList) + " vulkan " + result.missingType + "(s)"};
 		}
 
 		debugCallback.isAvailable = result.debugCallback;
 
-		ngn::log::debug("Enabled {} vulkan extension(s): {}", result.extensions.size(), ngn::str::implode(result.extensions));
-		ngn::log::debug("Enabled {} vulkan layer(s): {}", result.layers.size(), ngn::str::implode(result.layers));
+		ngn::log::debug("Enabled {} vulkan extension(s): {}", result.extensions.size(), util::implode(result.extensions));
+		ngn::log::debug("Enabled {} vulkan layer(s): {}", result.layers.size(), util::implode(result.layers));
 
 		auto &appConfig = ngn::config::core.application;
 		auto &engineConfig = ngn::config::core.engine;
@@ -59,11 +58,13 @@ public:
 			return value.data();
 		};
 
-		std::vector<const char *> requestedLayers(result.layers.size());
-		std::transform(std::begin(result.layers), std::end(result.layers), std::begin(requestedLayers), getStringData);
+		// std::vector<const char *> requestedLayers(result.layers.size());
+		// std::transform(std::begin(result.layers), std::end(result.layers), std::begin(requestedLayers), getStringData);
+		std::vector<const char *> requestedLayers = util::map<const char *>(result.layers, getStringData);
 
-		std::vector<const char *> requestedExtensions(result.extensions.size());
-		std::transform(std::begin(result.extensions), std::end(result.extensions), std::begin(requestedExtensions), getStringData);
+		// std::vector<const char *> requestedExtensions(result.extensions.size());
+		// std::transform(std::begin(result.extensions), std::end(result.extensions), std::begin(requestedExtensions), getStringData);
+		std::vector<const char *> requestedExtensions = util::map<const char *>(result.extensions, getStringData);
 
 		vk::InstanceCreateInfo instanceCreateInfo{};
 		instanceCreateInfo.pApplicationInfo        = &applicationInfo;
@@ -82,6 +83,4 @@ public:
 	}
 };
 
-} // vlk
-
-} // rn
+} // rn::vlk

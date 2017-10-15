@@ -1,19 +1,16 @@
 #pragma once
 
-#include <map>
-#include <vector>
 #include <cassert>
+#include <map>
 #include <stdexcept>
+#include <vector>
 
 #include <vulkan/vulkan.hpp>
 
-// #include "../deviceOwner.hpp"
-#include "../physicalDeviceHandle.hpp"
+#include "../context.hpp"
 #include "queuesPlanner.hpp"
 
-namespace rn {
-
-namespace vlk {
+namespace rn::vlk {
 
 class DeviceCreator {
 public:
@@ -75,10 +72,12 @@ public:
 		/*.inheritedQueries=*/ false,
 	};
 
-	vk::UniqueDevice create(vk::UniqueSurfaceKHR &surfaceOwner, vk::UniqueInstance &instanceOwner, PhysicalDeviceHandle &physicalDeviceHandle) {
-		vk::SurfaceKHR surface = surfaceOwner.get();
-		vk::Instance instance = instanceOwner.get();
-		vk::PhysicalDevice physicalDevice = physicalDeviceHandle.handle;
+	vk::UniqueDevice create(Context &context) {
+		vk::SurfaceKHR surface = context.owners.surface.get();
+		vk::Instance instance = context.owners.instance.get();
+		vk::PhysicalDevice physicalDevice = context.physicalDevice.handle;
+		vk::PhysicalDeviceFeatures &availableFeatures = context.physicalDevice.availableFeatures;
+		vk::PhysicalDeviceFeatures &requiredFeatures = context.physicalDevice.requiredFeatures;
 
 		assert(surface);
 		assert(instance);
@@ -90,7 +89,7 @@ public:
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
 
-		vk::PhysicalDeviceFeatures physicalDeviceFeatures = buildDeviceFeatures(physicalDeviceHandle.requiredFeatures, physicalDeviceHandle.availableFeatures);
+		vk::PhysicalDeviceFeatures physicalDeviceFeatures = buildDeviceFeatures(requiredFeatures, availableFeatures);
 
 		vk::DeviceCreateInfo deviceCreateInfo{};
 		deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(deviceQueueCreateInfos.size());
@@ -203,6 +202,4 @@ public:
 	}
 };
 
-} // vlk
-
-} // rn
+} // rn::vlk

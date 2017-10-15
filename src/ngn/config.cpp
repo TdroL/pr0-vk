@@ -1,11 +1,7 @@
 #include "config.hpp"
 
-namespace ngn {
-
-namespace config {
+namespace ngn::config {
 
 Core core{};
 
-} // config
-
-} // ngn
+} // ngn::config

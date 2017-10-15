@@ -6,20 +6,20 @@
 
 if (WIN32)
 	find_path(REMOTERY_INCLUDE_DIR NAMES Remotery.h HINTS
-		"${CMAKE_SOURCE_DIR}/external/Remotery/lib")
+		"${CMAKE_SOURCE_DIR}/external/Remotery-${Remotery_FIND_VERSION}/lib")
 
 	find_library(REMOTERY_LIBRARY NAMES Remotery HINTS
-		"${CMAKE_SOURCE_DIR}/external/Remotery/lib")
+		"${CMAKE_SOURCE_DIR}/external/Remotery-${Remotery_FIND_VERSION}/lib")
 
 	find_library(WS2_32_LIBRARY NAMES ws2_32)
 
 	set(REMOTERY_LIBRARIES ${REMOTERY_LIBRARY} ${WS2_32_LIBRARY})
 else ()
 	find_path(REMOTERY_INCLUDE_DIR NAMES Remotery.h HINTS
-		"${CMAKE_SOURCE_DIR}/external/Remotery/lib")
+		"${CMAKE_SOURCE_DIR}/external/Remotery-${Remotery_FIND_VERSION}/lib")
 
 	find_library(REMOTERY_LIBRARY NAMES Remotery HINTS
-		"${CMAKE_SOURCE_DIR}/external/Remotery/lib")
+		"${CMAKE_SOURCE_DIR}/external/Remotery-${Remotery_FIND_VERSION}/lib")
 
 	set(REMOTERY_LIBRARIES ${REMOTERY_LIBRARY})
 endif ()

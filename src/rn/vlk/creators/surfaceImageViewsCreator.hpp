@@ -1,26 +1,27 @@
 #pragma once
 
-#include <map>
-#include <vector>
-#include <string>
-#include <stdexcept>
 #include <cassert>
+#include <map>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 #include <vulkan/vulkan.hpp>
 
+#include "../context.hpp"
 #include "../../../ngn/config.hpp"
 #include "../../../ngn/log.hpp"
 
-namespace rn {
-
-namespace vlk {
+namespace rn::vlk {
 
 class SurfaceImageViewsCreator {
 public:
-	std::vector<vk::UniqueImageView> create(vk::UniqueDevice &deviceOwner, std::vector<vk::Image> &surfaceImages) {
-		vk::Device device = deviceOwner.get();
+	std::vector<vk::UniqueImageView> create(Context &context) {
+		vk::Device device = context.device;
+		std::vector<vk::Image> &surfaceImages = context.surface.images;
 
 		assert(device);
+		assert(surfaceImages.size() > 0);
 
 		vk::Format imageFormat = fromConfig(ngn::config::core.window.surfaceFormat());
 		std::vector<vk::UniqueImageView> surfaceImageViews{};
@@ -44,6 +45,4 @@ public:
 	}
 };
 
-} // vlk
-
-} // rn
+} // rn::vlk

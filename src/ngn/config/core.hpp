@@ -14,7 +14,7 @@ enum class VSync {
 };
 
 std::string toString(const VSync &value);
-VSync fromString(const std::string &name, const VSync &defaultValue);
+VSync fromString(const std::string_view &name, const VSync &defaultValue);
 
 enum class WindowMode {
 	Windowed,
@@ -23,7 +23,7 @@ enum class WindowMode {
 };
 
 std::string toString(const WindowMode &value);
-WindowMode fromString(const std::string &name, const WindowMode &defaultValue);
+WindowMode fromString(const std::string_view &name, const WindowMode &defaultValue);
 
 enum class SurfaceFormat {
 	R4G4UnormPack8,
@@ -221,7 +221,7 @@ enum class SurfaceFormat {
 };
 
 std::string toString(const SurfaceFormat &value);
-SurfaceFormat fromString(const std::string &name, const SurfaceFormat &defaultValue);
+SurfaceFormat fromString(const std::string_view &name, const SurfaceFormat &defaultValue);
 
 enum class SurfaceColorSpace {
 	SrgbNonlinear,
@@ -241,7 +241,7 @@ enum class SurfaceColorSpace {
 };
 
 std::string toString(const SurfaceColorSpace &value);
-SurfaceColorSpace fromString(const std::string &name, const SurfaceColorSpace &defaultValue);
+SurfaceColorSpace fromString(const std::string_view &name, const SurfaceColorSpace &defaultValue);
 
 struct Core {
 	Core &root{*this};
@@ -466,7 +466,7 @@ struct Core {
 	}
 
 	std::string source_value{"core.json"};
-	void source(const std::string &newValue) {
+	void source(const std::string_view &newValue) {
 		source_value = newValue;
 	}
 

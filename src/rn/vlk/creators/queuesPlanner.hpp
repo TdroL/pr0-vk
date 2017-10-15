@@ -8,9 +8,7 @@
 
 #include <vulkan/vulkan.hpp>
 
-namespace rn {
-
-namespace vlk {
+namespace rn::vlk {
 
 struct TransferGranularity {
 	uint32_t width;
@@ -125,6 +123,7 @@ struct QueuesPlanner {
 
 		indices.compute = reserveQueue({
 			QueueType::Compute,
+			QueueType::Compute | QueueType::Transfer,
 			QueueType::Compute | QueueType::Graphics,
 			QueueType::Compute | QueueType::AnyOther
 		});
@@ -155,6 +154,7 @@ struct QueuesPlanner {
 		if ( ! indices.transfer) {
 			indices.transfer = shareWith({
 				indices.graphic,
+				indices.presentation,
 				indices.compute
 			}, {
 				QueueType::Transfer | QueueType::AnyOther,
@@ -203,64 +203,6 @@ struct QueuesPlanner {
 			x++;
 		}
 
-		/*
-		if (type == QueueType::Graphics) {
-			for (uint32_t i = 0; i < familyProperties.size(); i++) {
-				if (reservedCount[i] >= familyProperties[i].queueCount) {
-					continue;
-				}
-
-				// check if it's graphic without compute
-				if ((familyProperties[i].queueFlags & (vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute)) == vk::QueueFlagBits::eGraphics) {
-					return QueueFamilyIndex{i, reservedCount[i]++};
-				}
-			}
-		}
-
-		if (type == QueueType::Compute) {
-			for (uint32_t i = 0; i < familyProperties.size(); i++) {
-				if (reservedCount[i] >= familyProperties[i].queueCount) {
-					continue;
-				}
-
-				// check if it's compute without graphic
-				if ((familyProperties[i].queueFlags & (vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute)) == vk::QueueFlagBits::eCompute) {
-					return QueueFamilyIndex{i, reservedCount[i]++};
-				}
-			}
-		}
-
-		if (type == QueueType::Transfer) {
-			for (uint32_t i = 0; i < familyProperties.size(); i++) {
-				if (reservedCount[i] >= familyProperties[i].queueCount) {
-					continue;
-				}
-
-				// check if it's compute without graphic
-				if ((familyProperties[i].queueFlags & (vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute | vk::QueueFlagBits::eTransfer)) == vk::QueueFlagBits::eTransfer) {
-					if (testQueueProperties(type, granularity, i)) {
-						return QueueFamilyIndex{i, reservedCount[i]++};
-					}
-				}
-
-				if ((familyProperties[i].queueFlags & (vk::QueueFlagBits::eGraphics | vk::QueueFlagBits::eCompute | vk::QueueFlagBits::eTransfer)) == (vk::QueueFlagBits::eCompute | vk::QueueFlagBits::eTransfer)) {
-					if (testQueueProperties(type, granularity, i)) {
-						return QueueFamilyIndex{i, reservedCount[i]++};
-					}
-				}
-			}
-		}
-
-		for (uint32_t i = 0; i < familyProperties.size(); i++) {
-			if (reservedCount[i] >= familyProperties[i].queueCount) {
-				continue;
-			}
-
-			if (testQueueProperties(type, granularity, i)) {
-				return QueueFamilyIndex{i, reservedCount[i]++};
-			}
-		}
-		*/
 		return QueueFamilyIndex{};
 	}
 
@@ -272,13 +214,7 @@ struct QueuesPlanner {
 				}
 			}
 		}
-		/*
-		for (uint32_t i = 0; i < queueIndices.size(); i++) {
-			if (testQueueProperties(type, granularity, queueIndices[i].family)) {
-				return queueIndices[i];
-			}
-		}
-		*/
+
 		return QueueFamilyIndex{};
 	}
 
@@ -333,47 +269,7 @@ struct QueuesPlanner {
 		}
 
 		return true;
-
-		/*
-		if ((type & QueueType::Presentation) && ! glfw.getFamilyQueuePresentationSupport(instance, physicalDevice, i)) {
-			return false;
-		}
-
-		if ((type & QueueType::Graphics) && ! (familyProperties[i].queueFlags & vk::QueueFlagBits::eGraphics)) {
-			return false;
-		}
-
-		if ((type & QueueType::Compute) && ! (familyProperties[i].queueFlags & vk::QueueFlagBits::eCompute)) {
-			return false;
-		}
-
-		if ((type & QueueType::Transfer)) {
-			if ( ! (familyProperties[i].queueFlags & vk::QueueFlagBits::eTransfer)) {
-				return false;
-			}
-
-			if (familyProperties[i].minImageTransferGranularity.width > granularity.width) {
-				return false;
-			}
-
-			if (familyProperties[i].minImageTransferGranularity.height > granularity.height) {
-				return false;
-			}
-
-			if (familyProperties[i].minImageTransferGranularity.depth > granularity.depth) {
-				return false;
-			}
-		}
-
-		if ((type & QueueType::SparseBinding) && ! (familyProperties[i].queueFlags & vk::QueueFlagBits::eSparseBinding)) {
-			return false;
-		}
-
-		return true;
-		*/
 	}
 };
 
-} // vlk
-
-} // rn
+} // rn::vlk

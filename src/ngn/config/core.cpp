@@ -19,7 +19,7 @@ std::string toString(const VSync &value) {
 	}
 }
 
-VSync fromString(const std::string &name, const VSync &defaultValue) {
+VSync fromString(const std::string_view &name, const VSync &defaultValue) {
 	if (name == "immediate") { return VSync::Immediate; }
 	if (name == "fifo") { return VSync::Fifo; }
 	if (name == "fiforelaxed") { return VSync::FifoRelaxed; }
@@ -36,7 +36,7 @@ std::string toString(const WindowMode &value) {
 	}
 }
 
-WindowMode fromString(const std::string &name, const WindowMode &defaultValue) {
+WindowMode fromString(const std::string_view &name, const WindowMode &defaultValue) {
 	if (name == "windowed") { return WindowMode::Windowed; }
 	if (name == "borderless") { return WindowMode::Borderless; }
 	if (name == "fullscreen") { return WindowMode::Fullscreen; }
@@ -241,7 +241,7 @@ std::string toString(const SurfaceFormat &value) {
 	}
 }
 
-SurfaceFormat fromString(const std::string &name, const SurfaceFormat &defaultValue) {
+SurfaceFormat fromString(const std::string_view &name, const SurfaceFormat &defaultValue) {
 	if (name == "r4g4unormpack8") { return SurfaceFormat::R4G4UnormPack8; }
 	if (name == "r4g4b4a4unormpack16") { return SurfaceFormat::R4G4B4A4UnormPack16; }
 	if (name == "b4g4r4a4unormpack16") { return SurfaceFormat::B4G4R4A4UnormPack16; }
@@ -457,7 +457,7 @@ std::string toString(const SurfaceColorSpace &value) {
 	}
 }
 
-SurfaceColorSpace fromString(const std::string &name, const SurfaceColorSpace &defaultValue) {
+SurfaceColorSpace fromString(const std::string_view &name, const SurfaceColorSpace &defaultValue) {
 	if (name == "srgbnonlinear") { return SurfaceColorSpace::SrgbNonlinear; }
 	if (name == "displayp3nonlinearext") { return SurfaceColorSpace::DisplayP3NonlinearEXT; }
 	if (name == "extendedsrgblinearext") { return SurfaceColorSpace::ExtendedSrgbLinearEXT; }
@@ -669,7 +669,7 @@ std::string Core::dump(const int indent) {
 }
 
 bool Core::store() {
-	if (ngn::fs::contents(source(), dump(2), false)) {
+	if (ngn::fs::write(source(), dump(2), false)) {
 		dirty(false);
 		return true;
 	} else {

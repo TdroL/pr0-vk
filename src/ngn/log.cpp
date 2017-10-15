@@ -2,10 +2,7 @@
 
 #include <mutex>
 
-namespace ngn
-{
-
-namespace log
+namespace ngn::log
 {
 
 spdlog::level::level_enum currentLevel{spdlog::level::debug};
@@ -54,6 +51,7 @@ void level(uint32_t newLevel) {
 			break;
 		}
 		case 6:
+			[[fallthrough]];
 		default: {
 			currentLevel = spdlog::level::off;
 			break;
@@ -83,13 +81,12 @@ uint32_t level() {
 		case spdlog::level::critical: {
 			return 5;
 		}
-		default:
-		case spdlog::level::off: {
+		case spdlog::level::off:
+			[[fallthrough]];
+		default: {
 			return 6;
 		}
 	}
 }
 
-} // log
-
-} // ngn
+} // ngn::log

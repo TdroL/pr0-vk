@@ -6,9 +6,7 @@
 #include "../../../ngn/config.hpp"
 #include "../../../ngn/log.hpp"
 
-namespace rn {
-
-namespace vlk {
+namespace rn::vlk {
 
 VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT /*objectType*/, uint64_t /*object*/, size_t /*location*/, int32_t messageCode, const char *pLayerPrefix, const char *pMessage, void */*pUserData*/) {
 
@@ -71,6 +69,4 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebu
 	return VK_FALSE;
 }
 
-} // vlk
-
-} // rn
+} // rn::vlk

@@ -39,7 +39,7 @@ public:
 	}
 
 	void recordCommandBuffer(Handles &handles) {
-		ngn::prof::Scope profScope{"::recordCommandBuffer()"};
+		ngn::prof::Scope("::recordCommandBuffer()");
 
 		vk::ClearValue clearColor{std::array<float, 4>{0.0f, 0.0f, 0.0f, 1.0f}};
 
@@ -51,7 +51,7 @@ public:
 		renderPassBegin.renderPass = handles.renderPass;
 		renderPassBegin.framebuffer = handles.framebuffer;
 		renderPassBegin.renderArea.offset = vk::Offset2D{0, 0};
-		renderPassBegin.renderArea.extent = context.handles.surfaceExtent;
+		renderPassBegin.renderArea.extent = context.surface.extent;
 		renderPassBegin.clearValueCount = 1;
 		renderPassBegin.pClearValues = &clearColor;
 
@@ -66,7 +66,7 @@ public:
 	}
 
 	void submit(Handles &handles) {
-		ngn::prof::Scope profScope{"::submit()"};
+		ngn::prof::Scope("::submit()");
 
 		// submit command buffer to queue
 		vk::Semaphore submitWaitSemaphores[] {
@@ -92,11 +92,11 @@ public:
 		submitInfo.signalSemaphoreCount = std::size(submitSignalSemaphores);
 		submitInfo.pSignalSemaphores = submitSignalSemaphores;
 
-		handles.queues.graphic.submit({submitInfo}, handles.submitFence);
+		context.queue.graphic.submit({submitInfo}, handles.submitFence);
 	}
 
 	void present(Handles &handles) {
-		ngn::prof::Scope profScope{"::present()"};
+		ngn::prof::Scope("::present()");
 
 		vk::Semaphore presentWaitSemaphores[] {
 			handles.submitSemaphore
@@ -107,14 +107,14 @@ public:
 		presentInfo.waitSemaphoreCount = std::size(presentWaitSemaphores);
 		presentInfo.pWaitSemaphores = presentWaitSemaphores;
 		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains = &handles.swapchain;
+		presentInfo.pSwapchains = &context.swapchain;
 		presentInfo.pImageIndices = &handles.imageIndex;
 		presentInfo.pResults = nullptr;
-		handles.queues.presentation.presentKHR(presentInfo);
+		context.queue.presentation.presentKHR(presentInfo);
 	}
 
 	void render() {
-		ngn::prof::Scope profScope{"app::main::State::render()"};
+		ngn::prof::Scope("app::main::State::render()");
 
 		Handles handles = resources.next();
 

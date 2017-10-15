@@ -1,18 +1,19 @@
 #pragma once
 
-#include <stdexcept>
 #include <algorithm>
 #include <iterator>
+#include <stdexcept>
+#include <tuple>
 
 #include <vulkan/vulkan.hpp>
 
-#include "../../../ngn/config.hpp"
-#include "../../../ngn/log.hpp"
-#include "../../../ngn/str.hpp"
-
+#include "../context.hpp"
 #include "../../window.hpp"
 
-#include "../context.hpp"
+#include "../../../ngn/config.hpp"
+#include "../../../ngn/log.hpp"
+
+#include "../../../util/map.hpp"
 
 #include "instanceCreator.hpp"
 #include "surfaceCreator.hpp"
@@ -20,6 +21,7 @@
 #include "deviceCreator.hpp"
 #include "swapchainCreator.hpp"
 #include "surfaceImageViewsCreator.hpp"
+#include "allocatorCreator.hpp"
 
 #include "physicalDeviceSelector.hpp"
 #include "queuesSelector.hpp"
@@ -27,9 +29,7 @@
 #include "surfaceFormatSelector.hpp"
 #include "surfaceImagesSelector.hpp"
 
-namespace rn {
-
-namespace vlk {
+namespace rn::vlk {
 
 class ContextCreator {
 public:
@@ -42,6 +42,7 @@ public:
 		DeviceCreator device{};
 		SwapchainCreator swapchain{};
 		SurfaceImageViewsCreator surfaceImageViews{};
+		AllocatorCreator allocator{};
 	} creators{};
 
 	struct Selectors {
@@ -58,27 +59,35 @@ public:
 	Context create() {
 		Context context{};
 
-		context.owners.instance = createInstance(context.owners, context.handles);
-		context.owners.debugCallback = createDebugCallback(context.owners, context.handles);
-		context.owners.surface = createSurface(context.owners, context.handles);
+		context.owners.instance = creators.instance.create(context, creators.debugCallback, creators.surface);
+		context.instance = context.owners.instance.get();
 
-		context.handles.physicalDevice = selectPhysicalDevice(context.owners, context.handles);
+		context.owners.debugCallback = creators.debugCallback.create(context);
 
-		context.owners.device = createDevice(context.owners, context.handles);
-		// context.device = context.owners.device.get();
+		context.owners.surface = creators.surface.create(context, window);
+		context.surface.handle = context.owners.surface.get();
 
-		context.handles.queues = selectQueues(context.owners, context.handles);
-		// context.queues.presentation = context.handles.queues.presentation.handle;
-		// context.queues.graphic = context.handles.queues.graphic.handle;
-		// context.queues.compute = context.handles.queues.compute.handle;
-		// context.queues.transfer = context.handles.queues.transfer.handle;
+		context.physicalDevice = selectors.physicalDevice.select(context);
 
-		context.handles.surfaceExtent = selectSurfaceExtent(context.owners, context.handles);
-		context.handles.surfaceFormat = selectSurfaceFormat(context.owners, context.handles);
-		context.owners.swapchain = createSwapchain(context.owners, context.handles);
-		context.handles.surfaceImages = selectSurfaceImages(context.owners, context.handles);
-		context.owners.surfaceImageViews = createSurfaceImageViews(context.owners, context.handles);
-		// context.swapchain = context.owners.swapchain.get();
+		context.owners.device = creators.device.create(context);
+		context.device = context.owners.device.get();
+
+		std::tie(context.queue, context.family) = selectors.queues.select(context);
+
+		context.surface.extent = selectors.surfaceExtent.select(context);
+		context.surface.format = selectors.surfaceFormat.select(context);
+
+		context.owners.swapchain = creators.swapchain.create(context);
+		context.swapchain = context.owners.swapchain.get();
+
+		context.surface.images = selectors.surfaceImages.select(context);
+
+		context.owners.surfaceImageViews = creators.surfaceImageViews.create(context);
+		context.surface.imageViews = util::map<vk::ImageView>(context.owners.surfaceImageViews, [] (auto &imageView) {
+			return imageView.get();
+		});
+
+		context.allocator = creators.allocator.create(context);
 
 		// if (ngn::config::core.dirty() && ! ngn::config::core.store()) {
 		// 	ngn::log::error("Failed to store core config in \"{}\":\n{}", ngn::config::core.source(), ngn::config::core.dump());
@@ -86,52 +95,6 @@ public:
 
 		return context;
 	}
-
-	vk::UniqueInstance createInstance(Context::Owners &/*owners*/, Context::Handles &/*handles*/) {
-		return creators.instance.create(creators.debugCallback, creators.surface);
-	}
-
-	vk::UniqueDebugReportCallbackEXT createDebugCallback(Context::Owners &owners, Context::Handles &/*handles*/) {
-		return creators.debugCallback.create(owners.instance);
-	}
-
-	vk::UniqueSurfaceKHR createSurface(Context::Owners &owners, Context::Handles &/*handles*/) {
-		return creators.surface.create(window, owners.instance);
-	}
-
-	PhysicalDeviceHandle selectPhysicalDevice(Context::Owners &owners, Context::Handles &/*handles*/) {
-		return selectors.physicalDevice.select(owners.surface, owners.instance);
-	}
-
-	vk::UniqueDevice createDevice(Context::Owners &owners, Context::Handles &handles) {
-		return creators.device.create(owners.surface, owners.instance, handles.physicalDevice);
-	}
-
-	QueuesHandle selectQueues(Context::Owners &owners, Context::Handles &handles) {
-		return selectors.queues.select(owners.surface, owners.instance, handles.physicalDevice, owners.device);
-	}
-
-	vk::Extent2D selectSurfaceExtent(Context::Owners &owners, Context::Handles &handles) {
-		return selectors.surfaceExtent.select(owners.surface, handles.physicalDevice);
-	}
-
-	vk::SurfaceFormatKHR selectSurfaceFormat(Context::Owners &owners, Context::Handles &handles) {
-		return selectors.surfaceFormat.select(owners.surface, handles.physicalDevice);
-	}
-
-	vk::UniqueSwapchainKHR createSwapchain(Context::Owners &owners, Context::Handles &handles) {
-		return creators.swapchain.create(owners.surface, handles.physicalDevice, owners.device, handles.queues, handles.surfaceExtent, handles.surfaceFormat);
-	}
-
-	std::vector<vk::Image> selectSurfaceImages(Context::Owners &owners, Context::Handles &/*handles*/) {
-		return selectors.surfaceImages.select(owners.device, owners.swapchain);
-	}
-
-	std::vector<vk::UniqueImageView> createSurfaceImageViews(Context::Owners &owners, Context::Handles &handles) {
-		return creators.surfaceImageViews.create(owners.device, handles.surfaceImages);
-	}
 };
 
-} // vlk
-
-} // rn
+} // rn::vlk

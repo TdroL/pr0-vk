@@ -2,12 +2,8 @@
 
 #include "config/core.hpp"
 
-namespace ngn {
-
-namespace config {
+namespace ngn::config {
 
 extern Core core;
 
-} // config
-
-} // ngn
+} // ngn::config

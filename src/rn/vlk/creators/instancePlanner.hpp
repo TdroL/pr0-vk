@@ -8,9 +8,10 @@
 
 #include <vulkan/vulkan.hpp>
 
-namespace rn {
+#include "../../../util/map.hpp"
+#include "../../../util/implode.hpp"
 
-namespace vlk {
+namespace rn::vlk {
 
 struct InstancePlannerResult {
 	std::vector<std::string> extensions{};
@@ -168,15 +169,21 @@ struct InstancePlanner {
 		Selector() {
 			// load available instance layers
 			std::vector<vk::LayerProperties> layerProperties = vk::enumerateInstanceLayerProperties();
-			availableLayers.resize(layerProperties.size());
-			std::transform(std::begin(layerProperties), std::end(layerProperties), std::begin(availableLayers), [] (const vk::LayerProperties &properties) {
+			// availableLayers.resize(layerProperties.size());
+			// std::transform(std::begin(layerProperties), std::end(layerProperties), std::begin(availableLayers), [] (const vk::LayerProperties &properties) {
+			// 	return std::string{properties.layerName};
+			// });
+			availableLayers = util::map<std::string>(layerProperties, [] (auto &properties) {
 				return std::string{properties.layerName};
 			});
 
 			// load available instance extensions
 			std::vector<vk::ExtensionProperties> extensionProperties = vk::enumerateInstanceExtensionProperties();
-			availableExtensions.resize(extensionProperties.size());
-			std::transform(std::begin(extensionProperties), std::end(extensionProperties), std::begin(availableExtensions), [] (const vk::ExtensionProperties &properties) {
+			// availableExtensions.resize(extensionProperties.size());
+			// std::transform(std::begin(extensionProperties), std::end(extensionProperties), std::begin(availableExtensions), [] (const vk::ExtensionProperties &properties) {
+			// 	return std::string{properties.extensionName};
+			// });
+			availableExtensions = util::map<std::string>(extensionProperties, [] (auto &properties) {
 				return std::string{properties.extensionName};
 			});
 		}
@@ -228,7 +235,7 @@ struct InstancePlanner {
 			.includeExtensions(surface.requiredExtensions, [] (const std::vector<std::string> &missingExts) {
 				size_t size = missingExts.size();
 
-				ngn::log::error("Vulkan surface not available, missing {} extension(s): {}", size, ngn::str::implode(missingExts));
+				ngn::log::error("Vulkan surface not available, missing {} extension(s): {}", size, util::implode(missingExts));
 
 				return Flow::FAIL_ALL;
 			})
@@ -239,13 +246,13 @@ struct InstancePlanner {
 			.includeExtensions(debugCallback.optionalExtensions, [] (const std::vector<std::string> &missingExts) {
 				size_t size = missingExts.size();
 
-				ngn::log::warn("Vulkan debug reporting disabled, missing {} extension(s): {}", size, ngn::str::implode(missingExts));
+				ngn::log::warn("Vulkan debug reporting disabled, missing {} extension(s): {}", size, util::implode(missingExts));
 				return Flow::SKIP;
 			})
 			.includeLayers(debugCallback.optionalLayers, [] (const std::vector<std::string> &missingLayers) {
 				size_t size = missingLayers.size();
 
-				ngn::log::warn("Vulkan debug reporting might be limited, missing {} layer(s): {}", size, ngn::str::implode(missingLayers));
+				ngn::log::warn("Vulkan debug reporting might be limited, missing {} layer(s): {}", size, util::implode(missingLayers));
 				return Flow::IGNORE_MISSING;
 			})
 		);
@@ -258,6 +265,4 @@ struct InstancePlanner {
 	}
 };
 
-} // vlk
-
-} // rn
+} // rn::vlk

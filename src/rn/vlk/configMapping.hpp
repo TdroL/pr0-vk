@@ -4,9 +4,7 @@
 
 #include "../../ngn/config/core.hpp"
 
-namespace rn {
-
-namespace vlk {
+namespace rn::vlk {
 
 vk::Format fromConfig(ngn::config::SurfaceFormat surfaceFormat) {
 	switch (surfaceFormat) {
@@ -464,6 +462,4 @@ ngn::config::VSync toConfig(vk::PresentModeKHR vsync) {
 	}
 }
 
-} // vlk
-
-} // rn
+} // rn::vlk

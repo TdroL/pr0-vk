@@ -1,21 +1,18 @@
 #pragma once
 
-#include <map>
-#include <vector>
-#include <string>
 #include <cassert>
+#include <map>
+#include <string>
+#include <vector>
 
 #include <vulkan/vulkan.hpp>
 
+#include "queuesPlanner.hpp"
+#include "../context.hpp"
 #include "../../../ngn/config.hpp"
 
-#include "../physicalDeviceHandle.hpp"
 
-#include "queuesPlanner.hpp"
-
-namespace rn {
-
-namespace vlk {
+namespace rn::vlk {
 
 class PhysicalDeviceSelector {
 public:
@@ -77,12 +74,12 @@ public:
 		/*.inheritedQueries=*/ false,
 	};
 
-	PhysicalDeviceHandle select(vk::UniqueSurfaceKHR &surfaceOwner, vk::UniqueInstance &instanceOwner) {
-		vk::SurfaceKHR surface = surfaceOwner.get();
-		vk::Instance instance = instanceOwner.get();
+	Context::PhysicalDevice select(Context &context) {
+		vk::Instance instance = context.instance;
+		vk::SurfaceKHR surface = context.surface.handle;
 
-		assert(surface);
 		assert(instance);
+		assert(surface);
 
 		std::vector<vk::PhysicalDevice> physicalDevices = instance.enumeratePhysicalDevices();
 
@@ -109,19 +106,13 @@ public:
 		vk::PhysicalDeviceMemoryProperties memoryProperties = physicalDevice.getMemoryProperties();
 		vk::PhysicalDeviceFeatures features = physicalDevice.getFeatures();
 
-		PhysicalDeviceHandle physicalDeviceHandle{
-			std::move(physicalDevice),
-			std::move(properties),
-			std::move(memoryProperties),
-			std::move(features),
+		return {
+			physicalDevice,
+			properties,
+			memoryProperties,
+			features,
 			requiredFeatures
 		};
-
-		if ( ! physicalDeviceHandle.handle) {
-			throw std::runtime_error{"Vulkan physical device could not be created"};
-		}
-
-		return physicalDeviceHandle;
 	}
 
 	std::vector<vk::PhysicalDevice> rejectUnsuitablePhysicalDevices(const vk::SurfaceKHR &surface, const vk::Instance &instance, const std::vector<vk::PhysicalDevice> &physicalDevices) {
@@ -229,6 +220,4 @@ public:
 	}
 };
 
-} // vlk
-
-} // rn
+} // rn::vlk

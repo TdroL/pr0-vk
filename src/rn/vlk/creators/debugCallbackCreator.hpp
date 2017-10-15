@@ -1,21 +1,19 @@
 #pragma once
 
-#include <vector>
-#include <string>
+#include <cassert>
 #include <memory>
 #include <stdexcept>
-#include <cassert>
+#include <string>
+#include <vector>
 
 #include <vulkan/vulkan.hpp>
-// #include "../instanceOwner.hpp"
-// #include "../debugCallbackOwner.hpp"
+
+#include "../context.hpp"
 #include "../exts/debugCallbackDispatchTable.hpp"
 
 #include "../../../ngn/config.hpp"
 
-namespace rn {
-
-namespace vlk {
+namespace rn::vlk {
 
 VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 	VkDebugReportFlagsEXT flags,
@@ -49,12 +47,12 @@ public:
 		}
 	}
 
-	vk::UniqueDebugReportCallbackEXT create(vk::UniqueInstance &instanceOwner) {
+	vk::UniqueDebugReportCallbackEXT create(Context &context) {
 		if ( ! isAvailable) {
 			return vk::UniqueDebugReportCallbackEXT{};
 		}
 
-		vk::Instance instance = instanceOwner.get();
+		vk::Instance instance = context.instance;
 
 		assert(instance);
 
@@ -93,6 +91,4 @@ public:
 	}
 };
 
-} // vlk
-
-} // rn
+} // rn::vlk

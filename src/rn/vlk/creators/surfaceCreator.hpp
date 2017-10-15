@@ -1,20 +1,17 @@
 #pragma once
 
-#include <vector>
-#include <string>
+#include <cassert>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 #include <vulkan/vulkan.hpp>
 
-// #include "../surfaceOwner.hpp"
-// #include "../instanceOwner.hpp"
-
+#include "../context.hpp"
 #include "../../window.hpp"
 #include "../../glfw.hpp"
 
-namespace rn {
-
-namespace vlk {
+namespace rn::vlk {
 
 class SurfaceCreator {
 public:
@@ -27,8 +24,11 @@ public:
 		requiredExtensions = std::vector<std::string>(extensions, extensions + count);
 	}
 
-	vk::UniqueSurfaceKHR create(rn::Window &window, vk::UniqueInstance &instanceOwner) {
-		vk::Instance instance = instanceOwner.get();
+	vk::UniqueSurfaceKHR create(Context &context, rn::Window &window) {
+		vk::Instance instance = context.instance;
+
+		assert(instance);
+
 		vk::UniqueSurfaceKHR surfaceOwner{window.createSurface(instance), {instance}};
 
 		if ( ! surfaceOwner) {
@@ -39,6 +39,4 @@ public:
 	}
 };
 
-} // vlk
-
-} // rn
+} // rn::vlk

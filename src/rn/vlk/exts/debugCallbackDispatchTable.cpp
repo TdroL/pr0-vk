@@ -5,9 +5,7 @@
 #include <unordered_map>
 #include <sstream>
 
-namespace rn {
-
-namespace vlk {
+namespace rn::vlk {
 
 struct DebugCallbackDispatchTableCounted {
 	size_t refCount = 0;
@@ -45,7 +43,7 @@ size_t initDebugCallbackDispatchTable(const vk::Instance &instance) {
 		return it->second.refCount;
 	}
 
-	DebugCallbackDispatchTableCounted entry {
+	DebugCallbackDispatchTableCounted entry{
 		1,
 		loadDebugCallbackDispatchTable(instance)
 	};
@@ -85,9 +83,7 @@ DebugCallbackDispatchTable & getDebugCallbackDispatchTable(const vk::Instance &i
 	return it->second.dispatch;
 }
 
-} // vlk
-
-} // rn
+} // rn::vlk
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateDebugReportCallbackEXT(
 	VkInstance                                  instance,

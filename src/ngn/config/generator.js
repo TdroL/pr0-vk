@@ -94,7 +94,7 @@ const generateEnum = (type, mapping) => {
 };
 
 std::string toString(const {{type}} &value);
-{{type}} fromString(const std::string &name, const {{type}} &defaultValue);`;
+{{type}} fromString(const std::string_view &name, const {{type}} &defaultValue);`;
 
 	const model = {
 		type: type,
@@ -112,7 +112,7 @@ const generateEnumCasters = (type, mapping) => {
 	}
 }
 
-{{type}} fromString(const std::string &name, const {{type}} &defaultValue) {
+{{type}} fromString(const std::string_view &name, const {{type}} &defaultValue) {
 	{{ifs}}
 	return defaultValue;
 }`;
@@ -212,7 +212,7 @@ const generateRootStruct = (schema) => {
 	}
 
 	std::string source_value{"{{directory}}{{name}}.json"};
-	void source(const std::string &newValue) {
+	void source(const std::string_view &newValue) {
 		source_value = newValue;
 	}
 
@@ -421,7 +421,7 @@ const generateDump = (schema) => {
 
 const generateStore = (schema) => {
 	const storeTemplate = `bool {{ucName}}::store() {
-	if (ngn::fs::contents(source(), dump(2), false)) {
+	if (ngn::fs::write(source(), dump(2), false)) {
 		dirty(false);
 		return true;
 	} else {

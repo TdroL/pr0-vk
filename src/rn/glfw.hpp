@@ -22,20 +22,20 @@ public:
 		}
 	}
 
-	GLFW(GLFW &&rhs)
-		: initialized{rhs.initialized} {
-		rhs.initialized = false;
+	GLFW(GLFW &&other)
+		: initialized{other.initialized} {
+		other.initialized = false;
 	}
 
-	GLFW & operator=(GLFW &&rhs) {
-		initialized = rhs.initialized;
-		rhs.initialized = false;
+	GLFW & operator=(GLFW &&other) {
+		initialized = other.initialized;
+		other.initialized = false;
 
 		return *this;
 	}
 
-	GLFW(const GLFW &rhs) = delete;
-	GLFW & operator=(const GLFW &rhs) = delete;
+	GLFW(const GLFW &other) = delete;
+	GLFW & operator=(const GLFW &other) = delete;
 
 	operator bool() const {
 		return initialized;

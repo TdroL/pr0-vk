@@ -1,8 +1,8 @@
 #pragma once
 
+#include <algorithm>
 #include <functional>
 #include <vector>
-#include <algorithm>
 
 #define NGN_EVENT(EventName) struct EventName : public ngn::Event<EventName>
 

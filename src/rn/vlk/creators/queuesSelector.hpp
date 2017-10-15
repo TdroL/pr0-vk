@@ -1,29 +1,28 @@
 #pragma once
 
-#include <map>
-#include <vector>
-#include <string>
-#include <stdexcept>
 #include <cassert>
+#include <map>
+#include <stdexcept>
+#include <string>
+#include <tuple>
+#include <vector>
 
 #include <vulkan/vulkan.hpp>
 
 #include "../../../ngn/log.hpp"
 
-#include "../physicalDeviceHandle.hpp"
+#include "../context.hpp"
 #include "queuesPlanner.hpp"
 
-namespace rn {
-
-namespace vlk {
+namespace rn::vlk {
 
 class QueuesSelector {
 public:
-	QueuesHandle select(vk::UniqueSurfaceKHR &surfaceOwner, vk::UniqueInstance &instanceOwner, PhysicalDeviceHandle &physicalDeviceOwner, vk::UniqueDevice &deviceOwner) {
-		vk::SurfaceKHR surface = surfaceOwner.get();
-		vk::Instance instance = instanceOwner.get();
-		vk::PhysicalDevice physicalDevice = physicalDeviceOwner.handle;
-		vk::Device device = deviceOwner.get();
+	std::tuple<Context::Queue, Context::Family> select(Context &context) {
+		vk::Instance instance = context.instance;
+		vk::SurfaceKHR surface = context.surface.handle;
+		vk::PhysicalDevice physicalDevice = context.physicalDevice.handle;
+		vk::Device device = context.device;
 
 		assert(surface);
 		assert(instance);
@@ -65,15 +64,20 @@ public:
 			throw std::runtime_error{"Vulkan transfer queue could not be created"};
 		}
 
-		return QueuesHandle{
-			{ std::move(presentation), indices.presentation.family },
-			{ std::move(graphic), indices.graphic.family },
-			{ std::move(compute), indices.compute.family },
-			{ std::move(transfer), indices.transfer.family }
-		};
+		return std::make_tuple(Context::Queue{
+				presentation,
+				graphic,
+				compute,
+				transfer
+			},
+			Context::Family{
+				indices.presentation.family,
+				indices.graphic.family,
+				indices.compute.family,
+				indices.transfer.family
+			}
+		);
 	}
 };
 
-} // vlk
-
-} // rn
+} // rn::vlk

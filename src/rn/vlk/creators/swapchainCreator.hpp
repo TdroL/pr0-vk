@@ -1,34 +1,28 @@
 #pragma once
 
-#include <vector>
-// #include <string>
 #include <algorithm>
+#include <vector>
 
 #include <vulkan/vulkan.hpp>
 
+#include "../configMapping.hpp"
+#include "../context.hpp"
 #include "../../../ngn/config.hpp"
 #include "../../../ngn/log.hpp"
 
-#include "../configMapping.hpp"
-#include "../physicalDeviceHandle.hpp"
-#include "../queuesHandle.hpp"
-
-// #include "../swapchainOwner.hpp"
-
-namespace rn {
-
-namespace vlk {
-
-class Context;
+namespace rn::vlk {
 
 class SwapchainCreator {
 public:
-	vk::UniqueSwapchainKHR create(vk::UniqueSurfaceKHR &surfaceOwner, PhysicalDeviceHandle &physicalDeviceOwner, vk::UniqueDevice &deviceOwner, QueuesHandle &queuesOwner, vk::Extent2D &extent, vk::SurfaceFormatKHR &surfaceFormat) {
-		vk::SurfaceKHR surface = surfaceOwner.get();
-		vk::PhysicalDevice physicalDevice = physicalDeviceOwner.handle;
-		vk::Device device = deviceOwner.get();
-		QueueFamily presentation = queuesOwner.presentation;
-		QueueFamily graphic = queuesOwner.graphic;
+	vk::UniqueSwapchainKHR create(Context &context) {
+		vk::SurfaceKHR surface = context.surface.handle;
+		vk::PhysicalDevice physicalDevice = context.physicalDevice.handle;
+		vk::Device device = context.device;
+		vk::SurfaceFormatKHR surfaceFormat = context.surface.format;
+		vk::Extent2D surfaceExtent = context.surface.extent;
+
+		uint32_t presentationFamily = context.family.presentation;
+		uint32_t graphicFamily = context.family.graphic;
 
 		assert(surface);
 		assert(physicalDevice);
@@ -41,8 +35,8 @@ public:
 		vk::PresentModeKHR presentMode = choosePresentMode(presentModes);
 
 		std::vector<uint32_t> queueFamilies{};
-		if (presentation.family != graphic.family) {
-			queueFamilies = { presentation.family, graphic.family };
+		if (presentationFamily != graphicFamily) {
+			queueFamilies = { presentationFamily, graphicFamily };
 		}
 
 		vk::SwapchainCreateInfoKHR swapchainCreateInfo{};
@@ -50,7 +44,7 @@ public:
 		swapchainCreateInfo.minImageCount = imageCount;
 		swapchainCreateInfo.imageFormat = surfaceFormat.format;
 		swapchainCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
-		swapchainCreateInfo.imageExtent = extent;
+		swapchainCreateInfo.imageExtent = surfaceExtent;
 		swapchainCreateInfo.imageArrayLayers = 1;
 		swapchainCreateInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment; // eTransferDst
 		swapchainCreateInfo.imageSharingMode = queueFamilies.size() ? vk::SharingMode::eConcurrent : vk::SharingMode::eExclusive;
@@ -65,8 +59,8 @@ public:
 		vk::UniqueSwapchainKHR swapchainOwner{device.createSwapchainKHRUnique(swapchainCreateInfo)};
 
 		// sync config
-		ngn::config::core.window.width(extent.width);
-		ngn::config::core.window.height(extent.height);
+		ngn::config::core.window.width(surfaceExtent.width);
+		ngn::config::core.window.height(surfaceExtent.height);
 		ngn::config::core.window.imageBuffers(imageCount);
 		ngn::config::core.window.vsync(toConfig(presentMode));
 		ngn::config::core.window.surfaceFormat(toConfig(surfaceFormat.format));
@@ -96,6 +90,4 @@ public:
 	}
 };
 
-} // vlk
-
-} // rn
+} // rn::vlk

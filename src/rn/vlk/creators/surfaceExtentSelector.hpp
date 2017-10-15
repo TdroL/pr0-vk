@@ -1,23 +1,20 @@
 #pragma once
 
-#include <vector>
 #include <cassert>
+#include <vector>
 
 #include <vulkan/vulkan.hpp>
 
+#include "../context.hpp"
 #include "../../../ngn/config.hpp"
 
-#include "../physicalDeviceHandle.hpp"
-
-namespace rn {
-
-namespace vlk {
+namespace rn::vlk {
 
 class SurfaceExtentSelector {
 public:
-	vk::Extent2D select(vk::UniqueSurfaceKHR &surfaceOwner, PhysicalDeviceHandle &physicalDeviceOwner) {
-		vk::SurfaceKHR surface = surfaceOwner.get();
-		vk::PhysicalDevice physicalDevice = physicalDeviceOwner.handle;
+	vk::Extent2D select(Context &context) {
+		vk::SurfaceKHR surface = context.surface.handle;
+		vk::PhysicalDevice physicalDevice = context.physicalDevice.handle;
 
 		assert(surface);
 		assert(physicalDevice);
@@ -40,6 +37,4 @@ public:
 	}
 };
 
-} // vlk
-
-} // rn
+} // rn::vlk

@@ -8,31 +8,14 @@
 #include <ngn/log.hpp>
 #include <ngn/prof.hpp>
 
+#include <util/map.hpp>
+
 #include <rn/window.hpp>
 #include <rn/vlk/context.hpp>
 
 namespace app::main {
 
-struct Queues {
-	vk::Queue presentation{};
-	vk::Queue graphic{};
-	vk::Queue compute{};
-	vk::Queue transfer{};
-};
-
-struct Families {
-	uint32_t presentation{};
-	uint32_t graphic{};
-	uint32_t compute{};
-	uint32_t transfer{};
-};
-
 struct Handles {
-	vk::Device device{};
-	Queues queues{};
-	Families families{};
-	vk::SwapchainKHR swapchain{};
-
 	vk::RenderPass renderPass{};
 	vk::Pipeline pipeline{};
 
@@ -49,16 +32,11 @@ struct Handles {
 	vk::CommandBuffer commandBuffer{};
 };
 
-struct PerInstance {
-	vk::Device device{};
-	Queues queues{};
-	Families families{};
-	vk::SwapchainKHR swapchain{};
-};
-
 struct PerSwapchain {
 	vk::UniqueRenderPass renderPass{};
 	vk::UniquePipeline pipeline{};
+
+	vk::UniqueBuffer modelBuffer{};
 
 	vk::UniqueFence dummyFence{};
 };
@@ -82,32 +60,14 @@ struct PerImage {
 	vk::UniqueCommandBuffer commandBuffer{};
 };
 
-#if defined(DEBUG)
-void * getKey(vk::UniqueFence &fence) {
-	return reinterpret_cast<void *>(static_cast<VkFence>(fence.get()));
-}
-
-void * getKey(vk::Fence &fence) {
-	return reinterpret_cast<void *>(static_cast<VkFence>(fence));
-}
-
-void * getKey(vk::UniqueSemaphore &semaphore) {
-	return reinterpret_cast<void *>(static_cast<VkSemaphore>(semaphore.get()));
-}
-
-void * getKey(vk::Semaphore &semaphore) {
-	return reinterpret_cast<void *>(static_cast<VkSemaphore>(semaphore));
-}
-#endif
-
 class RingPool {
 public:
 	rn::Window &window;
 	rn::vlk::Context &context;
 
-	uint32_t imageCount;
+	uint32_t imageCount = 0;
 
-	PerInstance perInstance{};
+	// PerInstance perInstance{};
 	PerSwapchain perSwapchain{};
 	std::vector<PerAquire> perAquireList{};
 	std::vector<PerSubmit> perSubmitList{};
@@ -122,8 +82,8 @@ public:
 	}
 
 	void init() {
-		imageCount = context.handles.surfaceImages.size();
-		perInstance = initPerInstance();
+		imageCount = context.surface.images.size();
+		// perInstance = initPerInstance();
 		perSwapchain = initPerSwapchain();
 		perAquireList = initPerAquireList(imageCount);
 		perSubmitList = initPerSubmitList(imageCount);
@@ -131,36 +91,57 @@ public:
 	}
 
 	void deinit() {
-		if (perInstance.device == vk::Device{}) {
+		if (context.device == vk::Device{} || imageCount == 0) {
 			return;
 		}
 
-		perInstance.device.waitIdle();
+		// gather swapchain fences
+		std::vector<vk::Fence> imageFences = util::map<vk::Fence>(perImageList, [] (auto &perImage) {
+			return perImage.fence.get();
+		});
 
-		perInstance = {};
+		std::vector<vk::Fence> acquireFences = util::map<vk::Fence>(perAquireList, [] (auto &perAquire) {
+			return perAquire.fence.get();
+		});
+
+		// merge both lists
+		std::vector<vk::Fence> fences{imageFences.size() + acquireFences.size()};
+		fences.insert(std::end(fences), std::begin(imageFences), std::end(imageFences));
+		fences.insert(std::end(fences), std::begin(acquireFences), std::end(acquireFences));
+
+		// remove not initialized fences
+		std::remove_if(std::begin(fences), std::end(fences), [] (auto &fence) { return ! fence; });
+
+		// wait for both device and presentation to finish all work
+		context.device.waitIdle();
+		context.device.waitForFences(fences, true, std::numeric_limits<uint64_t>::max());
+
+		// perInstance = {};
 		perSwapchain = {};
 		perAquireList.clear();
 		perImageList.clear();
+
+		imageCount = 0;
 	}
 
 	Handles next() {
-		ngn::prof::Scope profScope{"app::main::Resources::next()"};
+		ngn::prof::Scope("app::main::Resources::next()");
 
-		if (perInstance.device == vk::Device{}) {
+		if (context.device == vk::Device{}) {
 			throw std::runtime_error("app::main::Resource not initialized");
 		}
 
 		auto &perAquire = nextAvailablePerAquire();
 		{
-			ngn::prof::Scope profScope{"reset perAquire fence"};
-			perInstance.device.resetFences({ perAquire.fence.get() });
+			ngn::prof::Scope("reset perAquire fence");
+			context.device.resetFences({ perAquire.fence.get() });
 		}
 
 		uint32_t idx;
 		{
-			ngn::prof::Scope profScope{"acquire image"};
+			ngn::prof::Scope("acquire image");
 
-			const auto acquireResult = perInstance.device.acquireNextImageKHR(perInstance.swapchain, std::numeric_limits<uint64_t>::max(), perAquire.semaphore.get(), perAquire.fence.get());
+			const auto acquireResult = context.device.acquireNextImageKHR(context.swapchain, std::numeric_limits<uint64_t>::max(), perAquire.semaphore.get(), perAquire.fence.get());
 			if (acquireResult.result != vk::Result::eSuccess) {
 				ngn::log::warn("Acquire result: {}", vk::to_string(acquireResult.result));
 			}
@@ -172,18 +153,18 @@ public:
 
 		auto &perImage = nextAvailablePerImage(idx);
 		{
-			ngn::prof::Scope profScope{"reset perImage fence"};
-			perInstance.device.resetFences({ perImage.fence.get() });
+			ngn::prof::Scope("reset perImage fence");
+			context.device.resetFences({ perImage.fence.get() });
 		}
 
 		perAquire.wait = perImage.fence.get();
 
 		// assign
 		Handles handles{};
-		handles.device = perInstance.device;
-		handles.queues = perInstance.queues;
-		handles.families = perInstance.families;
-		handles.swapchain = perInstance.swapchain;
+		// handles.device = context.device;
+		// handles.queues = context.queues;
+		// handles.families = context.families;
+		// handles.swapchain = context.swapchain;
 
 		handles.renderPass = perSwapchain.renderPass.get();
 		handles.pipeline = perSwapchain.pipeline.get();
@@ -205,7 +186,7 @@ public:
 
 	uint32_t needsWait(const std::vector<vk::Fence> & fences) {
 		for (uint32_t i = 0; i < fences.size(); i++) {
-			if (perInstance.device.getFenceStatus(fences[i]) != vk::Result::eSuccess) {
+			if (context.device.getFenceStatus(fences[i]) != vk::Result::eSuccess) {
 				return i;
 			}
 		}
@@ -214,7 +195,7 @@ public:
 	}
 
 	PerAquire & nextAvailablePerAquire() {
-		ngn::prof::Scope profScope{"::nextAvailablePerAquire()"};
+		ngn::prof::Scope("::nextAvailablePerAquire()");
 		assert(perAquireList.size() > 0);
 
 		std::vector<vk::Fence> fences{};
@@ -224,10 +205,10 @@ public:
 			fences[i] = perAquireList[i].wait;
 		}
 
-		perInstance.device.waitForFences(fences, false, std::numeric_limits<uint64_t>::max());
+		context.device.waitForFences(fences, false, std::numeric_limits<uint64_t>::max());
 
 		const auto found = std::find_if(std::begin(perAquireList), std::end(perAquireList), [&] (const auto &perAquire) {
-			const auto result = perInstance.device.getFenceStatus(perAquire.wait);
+			const auto result = context.device.getFenceStatus(perAquire.wait);
 
 			return result == vk::Result::eSuccess;
 		});
@@ -235,10 +216,10 @@ public:
 		if (found != std::end(perAquireList)) {
 			#if defined(DEBUG)
 			{
-				uint32_t idx = needsWait({ found->fence.get() });
+				uint32_t fenceIdx = needsWait({ found->fence.get() });
 
-				if (idx != std::numeric_limits<uint32_t>::max()) {
-					ngn::log::debug("nextAvailablePerAquire/found needsWait = {}", idx);
+				if (fenceIdx != std::numeric_limits<uint32_t>::max()) {
+					ngn::log::debug("nextAvailablePerAquire/found needsWait = {}", found - std::begin(perAquireList));
 				}
 			}
 			#endif
@@ -248,15 +229,15 @@ public:
 			// should never happen, but handle it anyway -- wait for the first entry
 			ngn::log::warn("No PerAquire available even after the wait for all fences");
 
-			perInstance.device.waitIdle();
-			perInstance.device.waitForFences({ perAquireList[0].wait }, false, std::numeric_limits<uint64_t>::max());
+			context.device.waitIdle();
+			context.device.waitForFences({ perAquireList[0].wait }, false, std::numeric_limits<uint64_t>::max());
 
 			#if defined(DEBUG)
 			{
-				uint32_t idx = needsWait({ perAquireList[0].fence.get() });
+				uint32_t fenceIdx = needsWait({ perAquireList[0].fence.get() });
 
-				if (idx != std::numeric_limits<uint32_t>::max()) {
-					ngn::log::debug("nextAvailablePerAquire/backup needsWait = {}", idx);
+				if (fenceIdx != std::numeric_limits<uint32_t>::max()) {
+					ngn::log::debug("nextAvailablePerAquire/fallback needsWait = {}", 0);
 				}
 			}
 			#endif
@@ -266,21 +247,21 @@ public:
 	}
 
 	PerSubmit & nextAvailablePerSubmit(uint32_t idx, const vk::Fence &acquireFence) {
-		ngn::prof::Scope profScope{"::nextAvailablePerSubmit()"};
+		ngn::prof::Scope("::nextAvailablePerSubmit()");
 
 		auto &perSubmit = perSubmitList[idx];
 
 		#if defined(DEBUG)
 		{
-			uint32_t idx = needsWait({ perSubmit.wait });
+			uint32_t fenceIdx = needsWait({ perSubmit.wait });
 
-			if (idx != std::numeric_limits<uint32_t>::max()) {
+			if (fenceIdx != std::numeric_limits<uint32_t>::max()) {
 				ngn::log::debug("nextAvailablePerSubmit needsWait = {}", idx);
 			}
 		}
 		#endif
 
-		perInstance.device.waitForFences({ perSubmit.wait }, false, std::numeric_limits<uint64_t>::max());
+		context.device.waitForFences({ perSubmit.wait }, false, std::numeric_limits<uint64_t>::max());
 
 		perSubmit.wait = acquireFence;
 
@@ -288,48 +269,48 @@ public:
 	}
 
 	PerImage & nextAvailablePerImage(uint32_t idx) {
-		ngn::prof::Scope profScope{"::nextAvailablePerImage()"};
+		ngn::prof::Scope("::nextAvailablePerImage()");
 
 		auto &perImage = perImageList[idx];
 
 		#if defined(DEBUG)
 		{
-			uint32_t idx = needsWait({ perImage.fence.get() });
+			uint32_t fenceIdx = needsWait({ perImage.fence.get() });
 
-			if (idx != std::numeric_limits<uint32_t>::max()) {
+			if (fenceIdx != std::numeric_limits<uint32_t>::max()) {
 				ngn::log::debug("nextAvailablePerImage needsWait = {}", idx);
 			}
 		}
 		#endif
 
-		perInstance.device.waitForFences({ perImage.fence.get() }, false, std::numeric_limits<uint64_t>::max());
+		context.device.waitForFences({ perImage.fence.get() }, false, std::numeric_limits<uint64_t>::max());
 
 		return perImage;
 	}
 
-	PerInstance initPerInstance() {
-		PerInstance result{};
+	// PerInstance initPerInstance() {
+	// 	PerInstance result{};
 
-		result.device = context.owners.device.get();
+	// 	result.device = context.owners.device.get();
 
-		result.queues = {
-			context.handles.queues.presentation.handle,
-			context.handles.queues.graphic.handle,
-			context.handles.queues.compute.handle,
-			context.handles.queues.transfer.handle
-		};
+	// 	result.queues = {
+	// 		context.handles.queues.presentation.handle,
+	// 		context.handles.queues.graphic.handle,
+	// 		context.handles.queues.compute.handle,
+	// 		context.handles.queues.transfer.handle
+	// 	};
 
-		result.families = {
-			context.handles.queues.presentation.family,
-			context.handles.queues.graphic.family,
-			context.handles.queues.compute.family,
-			context.handles.queues.transfer.family
-		};
+	// 	result.families = {
+	// 		context.handles.queues.presentation.family,
+	// 		context.handles.queues.graphic.family,
+	// 		context.handles.queues.compute.family,
+	// 		context.handles.queues.transfer.family
+	// 	};
 
-		result.swapchain = context.owners.swapchain.get();
+	// 	result.swapchain = context.owners.swapchain.get();
 
-		return result;
-	}
+	// 	return result;
+	// }
 
 	PerSwapchain initPerSwapchain() {
 		PerSwapchain result{};
@@ -380,64 +361,88 @@ public:
 
 	// Per Swapchain
 	vk::UniqueRenderPass createRenderPass() {
-		vk::AttachmentDescription colorAttachment{};
-		colorAttachment.format = context.handles.surfaceFormat.format;
-		colorAttachment.samples = vk::SampleCountFlagBits::e1;
-		colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
-		colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-		colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
-		colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
-		colorAttachment.initialLayout = vk::ImageLayout::eUndefined;
-		colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+		std::vector<vk::AttachmentDescription> attachments{
+			{
+				/*.flags=*/ vk::AttachmentDescriptionFlags{},
+				/*.format=*/ context.surface.format.format,
+				/*.samples=*/ vk::SampleCountFlagBits::e1,
+				/*.loadOp=*/ vk::AttachmentLoadOp::eClear,
+				/*.storeOp=*/ vk::AttachmentStoreOp::eStore,
+				/*.stencilLoadOp=*/ vk::AttachmentLoadOp::eDontCare,
+				/*.stencilStoreOp=*/ vk::AttachmentStoreOp::eDontCare,
+				/*.initialLayout=*/ vk::ImageLayout::eUndefined,
+				/*.finalLayout=*/ vk::ImageLayout::ePresentSrcKHR
+			}
+		};
 
-		vk::AttachmentReference colorAttachmentRef{};
-		colorAttachmentRef.attachment = 0;
-		colorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
+		std::vector<vk::AttachmentReference> colorAttachmentRefs{
+			{
+				/*.attachment=*/ 0,
+				/*.layout=*/ vk::ImageLayout::eColorAttachmentOptimal
+			}
+		};
 
-		vk::SubpassDescription subpass{};
-		subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
-		subpass.inputAttachmentCount = 0;
-		subpass.pInputAttachments = nullptr;
-		subpass.colorAttachmentCount = 1;
-		subpass.pColorAttachments = &colorAttachmentRef;
-		subpass.pResolveAttachments = nullptr;
-		subpass.pDepthStencilAttachment = nullptr;
-		subpass.preserveAttachmentCount = 0;
-		subpass.pPreserveAttachments = nullptr;
+		std::vector<vk::SubpassDescription> subpasses{
+			{
+				/*.flags=*/ vk::SubpassDescriptionFlags{},
+				/*.pipelineBindPoint=*/ vk::PipelineBindPoint::eGraphics,
+				/*.inputAttachmentCount=*/ 0,
+				/*.pInputAttachments=*/ nullptr,
+				/*.colorAttachmentCount=*/ static_cast<uint32_t>(colorAttachmentRefs.size()),
+				/*.pColorAttachments=*/ colorAttachmentRefs.data(),
+				/*.pResolveAttachments=*/ nullptr,
+				/*.pDepthStencilAttachment=*/ nullptr,
+				/*.preserveAttachmentCount=*/ 0,
+				/*.pPreserveAttachments=*/ nullptr
+			}
+		};
 
-		vk::SubpassDependency dependency{};
-		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-		dependency.dstSubpass = 0;
-		dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-		dependency.srcAccessMask = vk::AccessFlags{};
-		dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-		dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
+		std::vector<vk::SubpassDependency> dependencies{
+			{
+				/*.srcSubpass=*/ VK_SUBPASS_EXTERNAL,
+				/*.dstSubpass=*/ 0,
+				/*.srcStageMask=*/ vk::PipelineStageFlagBits::eBottomOfPipe,
+				/*.dstStageMask=*/ vk::PipelineStageFlagBits::eColorAttachmentOutput,
+				/*.srcAccessMask=*/ vk::AccessFlagBits::eMemoryRead,
+				/*.dstAccessMask=*/ vk::AccessFlagBits::eColorAttachmentWrite,
+				/*.dependencyFlags=*/ vk::DependencyFlagBits::eByRegion
+			}, {
+				/*.srcSubpass=*/ 0,
+				/*.dstSubpass=*/ VK_SUBPASS_EXTERNAL,
+				/*.srcStageMask=*/ vk::PipelineStageFlagBits::eColorAttachmentOutput,
+				/*.dstStageMask=*/ vk::PipelineStageFlagBits::eBottomOfPipe,
+				/*.srcAccessMask=*/ vk::AccessFlagBits::eColorAttachmentWrite,
+				/*.dstAccessMask=*/ vk::AccessFlagBits::eMemoryRead,
+				/*.dependencyFlags=*/ vk::DependencyFlagBits::eByRegion
+			}
+		};
 
 		vk::RenderPassCreateInfo renderPassInfo{};
-		renderPassInfo.attachmentCount = 1;
-		renderPassInfo.pAttachments = &colorAttachment;
-		renderPassInfo.subpassCount = 1;
-		renderPassInfo.pSubpasses = &subpass;
-		renderPassInfo.dependencyCount = 1;
-		renderPassInfo.pDependencies = &dependency;
+		renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+		renderPassInfo.pAttachments = attachments.data();
+		renderPassInfo.subpassCount = static_cast<uint32_t>(subpasses.size());
+		renderPassInfo.pSubpasses = subpasses.data();
+		renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
+		renderPassInfo.pDependencies = dependencies.data();
 
-		return perInstance.device.createRenderPassUnique(renderPassInfo);
+		return context.device.createRenderPassUnique(renderPassInfo);
 	}
 
-	vk::UniqueShaderModule createShaderModule(const std::vector<uint32_t> &code) {
+	vk::UniqueShaderModule createShaderModule(const std::vector<std::byte> &code) {
 		assert(code.size() > 0);
+		assert(code.size() % sizeof(uint32_t) == 0);
 
 		vk::ShaderModuleCreateInfo shaderModuleCreateInfo{};
-		shaderModuleCreateInfo.codeSize = code.size() * sizeof(uint32_t);
-		shaderModuleCreateInfo.pCode = code.data();
+		shaderModuleCreateInfo.codeSize = code.size();
+		shaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t *>(code.data());
 
-		return perInstance.device.createShaderModuleUnique(shaderModuleCreateInfo);
+		return context.device.createShaderModuleUnique(shaderModuleCreateInfo);
 	}
 
 	vk::UniquePipeline createGraphicsPipeline(const vk::RenderPass &renderPass) {
 		// shader modules
-		std::vector<uint32_t> vertCode = ngn::fs::contents<std::vector<uint32_t>>("shaders/main.vert.spv-3");
-		std::vector<uint32_t> fragCode = ngn::fs::contents<std::vector<uint32_t>>("shaders/main.frag.spv-3");
+		std::vector<std::byte> vertCode = ngn::fs::read("shaders/main.vert.spv-3", 4);
+		std::vector<std::byte> fragCode = ngn::fs::read("shaders/main.frag.spv-3", 4);
 
 		vk::UniqueShaderModule vertShaderModule = createShaderModule(vertCode);
 		vk::UniqueShaderModule fragShaderModule = createShaderModule(fragCode);
@@ -470,15 +475,15 @@ public:
 
 		// viewport
 		vk::Viewport viewport{};
-		viewport.width = static_cast<float>(context.handles.surfaceExtent.width);
-		viewport.height = static_cast<float>(context.handles.surfaceExtent.height);
+		viewport.width = static_cast<float>(context.surface.extent.width);
+		viewport.height = static_cast<float>(context.surface.extent.height);
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 
 		// scissor
 		vk::Rect2D scissor{};
 		scissor.offset = vk::Offset2D{0, 0};
-		scissor.extent = context.handles.surfaceExtent;
+		scissor.extent = context.surface.extent;
 
 		// viewport state
 		vk::PipelineViewportStateCreateInfo viewportState{};
@@ -535,7 +540,7 @@ public:
 		pipelineLayoutInfo.pushConstantRangeCount = 0;
 		pipelineLayoutInfo.pPushConstantRanges = 0;
 
-		vk::UniquePipelineLayout pipelineLayout = perInstance.device.createPipelineLayoutUnique(pipelineLayoutInfo);
+		vk::UniquePipelineLayout pipelineLayout = context.device.createPipelineLayoutUnique(pipelineLayoutInfo);
 
 		// pipeline
 		vk::GraphicsPipelineCreateInfo pipelineInfo{};
@@ -555,7 +560,7 @@ public:
 		pipelineInfo.basePipelineHandle = vk::Pipeline{};
 		pipelineInfo.basePipelineIndex = -1;
 
-		return perInstance.device.createGraphicsPipelineUnique(vk::PipelineCache{}, pipelineInfo);
+		return context.device.createGraphicsPipelineUnique(vk::PipelineCache{}, pipelineInfo);
 	}
 
 	// Per Image
@@ -568,19 +573,19 @@ public:
 		framebufferInfo.renderPass = perSwapchain.renderPass.get();
 		framebufferInfo.attachmentCount = 1;
 		framebufferInfo.pAttachments = attachments;
-		framebufferInfo.width = context.handles.surfaceExtent.width;
-		framebufferInfo.height = context.handles.surfaceExtent.height;
+		framebufferInfo.width = context.surface.extent.width;
+		framebufferInfo.height = context.surface.extent.height;
 		framebufferInfo.layers = 1;
 
-		return perInstance.device.createFramebufferUnique(framebufferInfo);
+		return context.device.createFramebufferUnique(framebufferInfo);
 	}
 
 	vk::UniqueCommandPool createCommandPool() {
 		vk::CommandPoolCreateInfo commandPoolInfo{};
-		commandPoolInfo.queueFamilyIndex = perInstance.families.graphic;
+		commandPoolInfo.queueFamilyIndex = context.family.graphic;
 		commandPoolInfo.flags = vk::CommandPoolCreateFlagBits::eTransient | vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 
-		return perInstance.device.createCommandPoolUnique(commandPoolInfo);
+		return context.device.createCommandPoolUnique(commandPoolInfo);
 	}
 
 	vk::UniqueCommandBuffer createCommandBuffer(const vk::CommandPool &commandPool) {
@@ -589,17 +594,17 @@ public:
 		commandBufferAllocate.level = vk::CommandBufferLevel::ePrimary;
 		commandBufferAllocate.commandBufferCount = 1;
 
-		std::vector<vk::UniqueCommandBuffer> buffers = perInstance.device.allocateCommandBuffersUnique(commandBufferAllocate);
+		std::vector<vk::UniqueCommandBuffer> buffers = context.device.allocateCommandBuffersUnique(commandBufferAllocate);
 
 		return std::move(buffers[0]);
 	}
 
 	vk::UniqueFence createFence() {
-		return perInstance.device.createFenceUnique(vk::FenceCreateInfo{vk::FenceCreateFlagBits::eSignaled});
+		return context.device.createFenceUnique(vk::FenceCreateInfo{vk::FenceCreateFlagBits::eSignaled});
 	}
 
 	vk::UniqueSemaphore createSemaphore() {
-		return perInstance.device.createSemaphoreUnique(vk::SemaphoreCreateInfo{});
+		return context.device.createSemaphoreUnique(vk::SemaphoreCreateInfo{});
 	}
 };
 

@@ -1,0 +1,2005 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"has",
+				"have_experimental_filesystem"
+			],
+			[
+				"file",
+				"fileName"
+			],
+			[
+				"write",
+				"writeImpl"
+			],
+			[
+				"flag",
+				"flags"
+			],
+			[
+				"device",
+				"deviceMemory"
+			],
+			[
+				"re",
+				"reinterpret_cast"
+			],
+			[
+				"Device",
+				"DeviceMemory"
+			],
+			[
+				"Unique",
+				"UniqueDeviceMemory"
+			],
+			[
+				"Devi",
+				"DeviceSize"
+			],
+			[
+				"perA",
+				"perAquireList"
+			],
+			[
+				"get",
+				"getKey"
+			],
+			[
+				"mem",
+				"memoryProperties"
+			],
+			[
+				"wait",
+				"waitForFences"
+			],
+			[
+				"De",
+				"Device"
+			],
+			[
+				"Sur",
+				"SurfaceKHR"
+			],
+			[
+				"Physi",
+				"PhysicalDeviceFeatures"
+			],
+			[
+				"Dev",
+				"DeviceMemory"
+			],
+			[
+				"leaf",
+				"leafIdx"
+			],
+			[
+				"entry",
+				"entryIdx"
+			],
+			[
+				"Memory",
+				"MemoryHandle"
+			],
+			[
+				"baseM",
+				"baseMaxLevel"
+			],
+			[
+				"allocate",
+				"allocateMemoryUnique"
+			],
+			[
+				"memo",
+				"memoryTypeIndex"
+			],
+			[
+				"memoryTy",
+				"memoryTypeBits"
+			],
+			[
+				"requ",
+				"requirements"
+			],
+			[
+				"e",
+				"eHostCached"
+			],
+			[
+				"eH",
+				"eHostCoherent"
+			],
+			[
+				"Mem",
+				"MemoryPropertyFlags"
+			],
+			[
+				"M",
+				"MemoryPropertyFlags"
+			],
+			[
+				"num",
+				"numeric_limits"
+			],
+			[
+				"eHo",
+				"eHostVisible"
+			],
+			[
+				"Me",
+				"MemoryRequirements"
+			],
+			[
+				"catego",
+				"categories"
+			],
+			[
+				"st",
+				"struct\tstruct"
+			],
+			[
+				"print",
+				"printMask"
+			],
+			[
+				"level",
+				"levelFromIdx"
+			],
+			[
+				"al",
+				"alignment"
+			],
+			[
+				"pr",
+				"propertyFlags"
+			],
+			[
+				"alloca",
+				"allocator"
+			],
+			[
+				"Memo",
+				"MemoryHandle"
+			],
+			[
+				"Budd",
+				"BuddyAllocator"
+			],
+			[
+				"all",
+				"allocator"
+			],
+			[
+				"in",
+				"int32_t"
+			],
+			[
+				"mask",
+				"maskLength"
+			],
+			[
+				"toS",
+				"toString"
+			],
+			[
+				"bor",
+				"border-collapse"
+			],
+			[
+				"ins",
+				"inserted"
+			],
+			[
+				"Uni",
+				"UniqueFence"
+			],
+			[
+				"next",
+				"nextAvailablePerImage"
+			],
+			[
+				"per",
+				"perSubmit"
+			],
+			[
+				"perS",
+				"perSubmitStackPairList"
+			],
+			[
+				"perI",
+				"perInstance"
+			],
+			[
+				"su",
+				"submitSignalSemaphores"
+			],
+			[
+				"Comma",
+				"CommandPool"
+			],
+			[
+				"handl",
+				"handlesList"
+			],
+			[
+				"res",
+				"resources"
+			],
+			[
+				"c",
+				"current"
+			],
+			[
+				"u",
+				"uint32_t"
+			],
+			[
+				"Co",
+				"CommandBuffer"
+			],
+			[
+				"main",
+				"mainState"
+			],
+			[
+				"comm",
+				"commandPoolInfo"
+			],
+			[
+				"create",
+				"createCommandPool"
+			],
+			[
+				"for",
+				"for\tFor Loop"
+			],
+			[
+				"de",
+				"device"
+			],
+			[
+				"Atta",
+				"AttachmentLoadOp"
+			],
+			[
+				"sur",
+				"surfaceFormat"
+			],
+			[
+				"ver",
+				"vertCode"
+			],
+			[
+				"to",
+				"to_string"
+			],
+			[
+				"choose",
+				"chooseImageCount"
+			],
+			[
+				"ex",
+				"Extent2D"
+			],
+			[
+				"normal",
+				"normalizePresentMode"
+			],
+			[
+				"prese",
+				"presentModes"
+			],
+			[
+				"cr",
+				"creators"
+			],
+			[
+				"FAIL",
+				"FAIL_STAGE"
+			],
+			[
+				"physicalDevice",
+				"physicalDeviceHandle"
+			],
+			[
+				"ph",
+				"PhysicalDeviceHandle"
+			],
+			[
+				"physical",
+				"physicalDevice"
+			],
+			[
+				"con",
+				"context"
+			],
+			[
+				"Q",
+				"QueueType"
+			],
+			[
+				"debugCallback",
+				"initDebugCallbackDispatchTable"
+			],
+			[
+				"str",
+				"struct"
+			],
+			[
+				"ge",
+				"generateStruct"
+			],
+			[
+				"Wind",
+				"WindowMode"
+			],
+			[
+				"key",
+				"keyType"
+			],
+			[
+				"default",
+				"defaultValue"
+			],
+			[
+				"bdr",
+				"bdrs\tborder-radius"
+			],
+			[
+				"V",
+				"VkPhysicalDeviceProperties"
+			],
+			[
+				"notF",
+				"notFoundResults"
+			],
+			[
+				"VULKAN_",
+				"VULKAN_LIBRARY"
+			],
+			[
+				"WI",
+				"WIN_PATH_ARR"
+			],
+			[
+				"deinit",
+				"deinitGLFW"
+			],
+			[
+				"instance",
+				"instanceInit"
+			],
+			[
+				"VkDev",
+				"VkDeviceSize"
+			],
+			[
+				"VK_",
+				"VK_RESULT_MAX_ENUM"
+			],
+			[
+				"swapchain",
+				"swapchainImages"
+			],
+			[
+				"tar",
+				"targetIdx"
+			],
+			[
+				"ava",
+				"availablePhysicalDeviceFeatures"
+			],
+			[
+				"destroy",
+				"destroyGraphicPipeline"
+			],
+			[
+				"swapchainImage",
+				"swapchainImageViews"
+			],
+			[
+				"swap",
+				"swapchainImageViews"
+			],
+			[
+				"swapch",
+				"swapchainImages"
+			],
+			[
+				"presentCo",
+				"presentCommandPool"
+			],
+			[
+				"present",
+				"presentCommandBufferFences"
+			],
+			[
+				"des",
+				"destroyFence"
+			],
+			[
+				"graphic",
+				"graphicCommandBufferFences"
+			],
+			[
+				"vkDe",
+				"vkDeviceWaitIdle"
+			],
+			[
+				"glfwWi",
+				"glfwWindowShouldClose"
+			],
+			[
+				"swa",
+				"oldSwapchain"
+			],
+			[
+				"C",
+				"CHECK_RESULT"
+			],
+			[
+				"rende",
+				"RenderingFinishedSemaphore"
+			],
+			[
+				"graphicComma",
+				"graphicCommandBuffers"
+			],
+			[
+				"queue",
+				"queueFamilyIndices"
+			],
+			[
+				"VK_MAX",
+				"VK_RESULT_MAX_ENUM"
+			],
+			[
+				"VkComma",
+				"VkCommandBuffer"
+			],
+			[
+				"NULL",
+				"VK_NULL_HANDLE"
+			],
+			[
+				"surface",
+				"surfaceImageSemaphore"
+			],
+			[
+				"destro",
+				"destroyDevice"
+			],
+			[
+				"VkSurfa",
+				"VkSurfaceKHR"
+			],
+			[
+				"surfaceFor",
+				"surfaceFormat"
+			],
+			[
+				"nu",
+				"numeric_limits"
+			],
+			[
+				"layer",
+				"layerCount"
+			],
+			[
+				"VkSurface",
+				"VkSurfaceFormatKHR"
+			],
+			[
+				"vulka",
+				"vulkanDebugCallback"
+			],
+			[
+				"find",
+				"findQueueFamilyIndices"
+			],
+			[
+				"Queue",
+				"queueFamilyIndex"
+			],
+			[
+				"qu",
+				"queueFamilyIndex"
+			],
+			[
+				"select",
+				"selectQueues"
+			],
+			[
+				"vkWait",
+				"vkDeviceWaitIdle"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "src/ngn/config/core.cpp",
+			"settings":
+			{
+				"buffer_size": 37031,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/ngn/config/core.hpp",
+			"settings":
+			{
+				"buffer_size": 9142,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/ngn/fs.cpp",
+			"settings":
+			{
+				"buffer_size": 4715,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "build/core.json",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "Packages/User/make-run.sublime-build",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 71.0,
+		"last_filter": "uniq",
+		"selected_items":
+		[
+			[
+				"uniq",
+				"Permute Lines: Unique"
+			],
+			[
+				"ww",
+				"Word Wrap: Toggle"
+			],
+			[
+				"rever",
+				"Permute Lines: Reverse"
+			],
+			[
+				"html",
+				"Set Syntax: HTML"
+			],
+			[
+				"js",
+				"Set Syntax: JavaScript"
+			],
+			[
+				"snippe",
+				"Snippet: editorconfig"
+			],
+			[
+				"editor",
+				"Set Syntax: EditorConfig"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"remove",
+				"Package Control: Remove Package"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"bash",
+				"Set Syntax: Shell Script (Bash)"
+			],
+			[
+				"c++",
+				"Set Syntax: C++"
+			],
+			[
+				"glsl",
+				"Set Syntax: OpenGL SL"
+			],
+			[
+				"revers",
+				"Permute Lines: Reverse"
+			],
+			[
+				"project ",
+				"Project Manager: Clear Recent Projects"
+			],
+			[
+				"uni",
+				"Permute Lines: Unique"
+			],
+			[
+				"apach",
+				"Set Syntax: Apache Conf"
+			],
+			[
+				"cmake",
+				"Set Syntax: CMake"
+			],
+			[
+				"c",
+				"Set Syntax: C"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"disab",
+				"Package Control: Disable Package"
+			],
+			[
+				"un",
+				"Permute Lines: Unique"
+			],
+			[
+				"disable",
+				"Package Control: Disable Package"
+			],
+			[
+				"sort",
+				"Sort Lines"
+			],
+			[
+				"c+",
+				"Set Syntax: C++"
+			],
+			[
+				"cpp",
+				"Package Control: Upgrade Package"
+			],
+			[
+				"enabl",
+				"Package Control: Enable Package"
+			],
+			[
+				"hlsl",
+				"Set Syntax: High Level SL"
+			],
+			[
+				"hsls",
+				"HTML: Encode Special Characters"
+			],
+			[
+				"disa",
+				"Package Control: Disable Package"
+			],
+			[
+				"json",
+				"Set Syntax: JSON"
+			],
+			[
+				"unfo",
+				"Code Folding: Unfold All"
+			],
+			[
+				"build",
+				"CTags: Rebuild Tags"
+			],
+			[
+				"ctags",
+				"CTags: Show Symbols (all)"
+			],
+			[
+				"",
+				"CTags: Show Symbols (file)"
+			],
+			[
+				"ctagh",
+				"CTags: Show Symbols (file)"
+			],
+			[
+				"instl",
+				"Package Control: Install Package"
+			],
+			[
+				"make",
+				"Set Syntax: Makefile"
+			],
+			[
+				"Package Control: ",
+				"Package Control: Disable Package"
+			],
+			[
+				"ssc+",
+				"Set Syntax: C++"
+			],
+			[
+				"ssjs",
+				"Set Syntax: JavaScript"
+			],
+			[
+				"ssgl",
+				"Set Syntax: GLSL"
+			],
+			[
+				"stgl",
+				"Set Syntax: GLSL"
+			],
+			[
+				"install ",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: install",
+				"Package Control: Install Package"
+			],
+			[
+				"rebu",
+				"CTags: Rebuild Tags"
+			],
+			[
+				"Package Control: in",
+				"Package Control: Install Package"
+			],
+			[
+				"cast",
+				"Snippet: C++ casts"
+			],
+			[
+				"packa",
+				"Package Control: Enable Package"
+			],
+			[
+				"castr",
+				"Package Control: Add Repository"
+			],
+			[
+				"sshtl",
+				"Set Syntax: HTML5"
+			],
+			[
+				"emmet",
+				"Set Syntax: Emmet"
+			],
+			[
+				"sshtm",
+				"Set Syntax: HTML5"
+			],
+			[
+				"sscss",
+				"Set Syntax: CSS"
+			]
+		],
+		"width": 540.0
+	},
+	"console":
+	{
+		"height": 286.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = '2deb499853c4371624f5a07e27c334aa' + 'bf8c4e67d14fb0525ba4f89698a6d7e1'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by) ",
+			"import urllib.request,os; pr='Preferences.sublime-settings'; ip='ignored_packages'; n='Package Control'; s=sublime.load_settings(pr); ig=s.get(ip); ig.append(n); s.set(ip,ig); sublime.save_settings('Preferences.sublime-settings'); pf=n+'.sublime-package'; urllib.request.install_opener(urllib.request.build_opener(urllib.request.ProxyHandler())); by=urllib.request.urlopen('https://packagecontrol.io/'+pf.replace(' ','%20')).read(); open(os.path.join(sublime.installed_packages_path(),pf),'wb').write(by); ig.remove(n); s.set(ip,ig); sublime.save_settings(pr); print('Package Control: 3.0.0 upgrade successful!')",
+			"import urllib.request,os; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); open(os.path.join(ipp, pf), 'wb').write(urllib.request.urlopen( 'http://sublime.wbond.net/' + pf.replace(' ','%20')).read()) "
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/D/home/src/pr0-vk",
+		"/D/home/src/pr0-vk/build",
+		"/D/home/src/pr0-vk/src",
+		"/D/home/src/pr0-vk/src/app",
+		"/D/home/src/pr0-vk/src/app/main",
+		"/D/home/src/pr0-vk/src/ngn",
+		"/D/home/src/pr0-vk/src/ngn/config",
+		"/D/home/src/pr0-vk/src/rn",
+		"/D/home/src/pr0-vk/src/rn/vlk",
+		"/D/home/src/pr0-vk/src/rn/vlk/memory",
+		"/D/home/src/pr0-vk/src/util",
+		"/D/home/share/vulkan-sdk/1.0.61.1/Include/vulkan"
+	],
+	"file_history":
+	[
+		"/D/home/src/pr0-vk/build/core.json",
+		"/D/home/src/pr0-vk/src/app/main/resources.hpp",
+		"/D/home/src/pr0-vk/src/ngn/fs.hpp",
+		"/D/home/src/pr0-vk/src/ngn/fs.cpp",
+		"/D/home/src/pr0-vk/src/ngn/config/generator.js",
+		"/D/home/src/pr0-vk/src/rn/vlk/id.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/id.cpp",
+		"/D/home/src/pr0-vk/build/pr0-vk_CXX_cotire.cmake",
+		"/D/home/src/pr0-vk/src/ngn/config/core.cpp",
+		"/D/home/src/pr0-vk/src/util/covert.hpp",
+		"/D/home/src/pr0-vk/src/ngn/event.hpp",
+		"/D/home/src/pr0-vk/external/remotery-17.10.03/lib/Remotery.h",
+		"/D/home/src/pr0-vk/src/ngn/prof.cpp",
+		"/D/home/src/pr0-vk/src/main.cpp",
+		"/D/home/src/pr0-vk/src/ngn/prof.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/memory/handle.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/memory/pool.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/memory/block.cpp",
+		"/D/home/src/pr0-vk/src/app/main/state.hpp",
+		"/D/home/src/pr0-vk/CMakeLists.txt",
+		"/D/home/src/pr0-vk/src/util/leadingZeroes.hpp",
+		"/D/home/src/pr0-vk/src/util/alignTo.hpp",
+		"/D/home/src/pr0-vk/build/cotire/pr0-vk_CXX_prefix.hxx",
+		"/D/home/src/pr0-vk/build/cotire/pr0-vk_CXX_prefix.cxx",
+		"/D/home/src/pr0-vk/CMake/Modules/cotire.cmake",
+		"/D/home/src/pr0-vk/src/precompiled.hpp",
+		"/D/home/src/pr0-vk/src/precompiled.cpp",
+		"/D/home/src/pr0-vk/src/ngn/config.cpp",
+		"/D/home/src/pr0-vk/src/ngn/config.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/memory.cpp.old",
+		"/D/home/src/pr0-vk/src/rn/vlk/memory/pool.hpp",
+		"/D/home/src/pr0-vk/src/rn/unique.list.cpp",
+		"/D/home/share/vulkan-sdk/1.0.61.1/Include/vulkan/vulkan.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/util.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/util.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/memory/handle.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/memory.hpp.old",
+		"/D/home/src/pr0-vk/src/rn/vlk/memory/block.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/context.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/allocatorCreator.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/memory.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/memory.hpp",
+		"/D/home/src/pr0-vk/src/ngn/log.cpp",
+		"/D/home/src/pr0-vk/src/ngn/log.hpp",
+		"/D/home/share/vulkan-sdk/1.0.57.0/Include/vulkan/vk_icd.h",
+		"/D/home/src/pr0-vk/CMake/Modules/FindSpdlog.cmake",
+		"/D/home/src/pr0-vk/external/remotery/Makefile",
+		"/D/home/src/pr0-vk/CMake/Modules/FindGLFW.cmake",
+		"/D/home/src/pr0-vk/CMake/Modules/FindGLM.cmake",
+		"/D/home/src/pr0-vk/CMake/Modules/FindJSON.cmake",
+		"/D/home/src/pr0-vk/CMake/Modules/FindRemotery.cmake",
+		"/D/home/src/pr0-vk/external/remotery-17.10.03/Makefile",
+		"/D/home/src/pr0-vk/build/vulkaninfo.txt",
+		"/D/home/share/vulkan-sdk/1.0.57.0/Include/vulkan/vulkan.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/contextCreator.hpp",
+		"/D/home/src/pr0-vk/src/util/symbol.hpp",
+		"/D/home/src/pr0-vk/external/remotery/lib/Remotery.c",
+		"/D/home/src/pr0-vk/external/glm/CMakeLists.txt",
+		"/D/home/src/pr0-vk/external/json/README.md",
+		"/D/home/src/pr0-vk/external/json/ChangeLog.md",
+		"/D/home/src/pr0-vk/external/spdlog/CMakeLists.txt",
+		"/D/home/src/pr0-vk/external/glm/glm/glm.hpp",
+		"/D/home/src/pr0-vk/external/remotery/lib/Remotery.h",
+		"/D/home/src/pr0-vk/src/util/symbol.cpp.old",
+		"/C/Users/tdrol/AppData/Local/Temp/7zO88519EB7/README.txt",
+		"/D/Gry/Steam/steamapps/SourceMods/BMOPS-V0.9.1/gameinfo.txt",
+		"/C/Users/tdrol/Documents/STAR WARS Battlefront II Multiplayer Beta/settings/ProfileOptions_profile",
+		"/C/Users/tdrol/Documents/STAR WARS Battlefront II Multiplayer Beta/settings/ProfileOptions_profile_synced",
+		"/C/Users/tdrol/Documents/STAR WARS Battlefront II Multiplayer Beta/settings/BootOptions",
+		"/C/Users/tdrol/Documents/STAR WARS Battlefront II Multiplayer Beta/settings/ProfileOptions",
+		"/D/home/src/pr0-vk/src/util/map.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/swapchainCreator.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/instanceCreator.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/exts/debugCallbackDispatchTable.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/physicalDeviceSelector.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/queuesPlanner.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/deviceCreator.hpp",
+		"/D/home/src/pr0-vk/src/rn/glfw.hpp",
+		"/D/home/src/pr0-vk/src/util/implode.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/physicalDeviceHandle.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/queuesSelector.hpp",
+		"/D/home/src/pr0-vk/external/spdlog/include/spdlog/logger.h",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/instancePlanner.hpp",
+		"/D/home/src/pr0-vk/src/ngn/str.hpp",
+		"/D/home/src/pr0-vk/build-clang/Makefile",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/queuesHandle.hpp",
+		"/D/home/src/pr0-vk/build/test.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/surfaceImageViewsCreator.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/surfaceImagesSelector.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/surfaceFormatSelector.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/surfaceExtentSelector.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/surfaceCreator.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/debugCallbackCreator.hpp",
+		"/D/home/share/vulkan-sdk/1.0.57.0/Include/vulkan/vulkan.h",
+		"/D/home/src/pr0-vk/src/rn/vlk/queuesHandle.hpp",
+		"/D/home/src/pr0-vk/external/glm/readme.md",
+		"/D/home/src/pr0-vk/assets/memory.html",
+		"/C/Users/tdrol/AppData/Local/Temp/7zO438E5639/README.txt",
+		"/D/home/src/pr0-vk/external/spdlog/README.md",
+		"/C/Users/tdrol/AppData/Local/Temp/7zO4F225247/readme.txt",
+		"/D/Gry/GOG/The Witcher 3 Wild Hunt/mods/mod0000_MergedFiles/content/scripts/game/gui/main_menu/commonIngameMenu.ws",
+		"/D/Gry/GOG/The Witcher 3 Wild Hunt/mods/modFriendlyHUD/input.settings.part.txt",
+		"/C/Users/tdrol/Documents/The Witcher 3/input.settings",
+		"/C/Users/tdrol/Documents/The Witcher 3/user.settings",
+		"/D/Gry/GOG/The Witcher 3 Wild Hunt/bin/config/r4game/user_config_matrix/pc/input.xml",
+		"/D/Gry/GOG/The Witcher 3 Wild Hunt/mods/modFriendlyHUD/bin/config/r4game/user_config_matrix/pc/input.xml",
+		"/D/Gry/GOG/The Witcher 3 Wild Hunt/mods/modFriendlyHUD/user.settings.part.txt",
+		"/D/home/share/vulkan-sdk/1.0.54.0/Include/vulkan/vulkan.h",
+		"/D/home/share/vulkan-sdk/1.0.54.0/Include/vulkan/vulkan.hpp",
+		"/D/home/src/pr0-vk/external/spdlog/cmake/Config.cmake.in",
+		"/D/home/src/pr0-vk/external/spdlog/cmake/spdlog.pc.in",
+		"/D/home/src/pr0-vk/src/rn/vlk/exts/debugCallbackDispatchTable.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/debugCallbackCreator.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/configMapping.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/physicalDeviceHandle.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/memoryPool.hpp",
+		"/D/home/src/pr0-vk/assets/queue.html",
+		"/D/home/src/pr0-vk/src/ngn/config/core.schema.json",
+		"/D/home/src/pr0/src/core/src.cpp",
+		"/D/home/src/pr0/src/core/asset/mesh.cpp",
+		"/D/home/src/pr0/src/core/src.hpp",
+		"/D/home/src/pr0/src/core/src/mem.hpp",
+		"/D/home/src/pr0/src/core/src/mem.cpp",
+		"/D/home/src/pr0/src/core/rn/mesh.hpp",
+		"/D/home/src/pr0/src/core/rn/math.hpp",
+		"/D/home/src/pr0/src/core/asset/mesh.hpp",
+		"/D/home/.bashrc",
+		"/C/Users/tdrol/AppData/Local/Temp/shadowmapping.txt"
+	],
+	"find":
+	{
+		"height": 41.0
+	},
+	"find_in_files":
+	{
+		"height": 105.0,
+		"where_history":
+		[
+			"<open folders>,*.cpp,*.c,*.hpp,*h,-*/external/*,-*vulkan*",
+			"<open folders>,*.cpp,*.c,*.hpp,*h,-*/external/*",
+			"<open folders>,*.cpp,*.c,*.hpp,*h",
+			"<open folders>",
+			"<open folders>,*.cpp,*.c,*.hpp,*.h",
+			"<open folders>,*.cpp,*.hpp",
+			"D:\\home\\src\\pr0,*.cpp,*.hpp",
+			"D:\\home\\src\\pr0,*.cpp",
+			"D:\\home\\src\\pr0\\src,*.cpp",
+			"D:\\home\\src\\pr0\\assets,*.frag",
+			"D:\\home\\src\\pr0\\src,*.frag",
+			"D:\\home\\src\\pr0\\src",
+			"D:\\home\\src\\pr0\\assets\\shaders",
+			"D:\\home\\src\\pr0\\src",
+			"D:\\home\\src\\pr0\\assets",
+			"D:\\home\\src\\pr0\\asset",
+			"D:\\home\\src\\pr0\\src",
+			"D:\\home\\src\\pr0\\assets\\",
+			"D:\\home\\src\\pr0\\assets\\shaders",
+			"D:\\home\\src\\pr0\\src",
+			"D:\\home\\src\\pr0\\src,*.cpp",
+			"D:\\home\\src\\pr0\\src",
+			"D:\\home\\src\\pr0\\assets\\shaders",
+			"D:\\home\\src\\pr0\\src",
+			"D:\\home\\src\\pr0\\app",
+			"D:\\home\\src\\pr0\\vendor\\glm\\include\\glm",
+			"D:\\home\\src\\pr0\\src",
+			"D:\\home\\src\\pr0\\vendor\\glm\\include\\glm",
+			"D:\\home\\src\\pr0\\src,*.hpp",
+			"D:\\home\\src\\pr0\\src",
+			"D:\\home\\src\\pr0\\assets",
+			"D:\\home\\src\\pr0\\src,*.cpp,*.hpp,*.frag,*.vert",
+			"D:\\home\\src\\pr0\\src,*.cpp,*.hpp",
+			"D:\\home\\src\\pr0\\vendor\\glm,*.cpp,*.hpp",
+			"D:\\home\\src\\pr0\\src\\,*.cpp,*.hpp",
+			"D:\\home\\src\\pr0\\vendor\\glm\\,*.cpp,*.hpp",
+			"D:\\home\\src\\pr0\\src\\,*.cpp,*.hpp",
+			"D:\\home\\src\\pr0\\vendor\\",
+			"D:\\home\\src\\pr0\\src,*.cpp,*.hpp,",
+			"D:\\home\\src\\pr0,*.cpp,*.hpp,",
+			"D:\\home\\src\\pr0,*.cpp,*.hpp,,-*\\vendor\\*",
+			"D:\\home\\src\\pr0,*.cpp,*.hpp,-D:\\home\\src\\pr0\\vendor",
+			"D:\\home\\src\\pr0,*.cpp,*.hpp,-D:\\home\\src\\pr0\\vendor\\*",
+			"D:\\home\\src\\pr0,*.cpp,*.hpp,-D:\\home\\src\\pr0\\vendor",
+			"D:\\home\\src\\pr0,*.cpp,*.hpp,-D:\\home\\src\\pr0\\vendor,D:\\home\\src\\pr0\\tools",
+			"D:\\home\\src\\pr0,*.cpp,*.hpp",
+			"D:\\home\\src\\pr0,*.cpp,*.hpp,D:\\home\\lib\\glm",
+			"D:\\home\\src\\pr0,*.cpp,*.hpp",
+			"D:\\home\\src\\pr0",
+			"D:\\home\\src\\pr0,*.hpp",
+			"D:\\home\\src\\pr0",
+			"<project>",
+			"D:\\home\\src\\pr0\\vendor\\freetype\\include",
+			"D:\\home\\src\\pr0\\src\\vendor\\freetype",
+			"<project>:pr0,*.hpp,*.cpp",
+			"<project>,*.hpp,*.cpp",
+			"<project>",
+			"D:\\home\\src\\opengl",
+			"D:\\home\\src\\gltut",
+			"D:\\home\\src\\opengl",
+			"D:\\home\\src\\opengl\\",
+			"D:\\home\\src\\gltut\\",
+			"D:\\home\\src\\gltut\\,*.xml",
+			"D:\\home\\src\\gltut\\",
+			"D:\\home\\src\\gltut\\,*.xml",
+			"D:\\home\\lib\\glm-0.9.4.1\\glm\\core",
+			"D:\\home\\lib\\glsdk_0.4.4\\glload\\include",
+			"D:\\home\\lib\\openssl-1.0.1c,*.c,*.h",
+			"D:\\home\\Documents\\Visual Studio 2010\\Projects\\analizator\\benchmark,*.cpp,*.h",
+			"D:\\home\\Documents\\Visual Studio 2010\\Projects\\analizator\\benchmark;*.cpp,*.h"
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"ngn::log::debug",
+			"({}}",
+			"log",
+			"const std::string &",
+			"c_str",
+			"find",
+			"iterator",
+			"writeImpl",
+			"std::to_string(fileName)",
+			"ngn::fs::",
+			"::content",
+			"(ngn::fs::contents(",
+			"ngn::fs::contents<std::vector<uint32_t>>",
+			"levelFromIdx",
+			"^",
+			"bytes",
+			"const std::string &",
+			"const std::string &fileName",
+			"ngn::prof::Block",
+			"ngn::log::Block",
+			"/",
+			": #include",
+			"// ",
+			"#include <",
+			"Scope",
+			"ngn::prof::Scope ",
+			"ngn::prof::Scope profScope",
+			"ngn::prof::Scope",
+			"ngn::prof::Scopr",
+			"Pool",
+			" ## ",
+			"__COUNTER__",
+			"profScopeHash_",
+			"log",
+			"ngn::prof::",
+			"Scope",
+			"rmt_BeginCPUSampleDynamic",
+			"_rmt_BeginCPUSample",
+			"void *",
+			"resources",
+			"getKey",
+			"::id(",
+			"::id",
+			"{>",
+			"{:>",
+			"::id(",
+			"id(",
+			"void * id(const vk::",
+			"{ return",
+			"void * id",
+			"expandPool",
+			".memory",
+			"i",
+			", ",
+			".handle",
+			"entry",
+			"MemoryHandle",
+			"MemoryHandl",
+			"memory",
+			"<numeric_limits>",
+			"BuddyAllocator",
+			"Pool",
+			"pool",
+			"AllocatorPool",
+			"hadFreeLeafs",
+			"memorySize",
+			"block",
+			"blockSize",
+			"block",
+			", ",
+			"idx",
+			"deviceMemory",
+			"DUniqueDeviceMemoryeviceMemory",
+			"MemoryHandle",
+			"AllocatorPool",
+			"MemoryHandle",
+			"deviceMemory",
+			"using Unique",
+			"->pool",
+			"allocatorPool",
+			"entryIdx",
+			"rn::memory",
+			"fence",
+			"Fence",
+			"fence",
+			"Fence",
+			"fence",
+			"Fence",
+			"DeviceMemory",
+			"deviceMemory",
+			"DeviceMemory",
+			"deviceMemory",
+			"DeviceMemory",
+			"deviceMemory",
+			"DeviceMemory",
+			"getId",
+			"getVkPointer",
+			"MemoryHandle",
+			"handle",
+			"VK_WHOLE_SIZE",
+			", ",
+			"BuddyAllocationHandle",
+			".get",
+			"Handle",
+			"handle",
+			"getMemoryId",
+			"},",
+			"BuddyAllocator",
+			"Block",
+			"getMemoryProperties",
+			"memorySize",
+			"memory",
+			"BuddyAllocator",
+			"MemoryHandle",
+			"BuddyAllocationDeleter",
+			"memoryTypeIndex",
+			"expandPool",
+			"BuddyAllocationHandle",
+			"MemoryPropertyFlags",
+			"ifdef",
+			"[[",
+			"CXX",
+			"_rmt_CreateGlobalInstance",
+			"SPDLOG",
+			"PACKAGE_FIND_VERSION",
+			"PACKAGE",
+			"external/Remotery/",
+			"external/glfw/"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"ngn::prof::Scope",
+			"other",
+			"} // rn::vlk",
+			"namespace rn::vlk {",
+			"runtime_error",
+			"#include <core/ecs/entity.hpp>",
+			"#version 440",
+			"\"translation\": [$1, $2, $3]",
+			"\"translation\": [$1, $2, -$3]",
+			"pch.hpp",
+			"#version 330 core",
+			"#version 440 core",
+			"#version 440",
+			"glm/glm.hpp",
+			"glm/fwd.hpp",
+			"glm/glm.fwd",
+			"input",
+			"$1nput",
+			"static std::vector<",
+			"Prof",
+			"prof",
+			"Prof",
+			"prof",
+			"forgo",
+			"dispose",
+			"",
+			"${1}0.$2",
+			"$10.$2",
+			"\\n",
+			"",
+			"prog$1",
+			"clog.unsetf(ios::floatfield);",
+			"unique_ptr<GLubyte[]>",
+			"unique_ptr<GLvoid[]>",
+			".forgo()",
+			"} // rn",
+			"#ifndef RN_",
+			"RN_$1",
+			"rn::",
+			"#include <core/rn",
+			"#include \"../rn",
+			"#define RN_",
+			"namespace rn",
+			"[$2, \"$1\"],",
+			"$2 $1",
+			"X($1)",
+			"reloadSoftAll",
+			"; };",
+			"static_cast<",
+			"\\\\N ",
+			"$1",
+			"<std::vector<$1>>(const std::vector<$1>",
+			"<$1>(const std::vector<$1>",
+			"glm::vec$1{$2}",
+			"UTILS_LOG_FN($1,",
+			"glm::vec$1{$2}",
+			"\\t",
+			"\\n",
+			" +0",
+			"+0",
+			"\\t"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 2,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "src/ngn/config/core.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 37031,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								694,
+								694
+							]
+						],
+						"settings":
+						{
+							"editorconfig": true,
+							"ensure_newline_at_eof_on_save": true,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": false,
+							"trim_trailing_white_space_on_save": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "src/ngn/config/core.hpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 9142,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								175,
+								175
+							]
+						],
+						"settings":
+						{
+							"editorconfig": true,
+							"ensure_newline_at_eof_on_save": true,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": false,
+							"trim_trailing_white_space_on_save": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "src/ngn/fs.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4715,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								84,
+								84
+							]
+						],
+						"settings":
+						{
+							"editorconfig": true,
+							"ensure_newline_at_eof_on_save": true,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": false,
+							"trim_trailing_white_space_on_save": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 9.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "build/core.json",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"editorconfig": true,
+							"syntax": "Packages/JavaScript/JSON.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 26.0
+	},
+	"input":
+	{
+		"height": 40.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.clang":
+	{
+		"height": 272.0
+	},
+	"output.exec":
+	{
+		"height": 130.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "pr0-vk.sublime-project",
+	"replace":
+	{
+		"height": 48.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"vulkanhpp",
+				"vulkan\\vulkan.hpp"
+			],
+			[
+				"instanceplan",
+				"pr0-vk\\src\\rn\\vlk\\creators\\instancePlanner.hpp"
+			],
+			[
+				"vulkanh",
+				"vulkan\\vulkan.h"
+			],
+			[
+				"vulkan",
+				"vulkan\\vulkan.hpp"
+			],
+			[
+				"vulkan.h",
+				"vulkan\\vulkan.h"
+			],
+			[
+				"remoter",
+				"pr0-vk\\external\\remotery\\lib\\Remotery.c"
+			],
+			[
+				"remotery",
+				"pr0-vk\\external\\Remotery\\source\\Remotery.c"
+			],
+			[
+				"debugcallbackcreator.hpp",
+				"pr0-vk\\src\\rn\\vlk\\creators\\debugCallbackCreator.hpp"
+			],
+			[
+				"vulkan.hpp",
+				"vulkan\\vulkan.hpp"
+			],
+			[
+				"imageviewshandle",
+				"pr0-vk\\src\\rn\\vlk\\imageViewsHandle.hpp"
+			],
+			[
+				"queueselec",
+				"pr0-vk\\src\\rn\\vlk\\creators\\queuesSelector.hpp"
+			],
+			[
+				"queuecrea",
+				"pr0-vk\\src\\rn\\vlk\\creators\\queuesCreator.hpp"
+			],
+			[
+				"queuehand",
+				"pr0-vk\\src\\rn\\vlk\\queuesHandle.hpp"
+			],
+			[
+				"physhand",
+				"pr0-vk\\src\\rn\\vlk\\physicalDeviceHandle.hpp"
+			],
+			[
+				"queuesplanner.hpp",
+				"pr0-vk\\src\\rn\\vlk\\queuesPlanner.hpp"
+			],
+			[
+				"debucall",
+				"pr0-vk\\src\\rn\\vlk\\debugCallbackCreator.cpp"
+			],
+			[
+				"vulkhpp",
+				"vulkan\\vulkan.hpp"
+			],
+			[
+				"glfw.hpp",
+				"pr0-vk\\src\\rn\\vlk\\glfw.hpp"
+			],
+			[
+				"config.cpp",
+				"pr0-vk\\src\\ngn\\config.cpp"
+			],
+			[
+				"debugcallbackdispatchtable",
+				"pr0-vk\\src\\rn\\vlk\\debugCallbackDispatchTable.cpp"
+			],
+			[
+				"base_sink",
+				"pr0-vk\\external\\spdlog\\include\\spdlog\\sinks\\base_sink.h"
+			],
+			[
+				"nclude/spdlog/sinks/wincolor_sink.h",
+				"pr0-vk\\external\\spdlog\\include\\spdlog\\sinks\\wincolor_sink.h"
+			],
+			[
+				"registry",
+				"pr0-vk\\external\\spdlog\\include\\spdlog\\details\\registry.h"
+			],
+			[
+				"glfw3.h",
+				"pr0-vk\\external\\glfw\\include\\GLFW\\glfw3.h"
+			],
+			[
+				"vk_platform.h",
+				"pr0-vk\\external\\glfw\\deps\\vulkan\\vk_platform.h"
+			],
+			[
+				"hellotriangle.txt",
+				"pr0-vk\\src\\helloTriangle.txt"
+			],
+			[
+				"glfw_co",
+				"pr0-vk\\external\\glfw\\build\\src\\glfw_config.h"
+			],
+			[
+				"mesh.cpp",
+				"pr0\\src\\core\\rn\\mesh.cpp"
+			],
+			[
+				"src/core/rn/shader.hpp",
+				"pr0\\src\\core\\rn\\shader.hpp"
+			],
+			[
+				"mesh.hpp",
+				"pr0\\src\\core\\rn\\mesh.hpp"
+			],
+			[
+				"light",
+				"pr0\\assets\\shaders\\lighting\\forward\\lighting.vert"
+			],
+			[
+				"timer.hpp",
+				"pr0\\src\\core\\util\\timer.hpp"
+			],
+			[
+				"timer",
+				"pr0\\src\\core\\util\\timer.cpp"
+			],
+			[
+				"csm.g",
+				"pr0\\assets\\shaders\\fx\\csm\\csm.glsl"
+			],
+			[
+				"csm.glsl",
+				"pr0\\assets\\shaders\\fx\\csm\\csm.glsl"
+			],
+			[
+				"scne",
+				"pr0\\assets\\scene.json"
+			],
+			[
+				"materialpa",
+				"pr0\\src\\app\\parser\\materialparser.cpp"
+			],
+			[
+				"material",
+				"pr0\\src\\app\\comp\\material.hpp"
+			],
+			[
+				"mesh.hlsl",
+				"Shadows\\Mesh.hlsl"
+			],
+			[
+				"csm.hpp",
+				"pr0\\src\\app\\fx\\csm.hpp"
+			],
+			[
+				"minball",
+				"pr0\\vendor\\minball\\src\\minball.cpp"
+			],
+			[
+				"scene.",
+				"pr0\\assets\\scene.json"
+			],
+			[
+				"ebuildboundingvolumeprocess.cpp",
+				"pr0\\src\\app\\proc\\rebuildboundingvolumeprocess.cpp"
+			],
+			[
+				"app.cpp",
+				"pr0\\src\\app.cpp"
+			],
+			[
+				"boundingvolume",
+				"pr0\\src\\app\\comp\\boundingvolume.hpp"
+			],
+			[
+				"csm.",
+				"pr0\\assets\\shaders\\fx\\csm\\csm.glsl"
+			],
+			[
+				"fb.cpp",
+				"pr0\\src\\core\\rn\\fb.cpp"
+			],
+			[
+				"src/app/fx/csm.cpp",
+				"pr0\\src\\app\\fx\\csm.cpp"
+			],
+			[
+				"matrix_tra",
+				"pr0\\vendor\\glm\\include\\glm\\gtc\\matrix_transform.inl"
+			],
+			[
+				"math.hpp",
+				"pr0\\src\\core\\rn\\math.hpp"
+			],
+			[
+				"rn.hpp",
+				"pr0\\src\\core\\rn.hpp"
+			],
+			[
+				"rn.cpp",
+				"pr0\\src\\core\\rn.cpp"
+			],
+			[
+				"program",
+				"pr0\\src\\core\\rn\\program.cpp"
+			],
+			[
+				"type",
+				"pr0\\src\\core\\rn\\types.hpp"
+			],
+			[
+				"types",
+				"pr0\\src\\core\\rn\\types.hpp"
+			],
+			[
+				"matrix_trans",
+				"pr0\\vendor\\glm\\include\\glm\\gtc\\matrix_transform.inl"
+			],
+			[
+				"prof",
+				"pr0\\src\\core\\rn\\prof.hpp"
+			],
+			[
+				"app.hp",
+				"pr0\\src\\app.hpp"
+			],
+			[
+				"lightin",
+				"pr0\\assets\\shaders\\lighting\\forward\\lighting.frag"
+			],
+			[
+				"rn",
+				"pr0\\src\\core\\rn.hpp"
+			],
+			[
+				"app.",
+				"pr0\\src\\app.cpp"
+			],
+			[
+				"ssb.c",
+				"pr0\\src\\core\\rn\\ssb.cpp"
+			],
+			[
+				"ssb",
+				"pr0\\src\\core\\rn\\ssb.hpp"
+			],
+			[
+				"cmd.hpp",
+				"pr0\\src\\core\\rn\\cmd.hpp"
+			],
+			[
+				"scene.json",
+				"pr0\\assets\\scene.json"
+			],
+			[
+				"program.cpp",
+				"pr0\\src\\core\\rn\\program.cpp"
+			],
+			[
+				"program.hpp",
+				"pr0\\src\\core\\rn\\program.hpp"
+			],
+			[
+				"ssb.cpp",
+				"pr0\\src\\core\\rn\\ssb.cpp"
+			],
+			[
+				"tex2d.",
+				"pr0\\src\\core\\rn\\tex2d.cpp"
+			],
+			[
+				"key",
+				"pr0\\src\\core\\ngn\\key.hpp"
+			],
+			[
+				"window",
+				"pr0\\src\\core\\ngn\\window.cpp"
+			],
+			[
+				"key.cpp",
+				"pr0\\src\\core\\ngn\\key.cpp"
+			],
+			[
+				"app",
+				"pr0\\src\\app.cpp"
+			],
+			[
+				"font",
+				"pr0\\src\\core\\rn\\font.hpp"
+			],
+			[
+				"rester.hp",
+				"pr0\\src\\core\\cull\\raster.hpp"
+			],
+			[
+				"ssao.",
+				"pr0\\src\\app\\fx\\ssao.cpp"
+			],
+			[
+				"ssao",
+				"pr0\\src\\app\\fx\\ssao.cpp"
+			],
+			[
+				"window.cpp",
+				"pr0\\src\\core\\ngn\\window.cpp"
+			],
+			[
+				"lighti",
+				"pr0\\assets\\shaders\\lighting\\forward\\lighting.frag"
+			],
+			[
+				"point",
+				"pr0\\src\\app\\parser\\pointlightparser.cpp"
+			],
+			[
+				"str.",
+				"pr0\\src\\core\\util\\str.cpp"
+			],
+			[
+				"glm.hpp",
+				"pr0\\vendor\\glm\\include\\glm\\glm.hpp"
+			],
+			[
+				"pointl",
+				"pr0\\src\\app\\comp\\pointlight.hpp"
+			],
+			[
+				"tex2darray",
+				"pr0\\src\\core\\rn\\tex2darray.cpp"
+			],
+			[
+				"app.hpp",
+				"pr0\\src\\app.hpp"
+			],
+			[
+				"pointlight",
+				"pr0\\src\\app\\comp\\pointlight.hpp"
+			],
+			[
+				"csm.c",
+				"pr0\\src\\app\\fx\\csm.cpp"
+			],
+			[
+				"ligth",
+				"pr0\\assets\\shaders\\lighting\\forward\\lighting.frag"
+			],
+			[
+				"fb.hpp",
+				"pr0\\src\\core\\rn\\fb.hpp"
+			],
+			[
+				"matrix",
+				"pr0\\vendor\\glm\\include\\glm\\gtc\\matrix_transform.inl"
+			],
+			[
+				"matrix_",
+				"pr0\\vendor\\glm\\include\\glm\\gtc\\matrix_transform.inl"
+			],
+			[
+				"csm",
+				"pr0\\src\\app\\fx\\csm.cpp"
+			],
+			[
+				"gl_core_4_",
+				"pr0\\vendor\\glLoadGen\\include\\GL\\gl_core_4_3.h"
+			],
+			[
+				"mesh",
+				"pr0\\src\\core\\rn\\mesh.cpp"
+			],
+			[
+				"glfw3",
+				"pr0\\vendor\\glfw3\\include\\GLFW\\glfw3.h"
+			],
+			[
+				"csm.cpp",
+				"pr0\\src\\app\\fx\\csm.cpp"
+			],
+			[
+				"ext",
+				"pr0\\tmp\\exts-nvidia"
+			],
+			[
+				"tex2da",
+				"pr0\\src\\core\\rn\\tex2darray.cpp"
+			],
+			[
+				"format",
+				"pr0\\src\\core\\rn\\format.cpp"
+			],
+			[
+				"tex2d",
+				"pr0\\src\\core\\rn\\tex2d.cpp"
+			],
+			[
+				"font.cpp",
+				"pr0\\src\\core\\rn\\font.cpp"
+			],
+			[
+				"tb",
+				"pr0\\src\\core\\rn\\tb.cpp"
+			],
+			[
+				"glcore",
+				"pr0\\vendor\\glLoadGen\\src\\gl_core_3_3.c"
+			],
+			[
+				"gl_core_3_3.h",
+				"pr0\\vendor\\glLoadGen\\include\\GL\\gl_core_3_3.h"
+			],
+			[
+				"rn/prof",
+				"pr0\\src\\core\\rn\\prof.hpp"
+			],
+			[
+				"matrix_ma",
+				"pr0\\vendor\\glm\\include\\glm\\gtc\\matrix_transform.inl"
+			],
+			[
+				"compmater",
+				"pr0\\src\\app\\comp\\material.hpp"
+			],
+			[
+				"tb.cpp",
+				"pr0\\src\\core\\rn\\tb.cpp"
+			],
+			[
+				"tb.hpp",
+				"pr0\\src\\core\\rn\\tb.hpp"
+			],
+			[
+				"rnformat",
+				"pr0\\src\\core\\rn\\format.hpp"
+			],
+			[
+				"sao.cpp",
+				"pr0\\src\\app\\fx\\ssao.cpp"
+			],
+			[
+				"gbuffer",
+				"pr0\\assets\\shaders\\lighting\\deferred\\gbuffer.frag"
+			],
+			[
+				"gbuf",
+				"pr0\\assets\\shaders\\lighting\\deferred\\gbuffer.frag"
+			],
+			[
+				"matrix_tr",
+				"pr0\\vendor\\glm\\include\\glm\\gtc\\matrix_transform.inl"
+			],
+			[
+				"pn.vert",
+				"pr0\\assets\\shaders\\PN.vert"
+			],
+			[
+				"fboblit",
+				"pr0\\assets\\shaders\\rn\\fboBlit.frag"
+			],
+			[
+				"main",
+				"pr0\\src\\main.cpp"
+			],
+			[
+				"gb.hpp",
+				"pr0\\vendor\\glm\\include\\glm\\gtx\\bit.hpp"
+			],
+			[
+				"format.cpp",
+				"pr0\\src\\core\\rn\\format.cpp"
+			],
+			[
+				"matrix_transform.inl",
+				"pr0\\vendor\\glm\\include\\glm\\gtc\\matrix_transform.inl"
+			],
+			[
+				"precis",
+				"pr0\\vendor\\glm\\include\\glm\\detail\\precision.hpp"
+			],
+			[
+				"type_vec",
+				"pr0\\vendor\\glm\\include\\glm\\detail\\type_vec.hpp"
+			],
+			[
+				"dir",
+				"pr0\\assets\\shaders\\lighting\\deferred\\directionallight.frag"
+			],
+			[
+				"direc",
+				"pr0\\src\\app\\comp\\directionallight.hpp"
+			],
+			[
+				"camera",
+				"pr0\\src\\app\\proc\\camera.cpp"
+			],
+			[
+				"unlicense",
+				"pr0\\vendor\\gl3w\\UNLICENSE"
+			],
+			[
+				"point.hpp",
+				"pr0\\src\\core\\phs\\point.hpp"
+			],
+			[
+				"preview.frag",
+				"assets\\shaders\\lighting\\shadows\\preview.frag"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"D:\\home\\src\\pr0\\pr0.sublime-project"
+			],
+			[
+				"mode",
+				"D:\\home\\www\\netkata.com\\mode\\mode.sublime-project"
+			],
+			[
+				"three",
+				"D:\\home\\www\\tests\\netkata-logo\\three.sublime-project"
+			]
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 392.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"range",
+				"range"
+			],
+			[
+				"isCompre",
+				"isCompressed"
+			],
+			[
+				"Texture2D",
+				"Texture2D"
+			]
+		],
+		"width": 496.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": true,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 321.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

@@ -5,7 +5,7 @@
 
 find_path(JSON_INCLUDE_DIR NAMES json.hpp HINTS
 	"$ENV{JSON_SDK}"
-	"${CMAKE_SOURCE_DIR}/external/json/src")
+	"${CMAKE_SOURCE_DIR}/external/json-${JSON_FIND_VERSION}/src")
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(JSON DEFAULT_MSG JSON_INCLUDE_DIR)

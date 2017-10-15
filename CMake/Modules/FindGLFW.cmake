@@ -7,25 +7,25 @@
 if (WIN32)
 	find_path(GLFW_INCLUDE_DIR NAMES GLFW/glfw3.h HINTS
 		"$ENV{GLFW_SDK}/include"
-		"${CMAKE_SOURCE_DIR}/external/glfw/include")
+		"${CMAKE_SOURCE_DIR}/external/glfw-${GLFW_FIND_VERSION}/include")
 
 	if (CMAKE_CL_64)
 		find_library(GLFW_LIBRARY NAMES glfw3 HINTS
 			"$ENV{GLFW_SDK}/lib-vc2015"
-			"${CMAKE_SOURCE_DIR}/external/glfw/lib-vc2015")
+			"${CMAKE_SOURCE_DIR}/external/glfw-${GLFW_FIND_VERSION}/lib-vc2015")
 	else ()
 		find_library(GLFW_LIBRARY NAMES glfw3 HINTS
 			"$ENV{GLFW_SDK}/lib-mingw-w64"
-			"${CMAKE_SOURCE_DIR}/external/glfw/lib-mingw-w64")
+			"${CMAKE_SOURCE_DIR}/external/glfw-${GLFW_FIND_VERSION}/lib-mingw-w64")
 	endif ()
 else ()
 	find_path(GLFW_INCLUDE_DIR NAMES GLFW/glfw3.h HINTS
 		"$ENV{GLFW_SDK}/include"
-		"${CMAKE_SOURCE_DIR}/external/glfw/include")
+		"${CMAKE_SOURCE_DIR}/external/glfw-${GLFW_FIND_VERSION}/include")
 
 	find_library(GLFW_LIBRARY NAMES glfw3 HINTS
 		"$ENV{GLFW_SDK}/lib"
-		"${CMAKE_SOURCE_DIR}/external/glfw/lib")
+		"${CMAKE_SOURCE_DIR}/external/glfw-${GLFW_FIND_VERSION}/lib")
 endif ()
 
 include(FindPackageHandleStandardArgs)

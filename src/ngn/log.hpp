@@ -2,10 +2,7 @@
 
 #include <spdlog/spdlog.h>
 
-namespace ngn
-{
-
-namespace log
+namespace ngn::log
 {
 
 spdlog::logger & logger();
@@ -43,6 +40,4 @@ void critical(const char *format, const Args &...args) { // level = 5
 	logger().critical(format, std::forward<const Args>(args)...);
 }
 
-} // log
-
-} // ngn
+} // ngn::log
