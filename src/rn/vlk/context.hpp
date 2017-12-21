@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mutex>
 #include <vector>
 
 #include <vulkan/vulkan.hpp>
@@ -29,6 +30,8 @@ public:
 		vk::PhysicalDeviceFeatures requiredFeatures{};
 	} physicalDevice{};
 
+	vk::Device device{};
+
 	struct Queue {
 		vk::Queue presentation{};
 		vk::Queue graphic{};
@@ -43,7 +46,18 @@ public:
 		uint32_t transfer{};
 	} family{};
 
-	vk::Device device{};
+	struct Mutex {
+		std::vector<std::mutex> list{};
+		uint32_t presentationIdx = 0;
+		uint32_t graphicIdx = 0;
+		uint32_t computeIdx = 0;
+		uint32_t transferIdx = 0;
+
+		std::mutex & presentation() { return list[presentationIdx]; }
+		std::mutex & graphic() { return list[graphicIdx]; }
+		std::mutex & compute() { return list[computeIdx]; }
+		std::mutex & transfer() { return list[transferIdx]; }
+	} mutex{};
 
 	vk::SwapchainKHR swapchain{};
 
@@ -58,8 +72,9 @@ public:
 	struct Allocator {
 		memory::Pool frameRT{};
 		memory::Pool squareRT{};
-		memory::Pool small{};
-		memory::Pool huge{};
+		memory::Pool mesh{};
+		memory::Pool texture{};
+		memory::Pool staging{};
 	} allocator{};
 };
 

@@ -2,13 +2,13 @@
 
 #include <sstream>
 
-// #include "../instanceOwner.hpp"
 #include "../../../ngn/config.hpp"
 #include "../../../ngn/log.hpp"
+#include "../trace.hpp"
 
 namespace rn::vlk {
 
-VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT /*objectType*/, uint64_t /*object*/, size_t /*location*/, int32_t messageCode, const char *pLayerPrefix, const char *pMessage, void */*pUserData*/) {
+VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, [[maybe_unused]] VkDebugReportObjectTypeEXT objectType, [[maybe_unused]] uint64_t object, [[maybe_unused]] size_t location, int32_t messageCode, const char *pLayerPrefix, const char *pMessage, [[maybe_unused]] void *pUserData) {
 
 	int logLevel = ngn::config::core.debug.vk.logLevel();
 
@@ -64,7 +64,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebu
 
 	ss << "{" << pLayerPrefix << ":" << messageCode << "}: " << pMessage;
 
-	ngn::log::debug("Vulkan: {}", ss.str());
+	ngn::log::debug("Vulkan: {} | Last call [{}:{}]: {}", ss.str(), std::string{rn::vlk::lastCall().file}, rn::vlk::lastCall().line, std::string{rn::vlk::lastCall().code});
 
 	return VK_FALSE;
 }

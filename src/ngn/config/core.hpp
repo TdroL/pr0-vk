@@ -2,9 +2,7 @@
 
 #include <string>
 
-namespace ngn {
-
-namespace config {
+namespace ngn::config {
 
 enum class VSync {
 	Immediate,
@@ -25,7 +23,8 @@ enum class WindowMode {
 std::string toString(const WindowMode &value);
 WindowMode fromString(const std::string_view &name, const WindowMode &defaultValue);
 
-enum class SurfaceFormat {
+enum class ImageFormat {
+	Undefined,
 	R4G4UnormPack8,
 	R4G4B4A4UnormPack16,
 	B4G4R4A4UnormPack16,
@@ -217,13 +216,47 @@ enum class SurfaceFormat {
 	Pvrtc12BppSrgbBlockIMG,
 	Pvrtc14BppSrgbBlockIMG,
 	Pvrtc22BppSrgbBlockIMG,
-	Pvrtc24BppSrgbBlockIMG
+	Pvrtc24BppSrgbBlockIMG,
+	G8B8G8R8422UnormKHR,
+	B8G8R8G8422UnormKHR,
+	G8B8R83Plane420UnormKHR,
+	G8B8R82Plane420UnormKHR,
+	G8B8R83Plane422UnormKHR,
+	G8B8R82Plane422UnormKHR,
+	G8B8R83Plane444UnormKHR,
+	R10X6UnormPack16KHR,
+	R10X6G10X6Unorm2Pack16KHR,
+	R10X6G10X6B10X6A10X6Unorm4Pack16KHR,
+	G10X6B10X6G10X6R10X6422Unorm4Pack16KHR,
+	B10X6G10X6R10X6G10X6422Unorm4Pack16KHR,
+	G10X6B10X6R10X63Plane420Unorm3Pack16KHR,
+	G10X6B10X6R10X62Plane420Unorm3Pack16KHR,
+	G10X6B10X6R10X63Plane422Unorm3Pack16KHR,
+	G10X6B10X6R10X62Plane422Unorm3Pack16KHR,
+	G10X6B10X6R10X63Plane444Unorm3Pack16KHR,
+	R12X4UnormPack16KHR,
+	R12X4G12X4Unorm2Pack16KHR,
+	R12X4G12X4B12X4A12X4Unorm4Pack16KHR,
+	G12X4B12X4G12X4R12X4422Unorm4Pack16KHR,
+	B12X4G12X4R12X4G12X4422Unorm4Pack16KHR,
+	G12X4B12X4R12X43Plane420Unorm3Pack16KHR,
+	G12X4B12X4R12X42Plane420Unorm3Pack16KHR,
+	G12X4B12X4R12X43Plane422Unorm3Pack16KHR,
+	G12X4B12X4R12X42Plane422Unorm3Pack16KHR,
+	G12X4B12X4R12X43Plane444Unorm3Pack16KHR,
+	G16B16G16R16422UnormKHR,
+	B16G16R16G16422UnormKHR,
+	G16B16R163Plane420UnormKHR,
+	G16B16R162Plane420UnormKHR,
+	G16B16R163Plane422UnormKHR,
+	G16B16R162Plane422UnormKHR,
+	G16B16R163Plane444UnormKHR
 };
 
-std::string toString(const SurfaceFormat &value);
-SurfaceFormat fromString(const std::string_view &name, const SurfaceFormat &defaultValue);
+std::string toString(const ImageFormat &value);
+ImageFormat fromString(const std::string_view &name, const ImageFormat &defaultValue);
 
-enum class SurfaceColorSpace {
+enum class ColorSpace {
 	SrgbNonlinear,
 	DisplayP3NonlinearEXT,
 	ExtendedSrgbLinearEXT,
@@ -237,11 +270,12 @@ enum class SurfaceColorSpace {
 	Hdr10HlgEXT,
 	AdobergbLinearEXT,
 	AdobergbNonlinearEXT,
-	PassThroughEXT
+	PassThroughEXT,
+	ExtendedSrgbNonlinearEXT
 };
 
-std::string toString(const SurfaceColorSpace &value);
-SurfaceColorSpace fromString(const std::string_view &name, const SurfaceColorSpace &defaultValue);
+std::string toString(const ColorSpace &value);
+ColorSpace fromString(const std::string_view &name, const ColorSpace &defaultValue);
 
 struct Core {
 	Core &root{*this};
@@ -338,6 +372,44 @@ struct Core {
 		}
 	} physicalDevice{root};
 
+	struct Db {
+		Core &root;
+
+		Db(Core &root) : root(root) {}
+
+		struct Mesh {
+			Core &root;
+
+			Mesh(Core &root) : root(root) {}
+
+			bool prop_forceSynchronusLoading{false};
+			bool forceSynchronusLoading() {
+				return prop_forceSynchronusLoading;
+			}
+
+			void forceSynchronusLoading(bool newValue) {
+				root.dirty(root.dirty() || prop_forceSynchronusLoading != newValue);
+				prop_forceSynchronusLoading = newValue;
+			}
+		} mesh{root};
+
+		struct Texture {
+			Core &root;
+
+			Texture(Core &root) : root(root) {}
+
+			bool prop_forceSynchronusLoading{false};
+			bool forceSynchronusLoading() {
+				return prop_forceSynchronusLoading;
+			}
+
+			void forceSynchronusLoading(bool newValue) {
+				root.dirty(root.dirty() || prop_forceSynchronusLoading != newValue);
+				prop_forceSynchronusLoading = newValue;
+			}
+		} texture{root};
+	} db{root};
+
 	struct Window {
 		Core &root;
 
@@ -403,22 +475,22 @@ struct Core {
 			prop_imageBuffers = newValue;
 		}
 
-		SurfaceFormat prop_surfaceFormat{SurfaceFormat::B8G8R8A8Unorm};
-		const SurfaceFormat & surfaceFormat() {
+		ImageFormat prop_surfaceFormat{ImageFormat::B8G8R8A8Unorm};
+		const ImageFormat & surfaceFormat() {
 			return prop_surfaceFormat;
 		}
 
-		void surfaceFormat(const SurfaceFormat &newValue) {
+		void surfaceFormat(const ImageFormat &newValue) {
 			root.dirty(root.dirty() || prop_surfaceFormat != newValue);
 			prop_surfaceFormat = newValue;
 		}
 
-		SurfaceColorSpace prop_surfaceColorSpace{SurfaceColorSpace::SrgbNonlinear};
-		const SurfaceColorSpace & surfaceColorSpace() {
+		ColorSpace prop_surfaceColorSpace{ColorSpace::SrgbNonlinear};
+		const ColorSpace & surfaceColorSpace() {
 			return prop_surfaceColorSpace;
 		}
 
-		void surfaceColorSpace(const SurfaceColorSpace &newValue) {
+		void surfaceColorSpace(const ColorSpace &newValue) {
 			root.dirty(root.dirty() || prop_surfaceColorSpace != newValue);
 			prop_surfaceColorSpace = newValue;
 		}
@@ -479,6 +551,4 @@ struct Core {
 	bool store();
 };
 
-} // config
-
-} // ngn
+} // ngn::config

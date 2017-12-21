@@ -36,6 +36,7 @@ public:
 	Pool & operator=(const Pool &) = delete;
 
 	Handle alloc(const Usage usage, const vk::MemoryRequirements &requirements);
+	void free(const Handle &handle);
 
 	vk::MemoryPropertyFlags getPreferredPropertyFlags(const Usage usage) const;
 	vk::MemoryPropertyFlags getRequiredPropertyFlags(const Usage usage) const;

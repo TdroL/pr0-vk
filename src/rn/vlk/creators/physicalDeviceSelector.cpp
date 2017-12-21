@@ -1,0 +1,156 @@
+#include "physicalDeviceSelector.hpp"
+
+#include <cassert>
+
+#include "../../../ngn/config.hpp"
+#include "trace.hpp"
+#include "queuesPlanner.hpp"
+
+namespace rn::vlk {
+
+Context::PhysicalDevice PhysicalDeviceSelector::select(Context &context) {
+	vk::Instance instance = context.instance;
+	vk::SurfaceKHR surface = context.surface.handle;
+
+	assert(instance);
+	assert(surface);
+
+	std::vector<vk::PhysicalDevice> physicalDevices = RN_VLK_TRACE(instance.enumeratePhysicalDevices());
+
+	physicalDevices = rejectUnsuitablePhysicalDevices(surface, physicalDevices);
+
+	if (physicalDevices.empty()) {
+		throw std::runtime_error{"No valid physical devices available"};
+	}
+
+	auto vendorIDValue = ngn::config::core.physicalDevice.vendorId();
+	auto deviceIDValue = ngn::config::core.physicalDevice.deviceId();
+
+	vk::PhysicalDevice physicalDevice = findPhysicalDevice(vendorIDValue, deviceIDValue, physicalDevices);
+
+	if ( ! physicalDevice) {
+		physicalDevice = physicalDevices[0]; // select first-fit
+		vk::PhysicalDeviceProperties props = RN_VLK_TRACE(physicalDevice.getProperties());
+
+		ngn::config::core.physicalDevice.vendorId(props.vendorID);
+		ngn::config::core.physicalDevice.deviceId(props.deviceID);
+	}
+
+	vk::PhysicalDeviceProperties properties = RN_VLK_TRACE(physicalDevice.getProperties());
+	vk::PhysicalDeviceMemoryProperties memoryProperties = RN_VLK_TRACE(physicalDevice.getMemoryProperties());
+	vk::PhysicalDeviceFeatures features = RN_VLK_TRACE(physicalDevice.getFeatures());
+
+	return {
+		physicalDevice,
+		properties,
+		memoryProperties,
+		features,
+		requiredFeatures
+	};
+}
+
+std::vector<vk::PhysicalDevice> PhysicalDeviceSelector::rejectUnsuitablePhysicalDevices(const vk::SurfaceKHR &surface, const std::vector<vk::PhysicalDevice> &physicalDevices) {
+	std::vector<vk::PhysicalDevice> result{physicalDevices};
+
+	result.erase(std::remove_if(std::begin(result), std::end(result), [&] (const vk::PhysicalDevice &physicalDevice) {
+		bool hasFeatures = hasReqiredPhysicalDeviceFeatures(physicalDevice);
+		bool supportsPresentation = hasPresentationSupport(surface, physicalDevice);
+		bool hasRequiredQueues = QueuesPlanner{surface, physicalDevice}.selectQueueIndices();
+
+		return ! ( hasFeatures && supportsPresentation && hasRequiredQueues);
+	}), std::end(result));
+
+	return result;
+}
+
+vk::PhysicalDevice PhysicalDeviceSelector::findPhysicalDevice(uint32_t vendorID, uint32_t deviceID, const std::vector<vk::PhysicalDevice> &physicalDevices) {
+	for (const auto entry : physicalDevices) {
+		vk::PhysicalDeviceProperties props = entry.getProperties();
+
+		if (vendorID == props.vendorID && deviceID == props.deviceID) {
+			return entry;
+		}
+	}
+
+	return vk::PhysicalDevice{};
+}
+
+bool PhysicalDeviceSelector::hasReqiredPhysicalDeviceFeatures(const vk::PhysicalDevice &physicalDevice) {
+	bool result = true;
+
+	const vk::PhysicalDeviceFeatures features = RN_VLK_TRACE(physicalDevice.getFeatures());
+
+	#define TEST(prop) (result && ( ! requiredFeatures.prop || (requiredFeatures.prop && features.prop)))
+	result = TEST(robustBufferAccess);
+	result = TEST(fullDrawIndexUint32);
+	result = TEST(imageCubeArray);
+	result = TEST(independentBlend);
+	result = TEST(geometryShader);
+	result = TEST(tessellationShader);
+	result = TEST(sampleRateShading);
+	result = TEST(dualSrcBlend);
+	result = TEST(logicOp);
+	result = TEST(multiDrawIndirect);
+	result = TEST(drawIndirectFirstInstance);
+	result = TEST(depthClamp);
+	result = TEST(depthBiasClamp);
+	result = TEST(fillModeNonSolid);
+	result = TEST(depthBounds);
+	result = TEST(wideLines);
+	result = TEST(largePoints);
+	result = TEST(alphaToOne);
+	result = TEST(multiViewport);
+	result = TEST(samplerAnisotropy);
+	result = TEST(textureCompressionETC2);
+	result = TEST(textureCompressionASTC_LDR);
+	result = TEST(textureCompressionBC);
+	result = TEST(occlusionQueryPrecise);
+	result = TEST(pipelineStatisticsQuery);
+	result = TEST(vertexPipelineStoresAndAtomics);
+	result = TEST(fragmentStoresAndAtomics);
+	result = TEST(shaderTessellationAndGeometryPointSize);
+	result = TEST(shaderImageGatherExtended);
+	result = TEST(shaderStorageImageExtendedFormats);
+	result = TEST(shaderStorageImageMultisample);
+	result = TEST(shaderStorageImageReadWithoutFormat);
+	result = TEST(shaderStorageImageWriteWithoutFormat);
+	result = TEST(shaderUniformBufferArrayDynamicIndexing);
+	result = TEST(shaderSampledImageArrayDynamicIndexing);
+	result = TEST(shaderStorageBufferArrayDynamicIndexing);
+	result = TEST(shaderStorageImageArrayDynamicIndexing);
+	result = TEST(shaderClipDistance);
+	result = TEST(shaderCullDistance);
+	result = TEST(shaderFloat64);
+	result = TEST(shaderInt64);
+	result = TEST(shaderInt16);
+	result = TEST(shaderResourceResidency);
+	result = TEST(shaderResourceMinLod);
+	result = TEST(sparseBinding);
+	result = TEST(sparseResidencyBuffer);
+	result = TEST(sparseResidencyImage2D);
+	result = TEST(sparseResidencyImage3D);
+	result = TEST(sparseResidency2Samples);
+	result = TEST(sparseResidency4Samples);
+	result = TEST(sparseResidency8Samples);
+	result = TEST(sparseResidency16Samples);
+	result = TEST(sparseResidencyAliased);
+	result = TEST(variableMultisampleRate);
+	result = TEST(inheritedQueries);
+	#undef TEST
+
+	return result;
+}
+
+bool PhysicalDeviceSelector::hasPresentationSupport(const vk::SurfaceKHR &surface, const vk::PhysicalDevice &physicalDevice) {
+	std::vector<vk::QueueFamilyProperties> familyProperties = RN_VLK_TRACE(physicalDevice.getQueueFamilyProperties());
+
+	for (uint32_t i = 0; i < familyProperties.size(); i++) {
+		if (RN_VLK_TRACE(physicalDevice.getSurfaceSupportKHR(i, surface))) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+} // rn::vlk

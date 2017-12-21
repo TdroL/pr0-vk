@@ -10,7 +10,7 @@
 namespace rn::vlk::memory {
 
 struct BlockAllocationHandle {
-	vk::DeviceMemory deviceMemory{};
+	vk::DeviceMemory memory{};
 	vk::DeviceSize offset{std::numeric_limits<vk::DeviceSize>::max()};
 	uint32_t leafIdx = std::numeric_limits<uint32_t>::max();
 	uint32_t memoryTypeIndex = std::numeric_limits<uint32_t>::max();
@@ -42,6 +42,7 @@ public:
 	BlockAllocationHandle alloc(const vk::MemoryRequirements &requirements);
 	void free(uint32_t leafIdx);
 
+	uint32_t levelFromIdx(uint32_t idx) const;
 	int32_t findLevel(vk::DeviceSize requiredSize) const;
 	vk::DeviceSize findOffset(uint32_t idx, const vk::MemoryRequirements &requirements) const;
 

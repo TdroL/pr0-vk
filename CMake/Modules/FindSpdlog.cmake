@@ -9,6 +9,6 @@ find_path(SPDLOG_INCLUDE_DIR NAMES spdlog/spdlog.h HINTS
 
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(SPDLOG DEFAULT_MSG SPDLOG_INCLUDE_DIR)
+find_package_handle_standard_args(Spdlog DEFAULT_MSG SPDLOG_INCLUDE_DIR)
 
 mark_as_advanced(SPDLOG_INCLUDE_DIR)

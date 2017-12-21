@@ -2,8 +2,7 @@
 
 #include <spdlog/spdlog.h>
 
-namespace ngn::log
-{
+namespace ngn::log {
 
 spdlog::logger & logger();
 

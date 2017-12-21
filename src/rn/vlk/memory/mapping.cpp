@@ -2,12 +2,13 @@
 
 #include "../../ngn/log.hpp"
 #include "../id.hpp"
+#include "../trace.hpp"
 
 namespace rn::vlk::memory {
 
 Mapping::Mapping(Mapping &&other) noexcept :
 	device{other.device},
-	deviceMemory{other.deviceMemory},
+	memory{other.memory},
 	pointer{other.pointer}
 {
 	other.pointer = nullptr;
@@ -17,7 +18,7 @@ Mapping & Mapping::operator=(Mapping &&other) noexcept {
 	unmap();
 
 	device = other.device;
-	deviceMemory = other.deviceMemory;
+	memory = other.memory;
 	pointer = other.pointer;
 
 	other.pointer = nullptr;
@@ -32,16 +33,16 @@ Mapping::~Mapping() {
 void Mapping::unmap() {
 	if (pointer != nullptr) {
 		if (device == vk::Device{}) {
-			ngn::log::error("Unable to unmap pointer -- device is missing: {}", pointer);
+			ngn::log::error("rn::vlk::memory::Mapping::unmap() <{}> => unable to unmap pointer, device is missing", pointer);
 			return;
 		}
 
-		if (deviceMemory == vk::DeviceMemory{}) {
-			ngn::log::error("Unable to unmap pointer -- device memory is missing: {}, {}", pointer, rn::vlk::id(deviceMemory));
+		if (memory == vk::DeviceMemory{}) {
+			ngn::log::error("rn::vlk::memory::Mapping::unmap() <{}, {}> => unable to unmap pointer, device memory is missing", pointer, rn::vlk::id(memory));
 			return;
 		}
 
-		device.unmapMemory(deviceMemory);
+		RN_VLK_TRACE(device.unmapMemory(memory));
 		pointer = nullptr;
 	}
 }

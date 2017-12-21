@@ -8,10 +8,10 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "../../../ngn/config.hpp"
 #include "../context.hpp"
 #include "../exts/debugCallbackDispatchTable.hpp"
-
-#include "../../../ngn/config.hpp"
+#include "../trace.hpp"
 
 namespace rn::vlk {
 
@@ -81,7 +81,7 @@ public:
 		debugReportCallbackCreateInfo.flags       = flags;
 		debugReportCallbackCreateInfo.pfnCallback = debugCallback;
 
-		vk::UniqueDebugReportCallbackEXT debugCallbackOwner{instance.createDebugReportCallbackEXTUnique(debugReportCallbackCreateInfo)};
+		vk::UniqueDebugReportCallbackEXT debugCallbackOwner{RN_VLK_TRACE(instance.createDebugReportCallbackEXTUnique(debugReportCallbackCreateInfo))};
 
 		if ( ! debugCallbackOwner) {
 			throw std::runtime_error{"Vulkan debug callback could not be created"};

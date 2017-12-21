@@ -8,8 +8,8 @@
 
 namespace rn::vlk::memory {
 
-Handle::Handle(vk::DeviceMemory deviceMemory, vk::DeviceSize offset, vk::MemoryPropertyFlags flags, void *pointer, Pool *pool, uint32_t blockIdx, uint32_t leafIdx) noexcept :
-	deviceMemory{deviceMemory},
+Handle::Handle(vk::DeviceMemory memory, vk::DeviceSize offset, vk::MemoryPropertyFlags flags, void *pointer, Pool *pool, uint32_t blockIdx, uint32_t leafIdx) noexcept :
+	memory{memory},
 	offset{offset},
 	flags{flags},
 	pointer{pointer},
@@ -19,7 +19,7 @@ Handle::Handle(vk::DeviceMemory deviceMemory, vk::DeviceSize offset, vk::MemoryP
 {}
 
 Handle::Handle(Handle &&other) noexcept :
-	deviceMemory{std::move(other.deviceMemory)},
+	memory{std::move(other.memory)},
 	offset{std::move(other.offset)},
 	flags{std::move(other.flags)},
 	pointer{std::move(other.pointer)},
@@ -27,13 +27,13 @@ Handle::Handle(Handle &&other) noexcept :
 	blockIdx{std::move(other.blockIdx)},
 	leafIdx{std::move(other.leafIdx)}
 {
-	other.deviceMemory = vk::DeviceMemory{};
+	other.memory = vk::DeviceMemory{};
 }
 
 Handle & Handle::operator=(Handle &&other) noexcept {
-	destroy();
+	release();
 
-	deviceMemory = std::move(other.deviceMemory);
+	memory = std::move(other.memory);
 	offset = std::move(other.offset);
 	flags = std::move(other.flags);
 	pointer = std::move(other.pointer);
@@ -41,28 +41,28 @@ Handle & Handle::operator=(Handle &&other) noexcept {
 	blockIdx = std::move(other.blockIdx);
 	leafIdx = std::move(other.leafIdx);
 
-	other.deviceMemory = vk::DeviceMemory{};
+	other.memory = vk::DeviceMemory{};
 
 	return *this;
 }
 
 Handle::~Handle() {
-	destroy();
+	release();
 }
 
-void Handle::destroy() {
-	if (deviceMemory != vk::DeviceMemory{}) {
+bool Handle::needsFlushing() {
+	return (flags & vk::MemoryPropertyFlagBits::eHostCoherent) != vk::MemoryPropertyFlagBits::eHostCoherent;
+}
+
+void Handle::release() {
+	if (memory != vk::DeviceMemory{}) {
 		if (pool == nullptr) {
-			ngn::log::error("Unable to destroy memory handle -- unknown pool: {:x}", rn::vlk::id(deviceMemory));
+			ngn::log::error("rn::vlk::memory::Handle::release() <{:x}> => unable to release memory handle, unknown pool", rn::vlk::id(memory));
 		} else {
-			if (blockIdx >= pool->blocks.size()) {
-				ngn::log::error("Unable to destroy memory handle -- block index out-of-range {} >= {}: {:x}", blockIdx, pool->blocks.size(), rn::vlk::id(deviceMemory));
-			} else {
-				pool->blocks[blockIdx].free(leafIdx);
-			}
+			pool->free(*this);
 		}
 
-		deviceMemory = vk::DeviceMemory{};
+		memory = vk::DeviceMemory{};
 	}
 }
 

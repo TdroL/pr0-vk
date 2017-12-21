@@ -1,25 +1,21 @@
 #include "log.hpp"
 
+#include <memory>
 #include <mutex>
 
-namespace ngn::log
-{
+namespace ngn::log {
 
 spdlog::level::level_enum currentLevel{spdlog::level::debug};
 
-std::mutex consoleMutex;
-std::shared_ptr<spdlog::logger> console{nullptr};
-
 spdlog::logger & logger() {
-	if ( ! console) {
-		std::lock_guard<std::mutex> guard{consoleMutex};
+	static std::once_flag createConsoleFlag;
+	static std::shared_ptr<spdlog::logger> console{nullptr};
 
-		if ( ! console) {
-			console = spdlog::stdout_logger_mt("console");
-			console->set_level(spdlog::level::debug);
-			console->set_pattern("[%H:%M:%S.%e T#%t] %v");
-		}
-	}
+	std::call_once(createConsoleFlag, [&] () {
+		console = spdlog::stdout_logger_mt("console");
+		console->set_level(spdlog::level::debug);
+		console->set_pattern("[%H:%M:%S.%e T#%t] <%l> %v");
+	});
 
 	return *console;
 }

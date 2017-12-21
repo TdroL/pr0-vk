@@ -5,8 +5,7 @@
 #include <string>
 #include <vector>
 
-namespace ngn::fs
-{
+namespace ngn::fs {
 
 extern std::vector<std::string> searchDirectories;
 

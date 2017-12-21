@@ -7,8 +7,7 @@
 #include "../util/leadingZeroes.hpp"
 #include "log.hpp"
 
-namespace ngn::fs
-{
+namespace ngn::fs {
 
 std::vector<std::string> searchDirectories{
 	"./",

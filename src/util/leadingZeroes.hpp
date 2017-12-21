@@ -3,11 +3,10 @@
 #include <cstdint>
 
 #if defined(_MSC_VER)
-	#include <intrin.h>
+#  include <intrin.h>
 #endif
 
-namespace util
-{
+namespace util {
 
 #if defined(__GNUC__) || defined(__clang__)
 

@@ -9,14 +9,14 @@ namespace rn::vlk::memory {
 class Mapping {
 public:
 	vk::Device device{};
-	vk::DeviceMemory deviceMemory{};
+	vk::DeviceMemory memory{};
 	void *pointer = nullptr;
 
 	Mapping() = default;
 
-	explicit Mapping(vk::Device device, vk::DeviceMemory deviceMemory, void *pointer = nullptr) noexcept :
+	explicit Mapping(vk::Device device, vk::DeviceMemory memory, void *pointer = nullptr) noexcept :
 		device{device},
-		deviceMemory{deviceMemory},
+		memory{memory},
 		pointer{pointer}
 	{}
 

@@ -6,11 +6,10 @@
 #include "../ngn/log.hpp"
 #include "../util/symbol.hpp"
 
-namespace ngn::prof
-{
+namespace ngn::prof {
 
-#define ScopeIMPL(name, ID) Sampler profSampler_##ID{}; do { static uint32_t profSamplerHash_##ID = 0; profSampler_##ID.start(name, profSamplerHash_##ID); } while(0)
-#define Scope(name) ScopeIMPL(name, __COUNTER__)
+#define NGN_PROF_SCOPEIMPL(name, ID) ngn::prof::Sampler profSampler_##ID{}; do { static uint32_t profSamplerHash_##ID = 0; profSampler_##ID.start(name, profSamplerHash_##ID); } while(0)
+#define NGN_PROF_SCOPE(name) NGN_PROF_SCOPEIMPL(name, __COUNTER__)
 
 class Sampler {
 public:

@@ -4,6 +4,114 @@
 		"selected_items":
 		[
 			[
+				"R",
+				"RN_VLK_TRACE"
+			],
+			[
+				"trans",
+				"translateSwizzle"
+			],
+			[
+				"payloa",
+				"payloads"
+			],
+			[
+				"TRA",
+				"UNDEFINED_TO_TRANSFERABLE"
+			],
+			[
+				"tra",
+				"transitionImages"
+			],
+			[
+				"for",
+				"for\tFor Loop"
+			],
+			[
+				"Image",
+				"ImageCreateFlags"
+			],
+			[
+				"tar",
+				"targetName"
+			],
+			[
+				"listen",
+				"listener"
+			],
+			[
+				"load",
+				"loadWithStbi"
+			],
+			[
+				"string",
+				"string_view"
+			],
+			[
+				"source",
+				"sourceLower"
+			],
+			[
+				"active",
+				"activeMutex"
+			],
+			[
+				"get",
+				"get_future"
+			],
+			[
+				"work",
+				"workQueue"
+			],
+			[
+				"shou",
+				"shouldStopMutex"
+			],
+			[
+				"notif",
+				"notify_one"
+			],
+			[
+				"con",
+				"condition_variable"
+			],
+			[
+				"lock",
+				"lock_guard"
+			],
+			[
+				"libFree",
+				"libFreeImagePlus"
+			],
+			[
+				"ios",
+				"iostream\tstandard header"
+			],
+			[
+				"allo",
+				"allocation"
+			],
+			[
+				"stati",
+				"static_cast"
+			],
+			[
+				"Device",
+				"deviceMemory"
+			],
+			[
+				"create",
+				"createFramebufferUnique"
+			],
+			[
+				"uni",
+				"UniqueBuffer"
+			],
+			[
+				"Unqi",
+				"UniqueRenderPass"
+			],
+			[
 				"has",
 				"have_experimental_filesystem"
 			],
@@ -28,10 +136,6 @@
 				"reinterpret_cast"
 			],
 			[
-				"Device",
-				"DeviceMemory"
-			],
-			[
 				"Unique",
 				"UniqueDeviceMemory"
 			],
@@ -42,10 +146,6 @@
 			[
 				"perA",
 				"perAquireList"
-			],
-			[
-				"get",
-				"getKey"
 			],
 			[
 				"mem",
@@ -248,14 +348,6 @@
 				"commandPoolInfo"
 			],
 			[
-				"create",
-				"createCommandPool"
-			],
-			[
-				"for",
-				"for\tFor Loop"
-			],
-			[
 				"de",
 				"device"
 			],
@@ -310,10 +402,6 @@
 			[
 				"physical",
 				"physicalDevice"
-			],
-			[
-				"con",
-				"context"
 			],
 			[
 				"Q",
@@ -384,10 +472,6 @@
 				"swapchainImages"
 			],
 			[
-				"tar",
-				"targetIdx"
-			],
-			[
 				"ava",
 				"availablePhysicalDeviceFeatures"
 			],
@@ -430,125 +514,162 @@
 			[
 				"glfwWi",
 				"glfwWindowShouldClose"
-			],
-			[
-				"swa",
-				"oldSwapchain"
-			],
-			[
-				"C",
-				"CHECK_RESULT"
-			],
-			[
-				"rende",
-				"RenderingFinishedSemaphore"
-			],
-			[
-				"graphicComma",
-				"graphicCommandBuffers"
-			],
-			[
-				"queue",
-				"queueFamilyIndices"
-			],
-			[
-				"VK_MAX",
-				"VK_RESULT_MAX_ENUM"
-			],
-			[
-				"VkComma",
-				"VkCommandBuffer"
-			],
-			[
-				"NULL",
-				"VK_NULL_HANDLE"
-			],
-			[
-				"surface",
-				"surfaceImageSemaphore"
-			],
-			[
-				"destro",
-				"destroyDevice"
-			],
-			[
-				"VkSurfa",
-				"VkSurfaceKHR"
-			],
-			[
-				"surfaceFor",
-				"surfaceFormat"
-			],
-			[
-				"nu",
-				"numeric_limits"
-			],
-			[
-				"layer",
-				"layerCount"
-			],
-			[
-				"VkSurface",
-				"VkSurfaceFormatKHR"
-			],
-			[
-				"vulka",
-				"vulkanDebugCallback"
-			],
-			[
-				"find",
-				"findQueueFamilyIndices"
-			],
-			[
-				"Queue",
-				"queueFamilyIndex"
-			],
-			[
-				"qu",
-				"queueFamilyIndex"
-			],
-			[
-				"select",
-				"selectQueues"
-			],
-			[
-				"vkWait",
-				"vkDeviceWaitIdle"
 			]
 		]
 	},
 	"buffers":
 	[
 		{
-			"file": "src/ngn/config/core.cpp",
+			"file": "/D/home/share/vulkan-sdk/1.0.65.0/Include/vulkan/vulkan.hpp",
 			"settings":
 			{
-				"buffer_size": 37031,
-				"line_ending": "Unix"
+				"buffer_size": 1320508,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "src/ngn/config/core.hpp",
+			"file": "src/main.cpp",
 			"settings":
 			{
-				"buffer_size": 9142,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "src/ngn/fs.cpp",
-			"settings":
-			{
-				"buffer_size": 4715,
+				"buffer_size": 18207,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "build/core.json",
+			"file": "src/rn/vlk/trace.cpp",
 			"settings":
 			{
-				"buffer_size": 0,
+				"buffer_size": 589,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/rn/vlk/db/texture/reader.cpp",
+			"settings":
+			{
+				"buffer_size": 13706,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/rn/vlk/db/texture/transferrer.cpp",
+			"settings":
+			{
+				"buffer_size": 11124,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "external/assimp-4.0.1-source/code/Assimp.cpp",
+			"settings":
+			{
+				"buffer_size": 23244,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "external/assimp-4.0.1/include/assimp/Importer.hpp",
+			"settings":
+			{
+				"buffer_size": 30087,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "external/assimp-4.0.1-source/code/Importer.cpp",
+			"settings":
+			{
+				"buffer_size": 41644,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "assets/meshes/FerrisWheel_lowpoly.mtl",
+			"settings":
+			{
+				"buffer_size": 1164,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "assets/meshes/FerrisWheel_lowpoly.obj",
+			"settings":
+			{
+				"buffer_size": 173610,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "external/assimp-4.0.1/include/assimp/material.h",
+			"settings":
+			{
+				"buffer_size": 53382,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "external/assimp-4.0.1/include/assimp/material.inl",
+			"settings":
+			{
+				"buffer_size": 13034,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "/*\nOpen Asset Import Library (assimp)\n----------------------------------------------------------------------\n\nCopyright (c) 2006-2017, assimp team\n\nAll rights reserved.\n\nRedistribution and use of this software in source and binary forms,\nwith or without modification, are permitted provided that the\nfollowing conditions are met:\n\n* Redistributions of source code must retain the above\n  copyright notice, this list of conditions and the\n  following disclaimer.\n\n* Redistributions in binary form must reproduce the above\n  copyright notice, this list of conditions and the\n  following disclaimer in the documentation and/or other\n  materials provided with the distribution.\n\n* Neither the name of the assimp team, nor the names of its\n  contributors may be used to endorse or promote products\n  derived from this software without specific prior\n  written permission of the assimp team.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS\n\"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT\nLIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR\nA PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT\nOWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,\nSPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT\nLIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,\nDATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY\nTHEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\nOF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n----------------------------------------------------------------------\n*/\n\n/** @file  MaterialSystem.cpp\n *  @brief Implementation of the material system of the library\n */\n\n#include \"Hash.h\"\n#include \"fast_atof.h\"\n#include \"ParsingUtils.h\"\n#include \"MaterialSystem.h\"\n#include <assimp/types.h>\n#include <assimp/material.h>\n#include <assimp/DefaultLogger.hpp>\n#include \"Macros.h\"\n\nusing namespace Assimp;\n\n// ------------------------------------------------------------------------------------------------\n// Get a specific property from a material\naiReturn aiGetMaterialProperty(const aiMaterial* pMat,\n    const char* pKey,\n    unsigned int type,\n    unsigned int index,\n    const aiMaterialProperty** pPropOut)\n{\n    ai_assert (pMat != NULL);\n    ai_assert (pKey != NULL);\n    ai_assert (pPropOut != NULL);\n\n    /*  Just search for a property with exactly this name ..\n     *  could be improved by hashing, but it's possibly\n     *  no worth the effort (we're bound to C structures,\n     *  thus std::map or derivates are not applicable. */\n    for ( unsigned int i = 0; i < pMat->mNumProperties; ++i ) {\n        aiMaterialProperty* prop = pMat->mProperties[i];\n\n        if (prop /* just for safety ... */\n            && 0 == strcmp( prop->mKey.data, pKey )\n            && (UINT_MAX == type  || prop->mSemantic == type) /* UINT_MAX is a wildcard, but this is undocumented :-) */\n            && (UINT_MAX == index || prop->mIndex == index))\n        {\n            *pPropOut = pMat->mProperties[i];\n            return AI_SUCCESS;\n        }\n    }\n    *pPropOut = NULL;\n    return AI_FAILURE;\n}\n\n// ------------------------------------------------------------------------------------------------\n// Get an array of floating-point values from the material.\naiReturn aiGetMaterialFloatArray(const aiMaterial* pMat,\n    const char* pKey,\n    unsigned int type,\n    unsigned int index,\n    ai_real* pOut,\n    unsigned int* pMax)\n{\n    ai_assert (pOut != NULL);\n    ai_assert (pMat != NULL);\n\n    const aiMaterialProperty* prop;\n    aiGetMaterialProperty(pMat,pKey,type,index, (const aiMaterialProperty**) &prop);\n    if (!prop) {\n        return AI_FAILURE;\n    }\n\n    // data is given in floats, convert to ai_real\n    unsigned int iWrite = 0;\n    if( aiPTI_Float == prop->mType || aiPTI_Buffer == prop->mType)  {\n        iWrite = prop->mDataLength / sizeof(float);\n        if (pMax) {\n            iWrite = std::min(*pMax,iWrite); ;\n        }\n        for (unsigned int a = 0; a < iWrite;++a)    {\n            pOut[a] = static_cast<ai_real> ( reinterpret_cast<float*>(prop->mData)[a] );\n        }\n        if (pMax) {\n            *pMax = iWrite;\n        }\n    }\n    // data is given in doubles, convert to float\n    else if( aiPTI_Double == prop->mType)  {\n        iWrite = prop->mDataLength / sizeof(double);\n        if (pMax) {\n            iWrite = std::min(*pMax,iWrite); ;\n        }\n        for (unsigned int a = 0; a < iWrite;++a)    {\n            pOut[a] = static_cast<ai_real> ( reinterpret_cast<double*>(prop->mData)[a] );\n        }\n        if (pMax) {\n            *pMax = iWrite;\n        }\n    }\n    // data is given in ints, convert to float\n    else if( aiPTI_Integer == prop->mType)  {\n        iWrite = prop->mDataLength / sizeof(int32_t);\n        if (pMax) {\n            iWrite = std::min(*pMax,iWrite); ;\n        }\n        for (unsigned int a = 0; a < iWrite;++a)    {\n            pOut[a] = static_cast<ai_real> ( reinterpret_cast<int32_t*>(prop->mData)[a] );\n        }\n        if (pMax) {\n            *pMax = iWrite;\n        }\n    }\n    // a string ... read floats separated by spaces\n    else {\n        if (pMax) {\n            iWrite = *pMax;\n        }\n        // strings are zero-terminated with a 32 bit length prefix, so this is safe\n        const char *cur = prop->mData + 4;\n        ai_assert( prop->mDataLength >= 5 );\n        ai_assert( !prop->mData[ prop->mDataLength - 1 ] );\n        for ( unsigned int a = 0; ;++a) {\n            cur = fast_atoreal_move<ai_real>(cur,pOut[a]);\n            if ( a==iWrite-1 ) {\n                break;\n            }\n            if ( !IsSpace(*cur) ) {\n                DefaultLogger::get()->error(\"Material property\" + std::string(pKey) +\n                    \" is a string; failed to parse a float array out of it.\");\n                return AI_FAILURE;\n            }\n        }\n\n        if (pMax) {\n            *pMax = iWrite;\n        }\n    }\n    return AI_SUCCESS;\n}\n\n// ------------------------------------------------------------------------------------------------\n// Get an array if integers from the material\naiReturn aiGetMaterialIntegerArray(const aiMaterial* pMat,\n    const char* pKey,\n    unsigned int type,\n    unsigned int index,\n    int* pOut,\n    unsigned int* pMax)\n{\n    ai_assert (pOut != NULL);\n    ai_assert (pMat != NULL);\n\n    const aiMaterialProperty* prop;\n    aiGetMaterialProperty(pMat,pKey,type,index,(const aiMaterialProperty**) &prop);\n    if (!prop) {\n        return AI_FAILURE;\n    }\n\n    // data is given in ints, simply copy it\n    unsigned int iWrite = 0;\n    if( aiPTI_Integer == prop->mType || aiPTI_Buffer == prop->mType)    {\n        iWrite = prop->mDataLength / sizeof(int32_t);\n        if (pMax) {\n            iWrite = std::min(*pMax,iWrite); ;\n        }\n        for (unsigned int a = 0; a < iWrite;++a) {\n            pOut[a] = static_cast<int>(reinterpret_cast<int32_t*>(prop->mData)[a]);\n        }\n        if (pMax) {\n            *pMax = iWrite;\n        }\n    }\n    // data is given in floats convert to int\n    else if( aiPTI_Float == prop->mType)    {\n        iWrite = prop->mDataLength / sizeof(float);\n        if (pMax) {\n            iWrite = std::min(*pMax,iWrite); ;\n        }\n        for (unsigned int a = 0; a < iWrite;++a) {\n            pOut[a] = static_cast<int>(reinterpret_cast<float*>(prop->mData)[a]);\n        }\n        if (pMax) {\n            *pMax = iWrite;\n        }\n    }\n    // it is a string ... no way to read something out of this\n    else    {\n        if (pMax) {\n            iWrite = *pMax;\n        }\n        // strings are zero-terminated with a 32 bit length prefix, so this is safe\n        const char *cur =  prop->mData+4;\n        ai_assert( prop->mDataLength >= 5 );\n        ai_assert( !prop->mData[ prop->mDataLength - 1 ] );\n        for (unsigned int a = 0; ;++a) {\n            pOut[a] = strtol10(cur,&cur);\n            if(a==iWrite-1) {\n                break;\n            }\n            if(!IsSpace(*cur)) {\n                DefaultLogger::get()->error(\"Material property\" + std::string(pKey) +\n                    \" is a string; failed to parse an integer array out of it.\");\n                return AI_FAILURE;\n            }\n        }\n\n        if (pMax) {\n            *pMax = iWrite;\n        }\n    }\n    return AI_SUCCESS;\n}\n\n// ------------------------------------------------------------------------------------------------\n// Get a color (3 or 4 floats) from the material\naiReturn aiGetMaterialColor(const aiMaterial* pMat,\n    const char* pKey,\n    unsigned int type,\n    unsigned int index,\n    aiColor4D* pOut)\n{\n    unsigned int iMax = 4;\n    const aiReturn eRet = aiGetMaterialFloatArray(pMat,pKey,type,index,(ai_real*)pOut,&iMax);\n\n    // if no alpha channel is defined: set it to 1.0\n    if (3 == iMax) {\n        pOut->a = 1.0;\n    }\n\n    return eRet;\n}\n\n// ------------------------------------------------------------------------------------------------\n// Get a aiUVTransform (4 floats) from the material\naiReturn aiGetMaterialUVTransform(const aiMaterial* pMat,\n    const char* pKey,\n    unsigned int type,\n    unsigned int index,\n    aiUVTransform* pOut)\n{\n    unsigned int iMax = 4;\n    return  aiGetMaterialFloatArray(pMat,pKey,type,index,(ai_real*)pOut,&iMax);\n}\n\n// ------------------------------------------------------------------------------------------------\n// Get a string from the material\naiReturn aiGetMaterialString(const aiMaterial* pMat,\n    const char* pKey,\n    unsigned int type,\n    unsigned int index,\n    aiString* pOut)\n{\n    ai_assert (pOut != NULL);\n\n    const aiMaterialProperty* prop;\n    aiGetMaterialProperty(pMat,pKey,type,index,(const aiMaterialProperty**)&prop);\n    if (!prop) {\n        return AI_FAILURE;\n    }\n\n    if( aiPTI_String == prop->mType) {\n        ai_assert(prop->mDataLength>=5);\n\n        // The string is stored as 32 but length prefix followed by zero-terminated UTF8 data\n        pOut->length = static_cast<unsigned int>(*reinterpret_cast<uint32_t*>(prop->mData));\n\n        ai_assert( pOut->length+1+4==prop->mDataLength );\n        ai_assert( !prop->mData[ prop->mDataLength - 1 ] );\n        memcpy(pOut->data,prop->mData+4,pOut->length+1);\n    }\n    else {\n        // TODO - implement lexical cast as well\n        DefaultLogger::get()->error(\"Material property\" + std::string(pKey) +\n            \" was found, but is no string\" );\n        return AI_FAILURE;\n    }\n    return AI_SUCCESS;\n}\n\n// ------------------------------------------------------------------------------------------------\n// Get the number of textures on a particular texture stack\nASSIMP_API unsigned int aiGetMaterialTextureCount(const C_STRUCT aiMaterial* pMat,\n    C_ENUM aiTextureType type)\n{\n    ai_assert (pMat != NULL);\n\n    // Textures are always stored with ascending indices (ValidateDS provides a check, so we don't need to do it again)\n    unsigned int max = 0;\n    for (unsigned int i = 0; i < pMat->mNumProperties;++i) {\n        aiMaterialProperty* prop = pMat->mProperties[i];\n\n        if ( prop /* just a sanity check ... */\n            && 0 == strcmp( prop->mKey.data, _AI_MATKEY_TEXTURE_BASE )\n            && prop->mSemantic == type) {   \n\n            max = std::max(max,prop->mIndex+1);\n        }\n    }\n    return max;\n}\n\n// ------------------------------------------------------------------------------------------------\naiReturn aiGetMaterialTexture(const C_STRUCT aiMaterial* mat,\n    aiTextureType type,\n    unsigned int  index,\n    C_STRUCT aiString* path,\n    aiTextureMapping* _mapping  /*= NULL*/,\n    unsigned int* uvindex       /*= NULL*/,\n    ai_real* blend              /*= NULL*/,\n    aiTextureOp* op             /*= NULL*/,\n    aiTextureMapMode* mapmode   /*= NULL*/,\n    unsigned int* flags         /*= NULL*/\n    )\n{\n    ai_assert(NULL != mat && NULL != path);\n\n    // Get the path to the texture\n    if (AI_SUCCESS != aiGetMaterialString(mat,AI_MATKEY_TEXTURE(type,index),path))  {\n        return AI_FAILURE;\n    }\n    // Determine mapping type\n    aiTextureMapping mapping = aiTextureMapping_UV;\n    aiGetMaterialInteger(mat,AI_MATKEY_MAPPING(type,index),(int*)&mapping);\n    if (_mapping)\n        *_mapping = mapping;\n\n    // Get UV index\n    if (aiTextureMapping_UV == mapping && uvindex)  {\n        aiGetMaterialInteger(mat,AI_MATKEY_UVWSRC(type,index),(int*)uvindex);\n    }\n    // Get blend factor\n    if (blend)  {\n        aiGetMaterialFloat(mat,AI_MATKEY_TEXBLEND(type,index),blend);\n    }\n    // Get texture operation\n    if (op){\n        aiGetMaterialInteger(mat,AI_MATKEY_TEXOP(type,index),(int*)op);\n    }\n    // Get texture mapping modes\n    if (mapmode)    {\n        aiGetMaterialInteger(mat,AI_MATKEY_MAPPINGMODE_U(type,index),(int*)&mapmode[0]);\n        aiGetMaterialInteger(mat,AI_MATKEY_MAPPINGMODE_V(type,index),(int*)&mapmode[1]);\n    }\n    // Get texture flags\n    if (flags){\n        aiGetMaterialInteger(mat,AI_MATKEY_TEXFLAGS(type,index),(int*)flags);\n    }\n    return AI_SUCCESS;\n}\n\nstatic const unsigned int DefaultNumAllocated = 5;\n\n// ------------------------------------------------------------------------------------------------\n// Construction. Actually the one and only way to get an aiMaterial instance\naiMaterial::aiMaterial() \n: mProperties( NULL )\n, mNumProperties( 0 )\n, mNumAllocated( DefaultNumAllocated ) {\n    // Allocate 5 entries by default\n    mProperties = new aiMaterialProperty*[ DefaultNumAllocated ];\n}\n\n// ------------------------------------------------------------------------------------------------\naiMaterial::~aiMaterial()\n{\n    Clear();\n\n    delete[] mProperties;\n}\n\n// ------------------------------------------------------------------------------------------------\nvoid aiMaterial::Clear()\n{\n    for (unsigned int i = 0; i < mNumProperties;++i)    {\n        // delete this entry\n        delete mProperties[i];\n        AI_DEBUG_INVALIDATE_PTR(mProperties[i]);\n    }\n    mNumProperties = 0;\n\n    // The array remains allocated, we just invalidated its contents\n}\n\n// ------------------------------------------------------------------------------------------------\naiReturn aiMaterial::RemoveProperty (const char* pKey,unsigned int type,\n    unsigned int index\n    )\n{\n    ai_assert(NULL != pKey);\n\n    for (unsigned int i = 0; i < mNumProperties;++i) {\n        aiMaterialProperty* prop = mProperties[i];\n\n        if (prop && !strcmp( prop->mKey.data, pKey ) &&\n            prop->mSemantic == type && prop->mIndex == index)\n        {\n            // Delete this entry\n            delete mProperties[i];\n\n            // collapse the array behind --.\n            --mNumProperties;\n            for (unsigned int a = i; a < mNumProperties;++a)    {\n                mProperties[a] = mProperties[a+1];\n            }\n            return AI_SUCCESS;\n        }\n    }\n\n    return AI_FAILURE;\n}\n\n// ------------------------------------------------------------------------------------------------\naiReturn aiMaterial::AddBinaryProperty (const void* pInput,\n    unsigned int pSizeInBytes,\n    const char* pKey,\n    unsigned int type,\n    unsigned int index,\n    aiPropertyTypeInfo pType\n    )\n{\n    ai_assert (pInput != NULL);\n    ai_assert (pKey != NULL);\n    ai_assert (0 != pSizeInBytes);\n\n    if ( 0 == pSizeInBytes ) {\n\n    }\n    // first search the list whether there is already an entry with this key\n    unsigned int iOutIndex = UINT_MAX;\n    for (unsigned int i = 0; i < mNumProperties;++i)    {\n        aiMaterialProperty* prop = mProperties[i];\n\n        if (prop /* just for safety */ && !strcmp( prop->mKey.data, pKey ) &&\n            prop->mSemantic == type && prop->mIndex == index){\n\n            delete mProperties[i];\n            iOutIndex = i;\n        }\n    }\n\n    // Allocate a new material property\n    aiMaterialProperty* pcNew = new aiMaterialProperty();\n\n    // .. and fill it\n    pcNew->mType = pType;\n    pcNew->mSemantic = type;\n    pcNew->mIndex = index;\n\n    pcNew->mDataLength = pSizeInBytes;\n    pcNew->mData = new char[pSizeInBytes];\n    memcpy (pcNew->mData,pInput,pSizeInBytes);\n\n    pcNew->mKey.length = ::strlen(pKey);\n    ai_assert ( MAXLEN > pcNew->mKey.length);\n    strcpy( pcNew->mKey.data, pKey );\n\n    if (UINT_MAX != iOutIndex)  {\n        mProperties[iOutIndex] = pcNew;\n        return AI_SUCCESS;\n    }\n\n    // resize the array ... double the storage allocated\n    if (mNumProperties == mNumAllocated)    {\n        const unsigned int iOld = mNumAllocated;\n        mNumAllocated *= 2;\n\n        aiMaterialProperty** ppTemp;\n        try {\n            ppTemp = new aiMaterialProperty*[mNumAllocated];\n        } catch (std::bad_alloc&) {\n            delete pcNew;\n            return AI_OUTOFMEMORY;\n        }\n\n        // just copy all items over; then replace the old array\n        memcpy (ppTemp,mProperties,iOld * sizeof(void*));\n\n        delete[] mProperties;\n        mProperties = ppTemp;\n    }\n    // push back ...\n    mProperties[mNumProperties++] = pcNew;\n    return AI_SUCCESS;\n}\n\n// ------------------------------------------------------------------------------------------------\naiReturn aiMaterial::AddProperty (const aiString* pInput,\n    const char* pKey,\n    unsigned int type,\n    unsigned int index)\n{\n    // We don't want to add the whole buffer .. write a 32 bit length\n    // prefix followed by the zero-terminated UTF8 string.\n    // (HACK) I don't want to break the ABI now, but we definitely\n    // ought to change aiString::mLength to uint32_t one day.\n    if (sizeof(size_t) == 8) {\n        aiString copy = *pInput;\n        uint32_t* s = reinterpret_cast<uint32_t*>(&copy.length);\n        s[1] = static_cast<uint32_t>(pInput->length);\n\n        return AddBinaryProperty(s+1,\n            static_cast<unsigned int>(pInput->length+1+4),\n            pKey,\n            type,\n            index,\n            aiPTI_String);\n    }\n    ai_assert(sizeof(size_t)==4);\n    return AddBinaryProperty(pInput,\n        static_cast<unsigned int>(pInput->length+1+4),\n        pKey,\n        type,\n        index,\n        aiPTI_String);\n}\n\n// ------------------------------------------------------------------------------------------------\nuint32_t Assimp::ComputeMaterialHash(const aiMaterial* mat, bool includeMatName /*= false*/)\n{\n    uint32_t hash = 1503; // magic start value, chosen to be my birthday :-)\n    for ( unsigned int i = 0; i < mat->mNumProperties; ++i ) {\n        aiMaterialProperty* prop;\n\n        // Exclude all properties whose first character is '?' from the hash\n        // See doc for aiMaterialProperty.\n        if ((prop = mat->mProperties[i]) && (includeMatName || prop->mKey.data[0] != '?'))  {\n\n            hash = SuperFastHash(prop->mKey.data,(unsigned int)prop->mKey.length,hash);\n            hash = SuperFastHash(prop->mData,prop->mDataLength,hash);\n\n            // Combine the semantic and the index with the hash\n            hash = SuperFastHash((const char*)&prop->mSemantic,sizeof(unsigned int),hash);\n            hash = SuperFastHash((const char*)&prop->mIndex,sizeof(unsigned int),hash);\n        }\n    }\n    return hash;\n}\n\n// ------------------------------------------------------------------------------------------------\nvoid aiMaterial::CopyPropertyList(aiMaterial* pcDest,\n    const aiMaterial* pcSrc\n    )\n{\n    ai_assert(NULL != pcDest);\n    ai_assert(NULL != pcSrc);\n\n    unsigned int iOldNum = pcDest->mNumProperties;\n    pcDest->mNumAllocated += pcSrc->mNumAllocated;\n    pcDest->mNumProperties += pcSrc->mNumProperties;\n\n    aiMaterialProperty** pcOld = pcDest->mProperties;\n    pcDest->mProperties = new aiMaterialProperty*[pcDest->mNumAllocated];\n\n    if (iOldNum && pcOld)   {\n        for (unsigned int i = 0; i < iOldNum;++i) {\n            pcDest->mProperties[i] = pcOld[i];\n        }\n    }\n\n    if ( pcOld ) {\n        delete[] pcOld;\n    }\n\n    for (unsigned int i = iOldNum; i< pcDest->mNumProperties;++i)   {\n        aiMaterialProperty* propSrc = pcSrc->mProperties[i];\n\n        // search whether we have already a property with this name -> if yes, overwrite it\n        aiMaterialProperty* prop;\n        for ( unsigned int q = 0; q < iOldNum; ++q ) {\n            prop = pcDest->mProperties[q];\n            if (prop /* just for safety */ && prop->mKey == propSrc->mKey && prop->mSemantic == propSrc->mSemantic\n                && prop->mIndex == propSrc->mIndex) {\n                delete prop;\n\n                // collapse the whole array ...\n                memmove(&pcDest->mProperties[q],&pcDest->mProperties[q+1],i-q);\n                i--;\n                pcDest->mNumProperties--;\n            }\n        }\n\n        // Allocate the output property and copy the source property\n        prop = pcDest->mProperties[i] = new aiMaterialProperty();\n        prop->mKey = propSrc->mKey;\n        prop->mDataLength = propSrc->mDataLength;\n        prop->mType = propSrc->mType;\n        prop->mSemantic = propSrc->mSemantic;\n        prop->mIndex = propSrc->mIndex;\n\n        prop->mData = new char[propSrc->mDataLength];\n        memcpy(prop->mData,propSrc->mData,prop->mDataLength);\n    }\n}\n",
+			"file": "external/assimp-4.0.1-source/code/MaterialSystem.cpp",
+			"file_size": 21042,
+			"file_write_time": 131457476210000000,
+			"settings":
+			{
+				"buffer_size": 21045,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "external/assimp-4.0.1/include/assimp/scene.h",
+			"settings":
+			{
+				"buffer_size": 13074,
+				"encoding": "UTF-8 with BOM",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "external/assimp-4.0.1-source/code/Version.cpp",
+			"settings":
+			{
+				"buffer_size": 5752,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "external/assimp-4.0.1/include/assimp/texture.h",
+			"settings":
+			{
+				"buffer_size": 7629,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "assets/meshes/arch.obj",
+			"settings":
+			{
+				"buffer_size": 79998,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "assets/meshes/arch.mtl",
+			"settings":
+			{
+				"buffer_size": 264,
 				"line_ending": "Unix"
 			}
 		}
@@ -560,8 +681,8 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 71.0,
-		"last_filter": "uniq",
+		"height": 236.0,
+		"last_filter": "",
 		"selected_items":
 		[
 			[
@@ -569,7 +690,19 @@
 				"Permute Lines: Unique"
 			],
 			[
+				"js",
+				"Set Syntax: JavaScript"
+			],
+			[
 				"ww",
+				"Word Wrap: Toggle"
+			],
+			[
+				"make",
+				"Set Syntax: Makefile"
+			],
+			[
+				"w",
 				"Word Wrap: Toggle"
 			],
 			[
@@ -579,10 +712,6 @@
 			[
 				"html",
 				"Set Syntax: HTML"
-			],
-			[
-				"js",
-				"Set Syntax: JavaScript"
 			],
 			[
 				"snippe",
@@ -713,10 +842,6 @@
 				"Package Control: Install Package"
 			],
 			[
-				"make",
-				"Set Syntax: Makefile"
-			],
-			[
 				"Package Control: ",
 				"Package Control: Disable Package"
 			],
@@ -805,148 +930,152 @@
 	"expanded_folders":
 	[
 		"/D/home/src/pr0-vk",
-		"/D/home/src/pr0-vk/build",
+		"/D/home/src/pr0-vk/models",
+		"/D/home/src/pr0-vk/models/GunPack Vol.1",
+		"/D/home/src/pr0-vk/models/GunPack Vol.1/Blends",
 		"/D/home/src/pr0-vk/src",
-		"/D/home/src/pr0-vk/src/app",
-		"/D/home/src/pr0-vk/src/app/main",
 		"/D/home/src/pr0-vk/src/ngn",
 		"/D/home/src/pr0-vk/src/ngn/config",
 		"/D/home/src/pr0-vk/src/rn",
 		"/D/home/src/pr0-vk/src/rn/vlk",
+		"/D/home/src/pr0-vk/src/rn/vlk/db",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/mesh",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/format",
 		"/D/home/src/pr0-vk/src/rn/vlk/memory",
 		"/D/home/src/pr0-vk/src/util",
-		"/D/home/share/vulkan-sdk/1.0.61.1/Include/vulkan"
+		"/D/home/share/vulkan-sdk/1.0.65.0/Include/vulkan"
 	],
 	"file_history":
 	[
-		"/D/home/src/pr0-vk/build/core.json",
-		"/D/home/src/pr0-vk/src/app/main/resources.hpp",
-		"/D/home/src/pr0-vk/src/ngn/fs.hpp",
-		"/D/home/src/pr0-vk/src/ngn/fs.cpp",
-		"/D/home/src/pr0-vk/src/ngn/config/generator.js",
-		"/D/home/src/pr0-vk/src/rn/vlk/id.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/id.cpp",
-		"/D/home/src/pr0-vk/build/pr0-vk_CXX_cotire.cmake",
-		"/D/home/src/pr0-vk/src/ngn/config/core.cpp",
-		"/D/home/src/pr0-vk/src/util/covert.hpp",
-		"/D/home/src/pr0-vk/src/ngn/event.hpp",
-		"/D/home/src/pr0-vk/external/remotery-17.10.03/lib/Remotery.h",
-		"/D/home/src/pr0-vk/src/ngn/prof.cpp",
+		"/D/home/src/pr0-vk/assets/meshes/Wolf Rigged and Game Ready/Readme.txt",
+		"/D/home/src/pr0-vk/assets/meshes/arch.mtl",
 		"/D/home/src/pr0-vk/src/main.cpp",
-		"/D/home/src/pr0-vk/src/ngn/prof.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/memory/handle.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/mesh/payload.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/mesh/handle.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/mesh/event.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/mesh.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/mesh/transferrer.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/mesh/reader.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/reader.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/transferrer.cpp",
 		"/D/home/src/pr0-vk/src/rn/vlk/memory/pool.cpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/memory/block.cpp",
-		"/D/home/src/pr0-vk/src/app/main/state.hpp",
-		"/D/home/src/pr0-vk/CMakeLists.txt",
-		"/D/home/src/pr0-vk/src/util/leadingZeroes.hpp",
-		"/D/home/src/pr0-vk/src/util/alignTo.hpp",
-		"/D/home/src/pr0-vk/build/cotire/pr0-vk_CXX_prefix.hxx",
-		"/D/home/src/pr0-vk/build/cotire/pr0-vk_CXX_prefix.cxx",
-		"/D/home/src/pr0-vk/CMake/Modules/cotire.cmake",
-		"/D/home/src/pr0-vk/src/precompiled.hpp",
-		"/D/home/src/pr0-vk/src/precompiled.cpp",
-		"/D/home/src/pr0-vk/src/ngn/config.cpp",
-		"/D/home/src/pr0-vk/src/ngn/config.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/memory.cpp.old",
-		"/D/home/src/pr0-vk/src/rn/vlk/memory/pool.hpp",
-		"/D/home/src/pr0-vk/src/rn/unique.list.cpp",
-		"/D/home/share/vulkan-sdk/1.0.61.1/Include/vulkan/vulkan.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/util.cpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/util.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/memory/handle.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/memory.hpp.old",
-		"/D/home/src/pr0-vk/src/rn/vlk/memory/block.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/context.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/creators/allocatorCreator.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/memory.cpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/memory.hpp",
 		"/D/home/src/pr0-vk/src/ngn/log.cpp",
-		"/D/home/src/pr0-vk/src/ngn/log.hpp",
-		"/D/home/share/vulkan-sdk/1.0.57.0/Include/vulkan/vk_icd.h",
-		"/D/home/src/pr0-vk/CMake/Modules/FindSpdlog.cmake",
-		"/D/home/src/pr0-vk/external/remotery/Makefile",
-		"/D/home/src/pr0-vk/CMake/Modules/FindGLFW.cmake",
-		"/D/home/src/pr0-vk/CMake/Modules/FindGLM.cmake",
-		"/D/home/src/pr0-vk/CMake/Modules/FindJSON.cmake",
-		"/D/home/src/pr0-vk/CMake/Modules/FindRemotery.cmake",
-		"/D/home/src/pr0-vk/external/remotery-17.10.03/Makefile",
-		"/D/home/src/pr0-vk/build/vulkaninfo.txt",
-		"/D/home/share/vulkan-sdk/1.0.57.0/Include/vulkan/vulkan.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/creators/contextCreator.hpp",
-		"/D/home/src/pr0-vk/src/util/symbol.hpp",
-		"/D/home/src/pr0-vk/external/remotery/lib/Remotery.c",
-		"/D/home/src/pr0-vk/external/glm/CMakeLists.txt",
-		"/D/home/src/pr0-vk/external/json/README.md",
-		"/D/home/src/pr0-vk/external/json/ChangeLog.md",
-		"/D/home/src/pr0-vk/external/spdlog/CMakeLists.txt",
-		"/D/home/src/pr0-vk/external/glm/glm/glm.hpp",
-		"/D/home/src/pr0-vk/external/remotery/lib/Remotery.h",
-		"/D/home/src/pr0-vk/src/util/symbol.cpp.old",
-		"/C/Users/tdrol/AppData/Local/Temp/7zO88519EB7/README.txt",
-		"/D/Gry/Steam/steamapps/SourceMods/BMOPS-V0.9.1/gameinfo.txt",
-		"/C/Users/tdrol/Documents/STAR WARS Battlefront II Multiplayer Beta/settings/ProfileOptions_profile",
-		"/C/Users/tdrol/Documents/STAR WARS Battlefront II Multiplayer Beta/settings/ProfileOptions_profile_synced",
-		"/C/Users/tdrol/Documents/STAR WARS Battlefront II Multiplayer Beta/settings/BootOptions",
-		"/C/Users/tdrol/Documents/STAR WARS Battlefront II Multiplayer Beta/settings/ProfileOptions",
-		"/D/home/src/pr0-vk/src/util/map.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/creators/swapchainCreator.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/creators/instanceCreator.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/exts/debugCallbackDispatchTable.cpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/creators/physicalDeviceSelector.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/creators/queuesPlanner.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/creators/deviceCreator.hpp",
-		"/D/home/src/pr0-vk/src/rn/glfw.hpp",
-		"/D/home/src/pr0-vk/src/util/implode.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/creators/physicalDeviceHandle.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/creators/queuesSelector.hpp",
-		"/D/home/src/pr0-vk/external/spdlog/include/spdlog/logger.h",
-		"/D/home/src/pr0-vk/src/rn/vlk/creators/instancePlanner.hpp",
-		"/D/home/src/pr0-vk/src/ngn/str.hpp",
-		"/D/home/src/pr0-vk/build-clang/Makefile",
-		"/D/home/src/pr0-vk/src/rn/vlk/creators/queuesHandle.hpp",
-		"/D/home/src/pr0-vk/build/test.cpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/creators/surfaceImageViewsCreator.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/creators/surfaceImagesSelector.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/creators/surfaceFormatSelector.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/creators/surfaceExtentSelector.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/creators/surfaceCreator.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/creators/debugCallbackCreator.hpp",
-		"/D/home/share/vulkan-sdk/1.0.57.0/Include/vulkan/vulkan.h",
-		"/D/home/src/pr0-vk/src/rn/vlk/queuesHandle.hpp",
-		"/D/home/src/pr0-vk/external/glm/readme.md",
-		"/D/home/src/pr0-vk/assets/memory.html",
-		"/C/Users/tdrol/AppData/Local/Temp/7zO438E5639/README.txt",
-		"/D/home/src/pr0-vk/external/spdlog/README.md",
-		"/C/Users/tdrol/AppData/Local/Temp/7zO4F225247/readme.txt",
-		"/D/Gry/GOG/The Witcher 3 Wild Hunt/mods/mod0000_MergedFiles/content/scripts/game/gui/main_menu/commonIngameMenu.ws",
-		"/D/Gry/GOG/The Witcher 3 Wild Hunt/mods/modFriendlyHUD/input.settings.part.txt",
-		"/C/Users/tdrol/Documents/The Witcher 3/input.settings",
-		"/C/Users/tdrol/Documents/The Witcher 3/user.settings",
-		"/D/Gry/GOG/The Witcher 3 Wild Hunt/bin/config/r4game/user_config_matrix/pc/input.xml",
-		"/D/Gry/GOG/The Witcher 3 Wild Hunt/mods/modFriendlyHUD/bin/config/r4game/user_config_matrix/pc/input.xml",
-		"/D/Gry/GOG/The Witcher 3 Wild Hunt/mods/modFriendlyHUD/user.settings.part.txt",
-		"/D/home/share/vulkan-sdk/1.0.54.0/Include/vulkan/vulkan.h",
-		"/D/home/share/vulkan-sdk/1.0.54.0/Include/vulkan/vulkan.hpp",
-		"/D/home/src/pr0-vk/external/spdlog/cmake/Config.cmake.in",
-		"/D/home/src/pr0-vk/external/spdlog/cmake/spdlog.pc.in",
-		"/D/home/src/pr0-vk/src/rn/vlk/exts/debugCallbackDispatchTable.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/creators/debugCallbackCreator.cpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/configMapping.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/physicalDeviceHandle.hpp",
-		"/D/home/src/pr0-vk/src/rn/vlk/memoryPool.hpp",
-		"/D/home/src/pr0-vk/assets/queue.html",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/loader.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/mesh/loader.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/mesh/reader.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/mesh/transferrer.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/transferrer.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/reader.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture.hpp",
 		"/D/home/src/pr0-vk/src/ngn/config/core.schema.json",
-		"/D/home/src/pr0/src/core/src.cpp",
-		"/D/home/src/pr0/src/core/asset/mesh.cpp",
-		"/D/home/src/pr0/src/core/src.hpp",
-		"/D/home/src/pr0/src/core/src/mem.hpp",
-		"/D/home/src/pr0/src/core/src/mem.cpp",
-		"/D/home/src/pr0/src/core/rn/mesh.hpp",
-		"/D/home/src/pr0/src/core/rn/math.hpp",
-		"/D/home/src/pr0/src/core/asset/mesh.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/payload.hpp",
+		"/D/home/src/pr0-vk/external/gli-0.8.2.0/gli/format.hpp",
+		"/D/home/src/pr0-vk/external/gli-0.8.2.0/gli/texture.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/mesh/handle.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/mesh/loader.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/loader.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/mesh.cpp",
+		"/D/home/src/pr0-vk/build/threads.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/format/gl_format.h",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/format/vk_format.h",
+		"/D/home/src/pr0-vk/src/rn/vlk/mapping.cpp",
+		"/D/home/src/pr0-vk/build/vulkaninfo.txt",
+		"/D/home/src/pr0-vk/src/rn/vlk/memory/pool.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/memory/handle.cpp",
+		"/D/home/src/pr0-vk/external/gli-0.8.2.0/gli/gl.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/mapping.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/memory/mapping.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/memory/block.cpp",
+		"/D/home/src/pr0-vk/external/stb_image-2.16/include/stb/stb_image.h",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/gliFormat.js",
+		"/D/home/src/pr0-vk/external/gli-0.8.2.0/gli/load.hpp",
+		"/D/home/src/pr0-vk/external/gli-0.8.2.0/gli/gli.hpp",
+		"/C/Users/tdrol/AppData/Local/Temp/glcorearb.h",
+		"/D/home/src/pr0-vk/external/gli-0.8.2.0/external/glm/test/external/gli/core/image2d.hpp",
+		"/C/Users/tdrol/AppData/Local/Temp/7zO829233CC/CMakeLists.txt",
+		"/C/Users/tdrol/AppData/Local/Temp/gl.h",
+		"/D/home/src/pr0-vk/src/rn/imageType.hpp",
+		"/D/home/src/pr0-vk/src/rn/imageViewType.hpp",
+		"/D/home/src/pr0-vk/external/gli-0.8.2.0/gli/core/load_kmg.inl",
+		"/D/home/src/pr0-vk/external/gli-0.8.2.0/gli/core/load.inl",
+		"/D/home/src/pr0-vk/external/gli-0.8.2.0/gli/target.hpp",
+		"/D/home/src/pr0-vk/external/gli-0.8.2.0/gli/core/texture.inl",
+		"/D/home/src/pr0-vk/external/gli-0.8.2.0/gli/core/storage.inl",
+		"/D/home/src/pr0-vk/external/gli-0.8.2.0/external/glm/glm/detail/type_vec.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/swapchainCreator.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/surfaceImageViewsCreator.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/surfaceFormatSelector.cpp",
+		"/D/home/src/pr0-vk/external/remotery-17.10.03/lib/Remotery.c",
+		"/D/home/src/pr0-vk/external/remotery-17.10.03/lib/Remotery.h",
+		"/D/home/src/pr0-vk/external/gli-0.8.2.0/gli/core/storage.hpp",
+		"/D/home/src/pr0-vk/external/gli-0.8.2.0/gli/type.hpp",
+		"/D/home/src/pr0-vk/external/gli-0.8.2.0/gli/make_texture.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/event.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/memory/handle.hpp",
+		"/D/home/src/pr0-vk/src/ngn/prof.hpp",
+		"/D/home/share/vulkan-sdk/1.0.65.0/Source/layers/parameter_validation.cpp",
+		"/D/home/share/vulkan-sdk/1.0.65.0/Source/layers/core_validation.cpp",
+		"/D/home/share/vulkan-sdk/1.0.65.0/Source/layers/vk_validation_error_messages.h",
+		"/D/home/src/pr0-vk/src/util/implode.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/muticesSelector.cpp",
+		"/D/home/src/pr0-vk/src/util/map.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/transferer.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/transferer.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/events.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/events.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/configMapping.hpp",
+		"/D/home/share/vulkan-sdk/1.0.65.0/Include/vulkan/vulkan.hpp",
+		"/D/home/src/pr0-vk/src/rn/imageFormat.hpp",
+		"/D/home/src/pr0-vk/src/rn/format.hpp",
+		"/D/home/src/pr0-vk/src/rn/sync.list.cpp",
+		"/D/home/.bash_profile",
 		"/D/home/.bashrc",
-		"/C/Users/tdrol/AppData/Local/Temp/shadowmapping.txt"
+		"/D/home/src/pr0-vk/src/rn/vlk/configMapping.cpp",
+		"/D/home/src/pr0-vk/src/ngn/config/core.cpp",
+		"/D/home/src/pr0-vk/src/ngn/config/core.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/contextCreator.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/muticesSelector.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/context.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/handle.hpp",
+		"/D/home/share/vulkan-sdk/1.0.65.0/Include/vulkan/vulkan.h",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/handle.cpp",
+		"/D/home/src/pr0-vk/CMakeLists.txt",
+		"/D/home/src/pr0-vk/src/rn/vlk/creators/allocatorCreator.cpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/memory/mapping.hpp",
+		"/D/home/src/pr0-vk/src/rn/vlk/memory/block.hpp",
+		"/D/home/src/pr0-vk/src/app/main/resources.hpp",
+		"/D/home/src/pr0-vk/src/Vulkan.hpp",
+		"/D/home/src/pr0-vk/external/spdlog-0.14.0/include/spdlog/details/pattern_formatter_impl.h",
+		"/D/home/src/pr0-vk/external/spdlog-0.14.0/include/spdlog/details/os.h",
+		"/D/home/src/pr0-vk/external/stb_image-2.16/include/stb_image.h",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/queue.hpp.old",
+		"/D/home/src/pr0-vk/src/rn/vlk/db/texture/queue.cpp.old",
+		"/D/home/src/pr0-vk/external/spdlog-0.14.0/include/spdlog/formatter.h",
+		"/D/home/src/pr0-vk/external/spdlog-0.14.0/include/spdlog/logger.h",
+		"/D/home/src/pr0-vk/external/assimp-4.0.1/include/assimp/scene.h",
+		"/D/home/src/pr0-vk/external/assimp-4.0.1/include/assimp/mesh.h",
+		"/D/home/src/pr0-vk/external/freeImage-3.17.0/include/FreeImage/FreeImagePlus.h",
+		"/D/home/src/pr0-vk/external/devil-1.8.0/include/IL/il.h",
+		"/D/home/src/pr0-vk/external/stb_image-2.16/Makefile",
+		"/D/home/src/pr0-vk/external/gli-0.8.2.0/CMakeLists.txt",
+		"/D/home/src/pr0-vk/CMake/Modules/FindGLI.cmake",
+		"/D/home/src/pr0-vk/external/freeImage-3.17.0-source/Source/FreeImage.h",
+		"/D/home/src/pr0-vk/external/freeImage-3.17.0-source/Wrapper/FreeImagePlus/src/fipImage.cpp",
+		"/D/home/src/pr0-vk/external/freeImage-3.17.0-source/Wrapper/FreeImagePlus/src/FreeImagePlus.h",
+		"/D/home/src/pr0-vk/external/stb_image-2.16/src/stb_image.c",
+		"/D/home/src/pr0-vk/CMake/Modules/FindStb_image.cmake",
+		"/D/home/src/pr0-vk/external/freeImage-3.17.0/README.minGW",
+		"/D/home/src/pr0-vk/CMake/Modules/FindFreeImage.cmake",
+		"/D/home/src/pr0-vk/external/gli-0.8.2.0/gli/image.hpp",
+		"/D/home/src/pr0-vk/external/remotery-17.10.03/Makefile",
+		"/D/home/src/pr0-vk/external/freeImage-3.17.0-source/Examples/Linux/linux-gtk.c",
+		"/D/home/src/pr0-vk/external/freeImage-3.17.0/include/FreeImage/FreeImage.h",
+		"/D/home/src/pr0-vk/external/freeImage-3.17.0-source/Source/FreeImage/FreeImage.cpp",
+		"/D/home/src/pr0-vk/external/freeImage-3.17.0-source/Source/FreeImage/GetType.cpp",
+		"/D/home/src/pr0-vk/external/freeImage-3.17.0-source/Wrapper/FreeImagePlus/FreeImagePlus.h",
+		"/D/home/src/pr0-vk/external/freeImage-3.17.0-source/Wrapper/FreeImagePlus/Makefile"
 	],
 	"find":
 	{
@@ -957,6 +1086,11 @@
 		"height": 105.0,
 		"where_history":
 		[
+			"<open folders>,*.cpp,*.c,*.hpp,*.h,-*vulkan*,-*/external/*",
+			"<open folders>,*.cpp,*.c,*.hpp,*.h,-*vulkan*",
+			"<open folders>,*.cpp,*.c,*.hpp,*.h,-*/external/*,-*vulkan*",
+			"<open folders>,*.cpp,*.c,*.hpp,*.h,*.cmake,-*vulkan*",
+			"<open folders>,*.cpp,*.c,*.hpp,*.h,*.cmake,-*/external/*,-*vulkan*",
 			"<open folders>,*.cpp,*.c,*.hpp,*h,-*/external/*,-*vulkan*",
 			"<open folders>,*.cpp,*.c,*.hpp,*h,-*/external/*",
 			"<open folders>,*.cpp,*.c,*.hpp,*h",
@@ -1031,137 +1165,137 @@
 	},
 	"find_state":
 	{
-		"case_sensitive": false,
+		"case_sensitive": true,
 		"find_history":
 		[
-			"ngn::log::debug",
-			"({}}",
-			"log",
-			"const std::string &",
-			"c_str",
-			"find",
-			"iterator",
-			"writeImpl",
-			"std::to_string(fileName)",
-			"ngn::fs::",
-			"::content",
-			"(ngn::fs::contents(",
-			"ngn::fs::contents<std::vector<uint32_t>>",
-			"levelFromIdx",
-			"^",
-			"bytes",
-			"const std::string &",
-			"const std::string &fileName",
-			"ngn::prof::Block",
-			"ngn::log::Block",
-			"/",
-			": #include",
-			"// ",
-			"#include <",
-			"Scope",
-			"ngn::prof::Scope ",
-			"ngn::prof::Scope profScope",
-			"ngn::prof::Scope",
-			"ngn::prof::Scopr",
-			"Pool",
-			" ## ",
-			"__COUNTER__",
-			"profScopeHash_",
-			"log",
-			"ngn::prof::",
-			"Scope",
-			"rmt_BeginCPUSampleDynamic",
-			"_rmt_BeginCPUSample",
-			"void *",
-			"resources",
-			"getKey",
-			"::id(",
-			"::id",
-			"{>",
-			"{:>",
-			"::id(",
-			"id(",
-			"void * id(const vk::",
-			"{ return",
-			"void * id",
-			"expandPool",
-			".memory",
+			"commandBuffer.get()",
+			"device.",
+			".device.",
+			"device.",
+			"i, ",
+			"usemtl",
+			"MAPA1",
+			"MAPA1.mtl",
+			"GetTextureCount",
+			"aiGetMaterialTexture",
+			"DIFFUSE",
+			"Material",
+			"usemtl",
+			"mNumUVComponents",
+			"rn::vlk::memory::Pool::free(",
+			"forceSynchronusLoading",
+			"freeCommandBuffers",
+			"commandPool",
+			"::texture",
+			"texture",
+			"texLoader",
+			"texDb",
+			"::db::texture",
+			"::texture",
+			"Texture",
+			"TextureEntryStatus",
+			"::texture",
+			"Texture",
+			"rn::vlk::db::texture",
+			"texture",
+			"allocateCommandBuffers",
+			"allocateCommandBuffersUnique",
+			"CommandPoolResetFlagBits",
+			"TextureEntryStatus",
+			"rn::vlk::db::Texture",
+			"rn::vlk::db::texture",
+			"rn::vlk::db::Texture",
+			"rn::vlk::db::texture",
+			"rn::vlk::db::Texture",
+			"rn::vlk::db::texture",
+			"::texture",
+			"TextureEntryStatus",
+			"Texture::",
+			"texture::Handle",
+			"Texture::",
+			"texture::",
+			"Texture::",
+			"entry.extents = ",
+			"extents",
+			"entry.extents = extents;",
+			"extents",
+			"ComponentMapping",
+			"swizzle",
+			"sizes",
+			"TRANSFER_FAILED",
+			".status",
+			"entry.status",
+			"promise.set",
+			"std::future<bool>",
+			"std::promise<uint32_t>",
+			"leadIdx",
+			"imageDatass",
+			".,",
+			"job",
+			", ",
+			" ",
+			"tex.extent(level).",
+			"copyBufferToImage",
+			"case VK_FORMAT_",
+			"Mapping::unmap",
+			"({}",
+			"requirements.",
+			"Created new block",
+			"JobData",
+			"stbi_",
+			"eSampledImage",
+			"R8G8B8_UNORM",
+			"VK_FORMAT_R8G8B8_UNORM",
+			"vk::ImageFormat",
+			"transitionImages",
+			"tex.levels()",
 			"i",
-			", ",
-			".handle",
-			"entry",
-			"MemoryHandle",
-			"MemoryHandl",
-			"memory",
-			"<numeric_limits>",
-			"BuddyAllocator",
-			"Pool",
-			"pool",
-			"AllocatorPool",
-			"hadFreeLeafs",
-			"memorySize",
-			"block",
-			"blockSize",
-			"block",
-			", ",
-			"idx",
-			"deviceMemory",
-			"DUniqueDeviceMemoryeviceMemory",
-			"MemoryHandle",
-			"AllocatorPool",
-			"MemoryHandle",
-			"deviceMemory",
-			"using Unique",
-			"->pool",
-			"allocatorPool",
-			"entryIdx",
-			"rn::memory",
-			"fence",
-			"Fence",
-			"fence",
-			"Fence",
-			"fence",
-			"Fence",
-			"DeviceMemory",
-			"deviceMemory",
-			"DeviceMemory",
-			"deviceMemory",
-			"DeviceMemory",
-			"deviceMemory",
-			"DeviceMemory",
-			"getId",
-			"getVkPointer",
-			"MemoryHandle",
-			"handle",
-			"VK_WHOLE_SIZE",
-			", ",
-			"BuddyAllocationHandle",
-			".get",
-			"Handle",
-			"handle",
-			"getMemoryId",
-			"},",
-			"BuddyAllocator",
-			"Block",
-			"getMemoryProperties",
-			"memorySize",
-			"memory",
-			"BuddyAllocator",
-			"MemoryHandle",
-			"BuddyAllocationDeleter",
-			"memoryTypeIndex",
-			"expandPool",
-			"BuddyAllocationHandle",
-			"MemoryPropertyFlags",
-			"ifdef",
-			"[[",
-			"CXX",
-			"_rmt_CreateGlobalInstance",
-			"SPDLOG",
-			"PACKAGE_FIND_VERSION",
-			"PACKAGE",
-			"external/Remotery/",
-			"external/glfw/"
+			"extents",
+			"ob.imageObjects.image.get()",
+			"}\n",
+			"commandBuffer.get()",
+			"ubeMap",
+			"job.task.",
+			"EntryStatus::",
+			"EntryStatus",
+			"EntryStatus::TRANSFERING",
+			"task",
+			"PROFILE_KTX",
+			"vk::ImageCreateFlag ",
+			"rn::vlk::db::EntryStatu",
+			"rn::vlk::db::EntryStatus",
+			"readWithGli",
+			"&entry",
+			"rn::vlk::db::Entry &entry",
+			"rn::vlk::db::Entry",
+			"&entry",
+			"EntryStatus::",
+			"vk::ImageFormat",
+			"Extent3d",
+			"vk::Extent3d",
+			"Extent3d",
+			"vk::ImageCreateFlag",
+			"ImageCreateFlag",
+			"Swizzle",
+			"internal_format",
+			"RECT",
+			"TARGET_RECT",
+			"include",
+			"target",
+			"GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT",
+			"RGBA_DXT5_SRGB",
+			"FORMAT_RGBA_DXT5_SRGB_BLOCK16",
+			"ebc3rgba",
+			"ebc3rgbaunorm",
+			"ebc3rgbaunormblock",
+			"ebc1rgbunorm",
+			"ebc1rgbunormblock8",
+			"(\\d)",
+			")/",
+			"(?:",
+			"r11",
+			"RG11B10",
+			"RG11B10_UFLOAT_PACK32"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -1169,6 +1303,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"NGN_PROF_SCOPE",
 			"ngn::prof::Scope",
 			"other",
 			"} // rn::vlk",
@@ -1240,24 +1375,87 @@
 	"groups":
 	[
 		{
-			"selected": 2,
+			"selected": 1,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "src/ngn/config/core.cpp",
+					"file": "/D/home/share/vulkan-sdk/1.0.65.0/Include/vulkan/vulkan.hpp",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 37031,
+						"buffer_size": 1320508,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								694,
-								694
+								998722,
+								998742
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 21295.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 14,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "src/main.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 18207,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								6578,
+								6578
+							]
+						],
+						"settings":
+						{
+							"editorconfig": true,
+							"ensure_newline_at_eof_on_save": true,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": false,
+							"trim_trailing_white_space_on_save": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1818.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "src/rn/vlk/trace.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 589,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								255,
+								255
 							]
 						],
 						"settings":
@@ -1277,20 +1475,20 @@
 					"type": "text"
 				},
 				{
-					"buffer": 1,
-					"file": "src/ngn/config/core.hpp",
+					"buffer": 3,
+					"file": "src/rn/vlk/db/texture/reader.cpp",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 9142,
+						"buffer_size": 13706,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								175,
-								175
+								269,
+								269
 							]
 						],
 						"settings":
@@ -1310,20 +1508,20 @@
 					"type": "text"
 				},
 				{
-					"buffer": 2,
-					"file": "src/ngn/fs.cpp",
+					"buffer": 4,
+					"file": "src/rn/vlk/db/texture/transferrer.cpp",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 4715,
+						"buffer_size": 11124,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								84,
-								84
+								825,
+								825
 							]
 						],
 						"settings":
@@ -1336,41 +1534,443 @@
 							"trim_trailing_white_space_on_save": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 9.0,
+						"translation.y": 4969.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
-					"file": "build/core.json",
+					"buffer": 5,
+					"file": "external/assimp-4.0.1-source/code/Assimp.cpp",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 0,
+						"buffer_size": 23244,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								9557,
+								9557
 							]
 						],
 						"settings":
 						{
 							"editorconfig": true,
-							"syntax": "Packages/JavaScript/JSON.sublime-syntax",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
+							"ensure_newline_at_eof_on_save": true,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true,
+							"trim_trailing_white_space_on_save": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 4339.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "external/assimp-4.0.1/include/assimp/Importer.hpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 30087,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								29481,
+								29481
+							]
+						],
+						"settings":
+						{
+							"editorconfig": true,
+							"ensure_newline_at_eof_on_save": true,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true,
+							"trim_trailing_white_space_on_save": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 11017.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "external/assimp-4.0.1-source/code/Importer.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 41644,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								25471,
+								25477
+							]
+						],
+						"settings":
+						{
+							"editorconfig": true,
+							"ensure_newline_at_eof_on_save": true,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true,
+							"trim_trailing_white_space_on_save": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 13015.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "assets/meshes/FerrisWheel_lowpoly.mtl",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1164,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								979,
+								979
+							]
+						],
+						"settings":
+						{
+							"editorconfig": true,
+							"syntax": "Packages/Text/Plain text.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "assets/meshes/FerrisWheel_lowpoly.obj",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 173610,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								354,
+								360
+							],
+							[
+								828,
+								834
+							],
+							[
+								85483,
+								85489
+							],
+							[
+								114454,
+								114460
+							],
+							[
+								146591,
+								146597
+							],
+							[
+								173008,
+								173014
+							]
+						],
+						"settings":
+						{
+							"editorconfig": true,
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 92917.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "external/assimp-4.0.1/include/assimp/material.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 53382,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								50076,
+								50076
+							]
+						],
+						"settings":
+						{
+							"editorconfig": true,
+							"ensure_newline_at_eof_on_save": true,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true,
+							"trim_trailing_white_space_on_save": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 26463.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 10,
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "external/assimp-4.0.1/include/assimp/material.inl",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 13034,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3014,
+								3014
+							]
+						],
+						"settings":
+						{
+							"editorconfig": true,
+							"ensure_newline_at_eof_on_save": true,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true,
+							"trim_trailing_white_space_on_save": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 993.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "external/assimp-4.0.1-source/code/MaterialSystem.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 21045,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								11309,
+								11309
+							]
+						],
+						"settings":
+						{
+							"editorconfig": true,
+							"ensure_newline_at_eof_on_save": true,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true,
+							"trim_trailing_white_space_on_save": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 5313.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 13,
+					"file": "external/assimp-4.0.1/include/assimp/scene.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 13074,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								8937,
+								8937
+							]
+						],
+						"settings":
+						{
+							"editorconfig": true,
+							"ensure_newline_at_eof_on_save": true,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true,
+							"trim_trailing_white_space_on_save": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3727.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 12,
+					"type": "text"
+				},
+				{
+					"buffer": 14,
+					"file": "external/assimp-4.0.1-source/code/Version.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5752,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5010,
+								5023
+							]
+						],
+						"settings":
+						{
+							"editorconfig": true,
+							"ensure_newline_at_eof_on_save": true,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true,
+							"trim_trailing_white_space_on_save": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2377.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 13,
+					"type": "text"
+				},
+				{
+					"buffer": 15,
+					"file": "external/assimp-4.0.1/include/assimp/texture.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 7629,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4612,
+								4612
+							]
+						],
+						"settings":
+						{
+							"editorconfig": true,
+							"ensure_newline_at_eof_on_save": true,
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true,
+							"trim_trailing_white_space_on_save": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1155.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 17,
+					"type": "text"
+				},
+				{
+					"buffer": 16,
+					"file": "assets/meshes/arch.obj",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 79998,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								56687,
+								56695
+							]
+						],
+						"settings":
+						{
+							"editorconfig": true,
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 42580.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 16,
+					"type": "text"
+				},
+				{
+					"buffer": 17,
+					"file": "assets/meshes/arch.mtl",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 264,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								264,
+								264
+							]
+						],
+						"settings":
+						{
+							"editorconfig": true,
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 15,
 					"type": "text"
 				}
 			]
@@ -1433,6 +2033,90 @@
 		"selected_items":
 		[
 			[
+				"material cpp",
+				"pr0-vk\\external\\assimp-4.0.1-source\\code\\MaterialSystem.cpp"
+			],
+			[
+				"gli texture",
+				"pr0-vk\\external\\gli-0.8.2.0\\gli\\texture.hpp"
+			],
+			[
+				"texture",
+				"pr0-vk\\external\\gli-0.8.2.0\\gli\\texture.hpp"
+			],
+			[
+				"glihpp",
+				"pr0-vk\\external\\gli-0.8.2.0\\gli\\gli.hpp"
+			],
+			[
+				"vulkaninfo",
+				"pr0-vk\\build\\vulkaninfo.txt"
+			],
+			[
+				"vulkan hpp",
+				"vulkan\\vulkan.hpp"
+			],
+			[
+				"vulkan vula",
+				"pr0-vk\\src\\Vulkan.hpp"
+			],
+			[
+				"pattern_formatter_impl.h",
+				"pr0-vk\\external\\spdlog-0.14.0\\include\\spdlog\\details\\pattern_formatter_impl.h"
+			],
+			[
+				"freeimageplus.h",
+				"pr0-vk\\external\\freeImage-3.17.0-source\\Wrapper\\FreeImagePlus\\FreeImagePlus.h"
+			],
+			[
+				"log.cpp",
+				"pr0-vk\\src\\ngn\\log.cpp"
+			],
+			[
+				"imfoptimizedpixelreading.h",
+				"pr0-vk\\external\\freeImage-3.17.0-source\\Source\\OpenEXR\\IlmImf\\ImfOptimizedPixelReading.h"
+			],
+			[
+				"imfsystemspecific.h",
+				"pr0-vk\\external\\freeImage-3.17.0-source\\Source\\OpenEXR\\IlmImf\\ImfSystemSpecific.h"
+			],
+			[
+				"source/libjxr/image/sys/strcodec.c",
+				"pr0-vk\\external\\freeImage-3.17.0-source\\Source\\LibJXR\\image\\sys\\strcodec.c"
+			],
+			[
+				"plugintiff.cpp",
+				"pr0-vk\\external\\freeImage-3.17.0-source\\Source\\FreeImage\\PluginTIFF.cpp"
+			],
+			[
+				"il.h",
+				"pr0-vk\\external\\devil-1.8.0\\include\\IL\\il.h"
+			],
+			[
+				"surfaceextentselector",
+				"pr0-vk\\src\\rn\\vlk\\creators\\surfaceExtentSelector.cpp"
+			],
+			[
+				"vulkan.hpp",
+				"vulkan\\vulkan.hpp"
+			],
+			[
+				"surfaceformatselector.hpp",
+				"pr0-vk\\src\\rn\\vlk\\creators\\surfaceFormatSelector.hpp"
+			],
+			[
+				"vulkan",
+				"vulkan\\vulkan.hpp"
+			],
+			[
+				"vulak",
+				"vulkan\\vulkan.h"
+			],
+			[
+				"fs.cp",
+				"pr0-vk\\src\\ngn\\fs.cpp"
+			],
+			[
 				"vulkanhpp",
 				"vulkan\\vulkan.hpp"
 			],
@@ -1443,10 +2127,6 @@
 			[
 				"vulkanh",
 				"vulkan\\vulkan.h"
-			],
-			[
-				"vulkan",
-				"vulkan\\vulkan.hpp"
 			],
 			[
 				"vulkan.h",
@@ -1463,10 +2143,6 @@
 			[
 				"debugcallbackcreator.hpp",
 				"pr0-vk\\src\\rn\\vlk\\creators\\debugCallbackCreator.hpp"
-			],
-			[
-				"vulkan.hpp",
-				"vulkan\\vulkan.hpp"
 			],
 			[
 				"imageviewshandle",
@@ -1867,82 +2543,6 @@
 			[
 				"tb.hpp",
 				"pr0\\src\\core\\rn\\tb.hpp"
-			],
-			[
-				"rnformat",
-				"pr0\\src\\core\\rn\\format.hpp"
-			],
-			[
-				"sao.cpp",
-				"pr0\\src\\app\\fx\\ssao.cpp"
-			],
-			[
-				"gbuffer",
-				"pr0\\assets\\shaders\\lighting\\deferred\\gbuffer.frag"
-			],
-			[
-				"gbuf",
-				"pr0\\assets\\shaders\\lighting\\deferred\\gbuffer.frag"
-			],
-			[
-				"matrix_tr",
-				"pr0\\vendor\\glm\\include\\glm\\gtc\\matrix_transform.inl"
-			],
-			[
-				"pn.vert",
-				"pr0\\assets\\shaders\\PN.vert"
-			],
-			[
-				"fboblit",
-				"pr0\\assets\\shaders\\rn\\fboBlit.frag"
-			],
-			[
-				"main",
-				"pr0\\src\\main.cpp"
-			],
-			[
-				"gb.hpp",
-				"pr0\\vendor\\glm\\include\\glm\\gtx\\bit.hpp"
-			],
-			[
-				"format.cpp",
-				"pr0\\src\\core\\rn\\format.cpp"
-			],
-			[
-				"matrix_transform.inl",
-				"pr0\\vendor\\glm\\include\\glm\\gtc\\matrix_transform.inl"
-			],
-			[
-				"precis",
-				"pr0\\vendor\\glm\\include\\glm\\detail\\precision.hpp"
-			],
-			[
-				"type_vec",
-				"pr0\\vendor\\glm\\include\\glm\\detail\\type_vec.hpp"
-			],
-			[
-				"dir",
-				"pr0\\assets\\shaders\\lighting\\deferred\\directionallight.frag"
-			],
-			[
-				"direc",
-				"pr0\\src\\app\\comp\\directionallight.hpp"
-			],
-			[
-				"camera",
-				"pr0\\src\\app\\proc\\camera.cpp"
-			],
-			[
-				"unlicense",
-				"pr0\\vendor\\gl3w\\UNLICENSE"
-			],
-			[
-				"point.hpp",
-				"pr0\\src\\core\\phs\\point.hpp"
-			],
-			[
-				"preview.frag",
-				"assets\\shaders\\lighting\\shadows\\preview.frag"
 			]
 		],
 		"width": 0.0
@@ -1997,7 +2597,7 @@
 	"show_open_files": true,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 321.0,
+	"side_bar_width": 324.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

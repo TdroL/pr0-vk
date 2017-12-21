@@ -248,15 +248,11 @@ const generateHeader = (schema) => {
 
 #include <string>
 
-namespace ngn {
-
-namespace config {
+namespace ngn::config {
 
 {{content}}
 
-} // config
-
-} // ngn
+} // ngn::config
 `;
 
 	let content = [];

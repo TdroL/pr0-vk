@@ -59,6 +59,20 @@
 				"default": 0
 			}
 		},
+		"#db": {
+			"#mesh": {
+				"forceSynchronusLoading": {
+					"type": "bool",
+					"default": false
+				}
+			},
+			"#texture": {
+				"forceSynchronusLoading": {
+					"type": "bool",
+					"default": false
+				}
+			}
+		},
 		"#window": {
 			"width": {
 				"type": "uint32_t",
@@ -85,11 +99,11 @@
 				"default": 3
 			},
 			"surfaceFormat": {
-				"type": "SurfaceFormat",
+				"type": "ImageFormat",
 				"default": "b8g8r8a8unorm"
 			},
 			"surfaceColorSpace": {
-				"type": "SurfaceColorSpace",
+				"type": "ColorSpace",
 				"default": "srgbnonlinear"
 			}
 		},
@@ -118,7 +132,8 @@
 			"borderless": "Borderless",
 			"fullscreen": "Fullscreen"
 		},
-		"SurfaceFormat": {
+		"ImageFormat": {
+			"undefined": "Undefined",
 			"r4g4unormpack8": "R4G4UnormPack8",
 			"r4g4b4a4unormpack16": "R4G4B4A4UnormPack16",
 			"b4g4r4a4unormpack16": "B4G4R4A4UnormPack16",
@@ -310,9 +325,43 @@
 			"pvrtc12bppsrgbblockimg": "Pvrtc12BppSrgbBlockIMG",
 			"pvrtc14bppsrgbblockimg": "Pvrtc14BppSrgbBlockIMG",
 			"pvrtc22bppsrgbblockimg": "Pvrtc22BppSrgbBlockIMG",
-			"pvrtc24bppsrgbblockimg": "Pvrtc24BppSrgbBlockIMG"
+			"pvrtc24bppsrgbblockimg": "Pvrtc24BppSrgbBlockIMG",
+			"g8b8g8r8422unormkhr": "G8B8G8R8422UnormKHR",
+			"b8g8r8g8422unormkhr": "B8G8R8G8422UnormKHR",
+			"g8b8r83plane420unormkhr": "G8B8R83Plane420UnormKHR",
+			"g8b8r82plane420unormkhr": "G8B8R82Plane420UnormKHR",
+			"g8b8r83plane422unormkhr": "G8B8R83Plane422UnormKHR",
+			"g8b8r82plane422unormkhr": "G8B8R82Plane422UnormKHR",
+			"g8b8r83plane444unormkhr": "G8B8R83Plane444UnormKHR",
+			"r10x6unormpack16khr": "R10X6UnormPack16KHR",
+			"r10x6g10x6unorm2pack16khr": "R10X6G10X6Unorm2Pack16KHR",
+			"r10x6g10x6b10x6a10x6unorm4pack16khr": "R10X6G10X6B10X6A10X6Unorm4Pack16KHR",
+			"g10x6b10x6g10x6r10x6422unorm4pack16khr": "G10X6B10X6G10X6R10X6422Unorm4Pack16KHR",
+			"b10x6g10x6r10x6g10x6422unorm4pack16khr": "B10X6G10X6R10X6G10X6422Unorm4Pack16KHR",
+			"g10x6b10x6r10x63plane420unorm3pack16khr": "G10X6B10X6R10X63Plane420Unorm3Pack16KHR",
+			"g10x6b10x6r10x62plane420unorm3pack16khr": "G10X6B10X6R10X62Plane420Unorm3Pack16KHR",
+			"g10x6b10x6r10x63plane422unorm3pack16khr": "G10X6B10X6R10X63Plane422Unorm3Pack16KHR",
+			"g10x6b10x6r10x62plane422unorm3pack16khr": "G10X6B10X6R10X62Plane422Unorm3Pack16KHR",
+			"g10x6b10x6r10x63plane444unorm3pack16khr": "G10X6B10X6R10X63Plane444Unorm3Pack16KHR",
+			"r12x4unormpack16khr": "R12X4UnormPack16KHR",
+			"r12x4g12x4unorm2pack16khr": "R12X4G12X4Unorm2Pack16KHR",
+			"r12x4g12x4b12x4a12x4unorm4pack16khr": "R12X4G12X4B12X4A12X4Unorm4Pack16KHR",
+			"g12x4b12x4g12x4r12x4422unorm4pack16khr": "G12X4B12X4G12X4R12X4422Unorm4Pack16KHR",
+			"b12x4g12x4r12x4g12x4422unorm4pack16khr": "B12X4G12X4R12X4G12X4422Unorm4Pack16KHR",
+			"g12x4b12x4r12x43plane420unorm3pack16khr": "G12X4B12X4R12X43Plane420Unorm3Pack16KHR",
+			"g12x4b12x4r12x42plane420unorm3pack16khr": "G12X4B12X4R12X42Plane420Unorm3Pack16KHR",
+			"g12x4b12x4r12x43plane422unorm3pack16khr": "G12X4B12X4R12X43Plane422Unorm3Pack16KHR",
+			"g12x4b12x4r12x42plane422unorm3pack16khr": "G12X4B12X4R12X42Plane422Unorm3Pack16KHR",
+			"g12x4b12x4r12x43plane444unorm3pack16khr": "G12X4B12X4R12X43Plane444Unorm3Pack16KHR",
+			"g16b16g16r16422unormkhr": "G16B16G16R16422UnormKHR",
+			"b16g16r16g16422unormkhr": "B16G16R16G16422UnormKHR",
+			"g16b16r163plane420unormkhr": "G16B16R163Plane420UnormKHR",
+			"g16b16r162plane420unormkhr": "G16B16R162Plane420UnormKHR",
+			"g16b16r163plane422unormkhr": "G16B16R163Plane422UnormKHR",
+			"g16b16r162plane422unormkhr": "G16B16R162Plane422UnormKHR",
+			"g16b16r163plane444unormkhr": "G16B16R163Plane444UnormKHR"
 		},
-		"SurfaceColorSpace": {
+		"ColorSpace": {
 			"srgbnonlinear": "SrgbNonlinear",
 			"displayp3nonlinearext": "DisplayP3NonlinearEXT",
 			"extendedsrgblinearext": "ExtendedSrgbLinearEXT",
@@ -326,7 +375,8 @@
 			"hdr10hlgext": "Hdr10HlgEXT",
 			"adobergblinearext": "AdobergbLinearEXT",
 			"adobergbnonlinearext": "AdobergbNonlinearEXT",
-			"passthroughext": "PassThroughEXT"
+			"passthroughext": "PassThroughEXT",
+			"extendedsrgbnonlinearext": "ExtendedSrgbNonlinearEXT"
 		}
 	}
 }

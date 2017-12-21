@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.3)
 
 set(NAME pr0-vk)
 
@@ -58,6 +58,20 @@ list(APPEND LIBS ${GLFW_LIBRARY})
 find_package(Vulkan REQUIRED)
 include_directories(${VULKAN_INCLUDE_DIR})
 list(APPEND LIBS ${VULKAN_LIBRARIES})
+
+# Assimp
+find_package(Assimp 4.1.0 REQUIRED)
+include_directories(${ASSIMP_INCLUDE_DIR})
+list(APPEND LIBS ${ASSIMP_LIBRARIES})
+
+# GLI
+find_package(GLI 0.8.2.0 REQUIRED)
+include_directories(${GLI_INCLUDE_DIR})
+
+# Stb image
+find_package(Stb_image 2.16 REQUIRED)
+include_directories(${STB_IMAGE_INCLUDE_DIR})
+list(APPEND LIBS ${STB_IMAGE_LIBRARIES})
 
 # GLM
 find_package(GLM 0.9.8.5 REQUIRED)

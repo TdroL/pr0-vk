@@ -1,13 +1,22 @@
+#include <thread>
+
 #include "rn/window.hpp"
 #include "rn/vlk/creators/contextCreator.hpp"
 #include "rn/vlk/context.hpp"
-
-// #include "rn/vlk/memory.hpp"
+#include "rn/vlk/db/texture.hpp"
+#include "rn/vlk/db/mesh.hpp"
 
 #include "ngn/log.hpp"
 #include "ngn/config.hpp"
 
 #include "app/main/state.hpp"
+
+#include <assimp/Importer.hpp>      // C++ importer interface
+#include <assimp/scene.h>           // Output data structure
+#include <assimp/postprocess.h>     // Post processing flags
+#include <assimp/DefaultLogger.hpp>     // Post processing flags
+
+#include <stb/stb_image.h>
 
 int main() {
 	try {
@@ -37,6 +46,111 @@ int main() {
 			ngn::log::warn("Config is dirty after context creation");
 
 			ngn::log::debug("{}", ngn::config::core.dump());
+		}
+
+		// if (false)
+		for (auto &filePath : std::vector<std::string>{"../assets/meshes/Arch.obj", "../assets/meshes/FerrisWheel_lowpoly.obj", "../assets/meshes/Tree1.obj", "../assets/meshes/Suzanne head rig.blend", "../assets/meshes/Wolf.fbx"})
+		{
+			Assimp::DefaultLogger::create("", Assimp::Logger::VERBOSE, aiDefaultLogStream_STDOUT);
+
+			Assimp::Importer importer{};
+
+			uint32_t flags = aiProcess_CalcTangentSpace | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_SplitLargeMeshes | aiProcess_OptimizeMeshes | aiProcess_TransformUVCoords | aiProcess_GenNormals | aiProcess_SortByPType;
+
+			const aiScene *scene = importer.ReadFile(filePath, flags);
+
+			if (scene == nullptr) {
+				ngn::log::debug("Failed to load: {}", importer.GetErrorString());
+
+				return 1;
+			}
+
+			ngn::log::debug("Scene loaded ({})", filePath);
+			ngn::log::debug("mNumMeshes: {}", scene->mNumMeshes);
+			for (uint32_t i = 0; i < scene->mNumMeshes; i++) {
+				ngn::log::debug("  [{}]", i);
+				ngn::log::debug("    - mPrimitiveTypes: {}", scene->mMeshes[i]->mPrimitiveTypes);
+				ngn::log::debug("    - mNumVertices: {}", scene->mMeshes[i]->mNumVertices);
+				ngn::log::debug("    - mNumFaces: {}", scene->mMeshes[i]->mNumFaces);
+				ngn::log::debug("    - mNumUVComponents[0]: {}", scene->mMeshes[i]->mNumUVComponents[0]);
+				ngn::log::debug("    - mNumUVComponents[1]: {}", scene->mMeshes[i]->mNumUVComponents[1]);
+				ngn::log::debug("    - mNumUVComponents[2]: {}", scene->mMeshes[i]->mNumUVComponents[2]);
+				ngn::log::debug("    - mNumUVComponents[3]: {}", scene->mMeshes[i]->mNumUVComponents[3]);
+				ngn::log::debug("    - mNumUVComponents[4]: {}", scene->mMeshes[i]->mNumUVComponents[4]);
+				ngn::log::debug("    - mNumUVComponents[5]: {}", scene->mMeshes[i]->mNumUVComponents[5]);
+				ngn::log::debug("    - mNumUVComponents[6]: {}", scene->mMeshes[i]->mNumUVComponents[6]);
+				ngn::log::debug("    - mNumUVComponents[7]: {}", scene->mMeshes[i]->mNumUVComponents[7]);
+				ngn::log::debug("    - mNumBones: {}", scene->mMeshes[i]->mNumBones);
+				ngn::log::debug("    - mMaterialIndex: {}", scene->mMeshes[i]->mMaterialIndex);
+				ngn::log::debug("    - mNumAnimMeshes: {}", scene->mMeshes[i]->mNumAnimMeshes);
+				ngn::log::debug("    - mMethod: {}", scene->mMeshes[i]->mMethod);
+			}
+			ngn::log::debug("mNumMaterials: {}", scene->mNumMaterials);
+			for (uint32_t i = 0; i < scene->mNumMaterials; i++) {
+				ngn::log::debug("  [{}]", i);
+				ngn::log::debug("    - GetTextureCount(NONE): {}", scene->mMaterials[i]->GetTextureCount(aiTextureType_NONE));
+				ngn::log::debug("    - GetTextureCount(DIFFUSE): {}", scene->mMaterials[i]->GetTextureCount(aiTextureType_DIFFUSE));
+				ngn::log::debug("    - GetTextureCount(SPECULAR): {}", scene->mMaterials[i]->GetTextureCount(aiTextureType_SPECULAR));
+				ngn::log::debug("    - GetTextureCount(AMBIENT): {}", scene->mMaterials[i]->GetTextureCount(aiTextureType_AMBIENT));
+				ngn::log::debug("    - GetTextureCount(EMISSIVE): {}", scene->mMaterials[i]->GetTextureCount(aiTextureType_EMISSIVE));
+				ngn::log::debug("    - GetTextureCount(HEIGHT): {}", scene->mMaterials[i]->GetTextureCount(aiTextureType_HEIGHT));
+				ngn::log::debug("    - GetTextureCount(NORMALS): {}", scene->mMaterials[i]->GetTextureCount(aiTextureType_NORMALS));
+				ngn::log::debug("    - GetTextureCount(SHININESS): {}", scene->mMaterials[i]->GetTextureCount(aiTextureType_SHININESS));
+				ngn::log::debug("    - GetTextureCount(OPACITY): {}", scene->mMaterials[i]->GetTextureCount(aiTextureType_OPACITY));
+				ngn::log::debug("    - GetTextureCount(DISPLACEMENT): {}", scene->mMaterials[i]->GetTextureCount(aiTextureType_DISPLACEMENT));
+				ngn::log::debug("    - GetTextureCount(LIGHTMAP): {}", scene->mMaterials[i]->GetTextureCount(aiTextureType_LIGHTMAP));
+				ngn::log::debug("    - GetTextureCount(REFLECTION): {}", scene->mMaterials[i]->GetTextureCount(aiTextureType_REFLECTION));
+			}
+			ngn::log::debug("mNumAnimations: {}", scene->mNumAnimations);
+			ngn::log::debug("mNumTextures: {}", scene->mNumTextures);
+		}
+
+		// if (false)
+		{
+			rn::vlk::db::Texture texDb{};
+			rn::vlk::db::texture::Loader texLoader{context, texDb};
+
+			rn::vlk::db::texture::Handle handle1 = texDb.emplace("../assets/textures/TreeTexture.png");
+			rn::vlk::db::texture::Handle handle2 = texDb.emplace("../assets/textures/kueken7_rgba8_unorm.dds");
+			rn::vlk::db::texture::Handle handle3 = texDb.emplace("../assets/textures/kueken7_rgba8_unorm.ktx");
+
+			auto future1 = texLoader.load(handle1);
+			auto future2 = texLoader.load(handle2);
+			auto future3 = texLoader.load(handle3);
+
+			ngn::log::debug("waiting for handle 1 {}...", handle1.index);
+			ngn::log::debug("waiting for handle 2 {}...", handle2.index);
+			ngn::log::debug("waiting for handle 3 {}...", handle3.index);
+
+			ngn::log::debug("got handle 1 {}", future1.get());
+			ngn::log::debug("got handle 2 {}", future2.get());
+			ngn::log::debug("got handle 3 {}", future3.get());
+		}
+
+		if (false)
+		{
+			rn::vlk::db::Mesh meshDb{};
+			rn::vlk::db::mesh::Loader meshLoader{context, meshDb};
+
+			// rn::vlk::db::mesh::Handle handle1 = meshDb.emplace("../assets/textures/TreeTexture.png");
+			// rn::vlk::db::mesh::Handle handle2 = meshDb.emplace("../assets/textures/kueken7_rgba8_unorm.dds");
+			rn::vlk::db::mesh::Handle handle3 = meshDb.emplace("../assets/meshes/Tree1.blend");
+
+			// auto future1 = meshLoader.load(handle1);
+			// auto future2 = meshLoader.load(handle2);
+			// auto future3 = meshLoader.load(handle3);
+
+			// ngn::log::debug("waiting for handle 1 {}...", handle1.index);
+			// ngn::log::debug("waiting for handle 2 {}...", handle2.index);
+			// ngn::log::debug("waiting for handle 3 {}...", handle3.index);
+
+			// ngn::log::debug("got handle 1 {}", future1.get());
+			// ngn::log::debug("got handle 2 {}", future2.get());
+			// ngn::log::debug("handle 3 resolved {}", future3.get());
+		}
+
+		if (true) {
+			return EXIT_SUCCESS;
 		}
 
 		app::main::State mainState{window, context};
@@ -190,15 +304,15 @@ int main() {
 			:     -----------------------------------------------------------------
 		*/
 		for (size_t i = 0; /*i < 24 &&*/ ! glfwWindowShouldClose(window.handle); i++) {
-			ngn::prof::Scope("main loop");
+			NGN_PROF_SCOPE("main loop");
 
 			{
-				ngn::prof::Scope("event polling");
+				NGN_PROF_SCOPE("event polling");
 				glfwPollEvents();
 			}
 
 			{
-				ngn::prof::Scope("window refreshing");
+				NGN_PROF_SCOPE("window refreshing");
 
 				if ( ! window.needsRefresh()) {
 					window.refresh();
@@ -221,7 +335,9 @@ int main() {
 		return EXIT_SUCCESS;
 	} catch (std::runtime_error const &e) {
 		ngn::log::critical("Runtime exception: {}", e.what());
+		return EXIT_FAILURE;
 	} catch (...) {
 		ngn::log::critical("Unknown exception");
+		return EXIT_FAILURE;
 	}
 }
