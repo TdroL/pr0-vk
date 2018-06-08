@@ -18,68 +18,68 @@ const save = process.argv[3];
 
 const structName = name.replace(/^[a-z]/, (match) => match.toUpperCase());
 
-const primitiveTypes = {
-	'intmax_t': true,
-	'uintmax_t': true,
-	'int8_t': true,
-	'uint8_t': true,
-	'int16_t': true,
-	'uint16_t': true,
-	'int32_t': true,
-	'uint32_t': true,
-	'int64_t': true,
-	'uint64_t': true,
-	'int_least8_t': true,
-	'uint_least8_t': true,
-	'int_least16_t': true,
-	'uint_least16_t': true,
-	'int_least32_t': true,
-	'uint_least32_t': true,
-	'int_least64_t': true,
-	'uint_least64_t': true,
-	'int_fast8_t': true,
-	'uint_fast8_t': true,
-	'int_fast16_t': true,
-	'uint_fast16_t': true,
-	'int_fast32_t': true,
-	'uint_fast32_t': true,
-	'int_fast64_t': true,
-	'uint_fast64_t': true,
-	'intptr_t': true,
-	'uintptr_t': true,
-	'int': true,
-	'long': true,
-	'long int': true,
-	'long long': true,
-	'long long int': true,
-	'short': true,
-	'short int': true,
-	'signed': true,
-	'signed int': true,
-	'signed long': true,
-	'signed long int': true,
-	'signed long long': true,
-	'signed long long int': true,
-	'signed short': true,
-	'signed short int': true,
-	'unsigned': true,
-	'unsigned int': true,
-	'unsigned long': true,
-	'unsigned long int': true,
-	'unsigned long long': true,
-	'unsigned long long int': true,
-	'unsigned short': true,
-	'unsigned short int': true,
-	'char': true,
-	'signed char': true,
-	'unsigned char': true,
-	'char16_t': true,
-	'char32_t': true,
-	'wchar_t': true,
-	'float': true,
-	'double': true,
-	'bool': true,
-};
+const primitiveTypes = [
+	'intmax_t': 'number_integer',
+	'uintmax_t': 'number_unsigned',
+	'int8_t': 'number_integer',
+	'uint8_t': 'number_unsigned',
+	'int16_t': 'number_integer',
+	'uint16_t': 'number_unsigned',
+	'int32_t': 'number_integer',
+	'uint32_t': 'number_unsigned',
+	'int64_t': 'number_integer',
+	'uint64_t': 'number_unsigned',
+	'int_least8_t': 'number_integer',
+	'uint_least8_t': 'number_unsigned',
+	'int_least16_t': 'number_integer',
+	'uint_least16_t': 'number_unsigned',
+	'int_least32_t': 'number_integer',
+	'uint_least32_t': 'number_unsigned',
+	'int_least64_t': 'number_integer',
+	'uint_least64_t': 'number_unsigned',
+	'int_fast8_t': 'number_integer',
+	'uint_fast8_t': 'number_unsigned',
+	'int_fast16_t': 'number_integer',
+	'uint_fast16_t': 'number_unsigned',
+	'int_fast32_t': 'number_integer',
+	'uint_fast32_t': 'number_unsigned',
+	'int_fast64_t': 'number_integer',
+	'uint_fast64_t': 'number_unsigned',
+	'intptr_t': 'number_integer',
+	'uintptr_t': 'number_unsigned',
+	'int': 'number_integer',
+	'long': 'number_integer',
+	'long int': 'number_integer',
+	'long long': 'number_integer',
+	'long long int': 'number_integer',
+	'short': 'number_integer',
+	'short int': 'number_integer',
+	'signed': 'number_integer',
+	'signed int': 'number_integer',
+	'signed long': 'number_integer',
+	'signed long int': 'number_integer',
+	'signed long long': 'number_integer',
+	'signed long long int': 'number_integer',
+	'signed short': 'number_integer',
+	'signed short int': 'number_integer',
+	'unsigned': 'number_unsigned',
+	'unsigned int': 'number_unsigned',
+	'unsigned long': 'number_unsigned',
+	'unsigned long int': 'number_unsigned',
+	'unsigned long long': 'number_unsigned',
+	'unsigned long long int': 'number_unsigned',
+	'unsigned short': 'number_unsigned',
+	'unsigned short int': 'number_unsigned',
+	'char': 'number_integer',
+	'signed char': 'number_integer',
+	'unsigned char': 'number_unsigned',
+	'char16_t': 'number_integer',
+	'char32_t': 'number_integer',
+	'wchar_t': 'number_integer',
+	'float': 'number_float',
+	'double': 'number_float',
+	'bool': 'boolean',
+];
 
 const padLines = (text, padding) => {
 	text = text.toString();
@@ -91,17 +91,29 @@ const padLines = (text, padding) => {
 const generateEnum = (type, mapping) => {
 	const enumTemplate = `enum class {{type}} {
 	{{values}}
-};
+};`;
 
-std::string toString(const {{type}} &value);
+	const aliasTemplate = `using {{type}} = {{origType}};`;
+
+	const casterTemplate = `std::string toString(const {{type}} &value);
 {{type}} fromString(const std::string_view &name, const {{type}} &defaultValue);`;
 
-	const model = {
-		type: type,
-		values: Object.keys(mapping).map((key) => mapping[key]).join(',\n'),
-	};
 
-	return enumTemplate.replace(/([\t ]*)\{\{([a-z]*)\}\}/ig, (match, padding, type) => padLines(model[type], padding));
+	if (mapping.parent != null) {
+		const model = {
+			type: type,
+			origType: mapping.parent[1],
+		};
+
+		return (aliasTemplate + '\n\n' + casterTemplate).replace(/([\t ]*)\{\{([a-z]*)\}\}/ig, (match, padding, type) => padLines(model[type], padding));
+	} else {
+		const model = {
+			type: type,
+			values: Object.keys(mapping.values).map((key) => mapping.values[key]).join(',\n'),
+		};
+
+		return (casterTemplate + '\n\n' + enumTemplate).replace(/([\t ]*)\{\{([a-z]*)\}\}/ig, (match, padding, type) => padLines(model[type], padding));
+	}
 };
 
 const generateEnumCasters = (type, mapping) => {
@@ -119,8 +131,8 @@ const generateEnumCasters = (type, mapping) => {
 
 	const model = {
 		type: type,
-		cases: Object.keys(mapping).map((key) => `case ${type}::${mapping[key]}: { return "${key}"; }`).join('\n'),
-		ifs: Object.keys(mapping).map((key) => `if (name == "${key}") { return ${type}::${mapping[key]}; }`).join('\n'),
+		cases: Object.keys(mapping.values).map((key) => `case ${type}::${mapping.values[key]}: { return "${key}"; }`).join('\n'),
+		ifs: Object.keys(mapping.values).map((key) => `if (name == "${key}") { return ${type}::${mapping.values[key]}; }`).join('\n'),
 	};
 
 	return enumCastersTemplate.replace(/([\t ]*)\{\{([a-z]*)\}\}/ig, (match, padding, type) => padLines(model[type], padding));
@@ -168,7 +180,7 @@ const generateAccessor = (subName, def, schema) => {
 	let defaultValue = def.readOnly ? def.value : def.default;
 
 	if (schema.enums.hasOwnProperty(def.type)) {
-		defaultValue = `${def.type}::${schema.enums[def.type][def.default]}`;
+		defaultValue = `${def.type}::${schema.enums[def.type].values[def.default]}`;
 	}
 
 	const model = {
@@ -247,6 +259,7 @@ const generateHeader = (schema) => {
 	const headerTemplate = `#pragma once
 
 #include <string>
+{{includes}}
 
 namespace ngn::config {
 
@@ -258,6 +271,16 @@ namespace ngn::config {
 	let content = [];
 
 	const enumDefs = Object.keys(schema.enums).map((key) => generateEnum(key, schema.enums[key]));
+
+	const includes = Array.from(Object.keys(schema.enums).reduce((acc, key) => {
+			if (schema.enums[key].parent != null) {
+				acc.add(schema.enums[key].parent[0]);
+			}
+
+			return acc;
+		}, new Set()))
+		.map((includePath) => `#include "${includePath}"`);
+
 	const struct = generateRootStruct(schema);
 
 	if (enumDefs.length) {
@@ -269,7 +292,8 @@ namespace ngn::config {
 	}
 
 	const model = {
-		content: content.join('\n\n')
+		includes: includes.join('\n'),
+		content: content.join('\n\n'),
 	};
 
 	return headerTemplate.replace(/([\t ]*)\{\{([a-z]*)\}\}/ig, (match, padding, type) => padLines(model[type], padding));
@@ -303,7 +327,7 @@ const generateLoader = (path, def, schema) => {
 	let getter = 'getter';
 
 	if (schema.enums.hasOwnProperty(def.type)) {
-		defaultValue = `${def.type}::${schema.enums[def.type][def.default]}`;
+		defaultValue = `${def.type}::${schema.enums[def.type].values[def.default]}`;
 		getter = `${path.join('.')}(fromString(body.at("/${path.join('/')}"_json_pointer).get<std::string>(), ${defaultValue}));`;
 	} else {
 		defaultValue = `${def.default}`;
@@ -435,20 +459,16 @@ const generateStore = (schema) => {
 const generateSource = (schema) => {
 	const sourceTemplate = `#include "{{name}}.hpp"
 
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 #include "../fs.hpp"
 
 using json = nlohmann::json;
 
-namespace ngn {
-
-namespace config {
+namespace ngn::config {
 
 {{content}}
 
-} // config
-
-} // ngn
+} // ngn::config
 `;
 
 	let content = [];

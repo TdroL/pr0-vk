@@ -12,47 +12,68 @@
 #include <util/map.hpp>
 
 #include <rn/window.hpp>
-#include <rn/vlk/trace.hpp>
-#include <rn/vlk/context.hpp>
+#include <rn/vki/trace.hpp>
+#include <rn/vki/context.hpp>
 
 namespace app::main {
 
 struct VertexData {
-	float position[4];
-	float color[4];
+	float position[3];
+	float normal[3];
+	float coord[2];
 };
 
 struct StaticData {
-	std::vector<VertexData> modelData{
-		{
-			{ -0.7f, -0.7f, 0.0f, 1.0f },
-			{ 1.0f, 0.0f, 0.0f, 0.0f }
-		},
-		{
-			{ -0.7f, 0.7f, 0.0f, 1.0f },
-			{ 0.0f, 1.0f, 0.0f, 0.0f }
-		},
-		{
-			{ 0.7f, -0.7f, 0.0f, 1.0f },
-			{ 0.0f, 0.0f, 1.0f, 0.0f }
-		},
-		{
-			{ 0.7f, 0.7f, 0.0f, 1.0f },
-			{ 0.3f, 0.3f, 0.3f, 0.0f }
-		}
+	std::vector<float> vertexData{
+		/*
+		0-+-2
+		| |/|
+		+-+-+ X
+		|/| |
+		1-+-3
+		  Y  */
+		// position
+		-1.0f, -1.0f, 0.0f,
+		-1.0f, 1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+		1.0f, 1.0f, 0.0f,
+
+		// normal
+		0.0f, 0.f, 1.f,
+		0.0f, 0.f, 1.f,
+		0.0f, 0.f, 1.f,
+		0.0f, 0.f, 1.f,
+
+		// coord
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f
+	};
+
+	std::vector<uint32_t> indexData{
+		0, 1, 2,
+		1, 3, 2
 	};
 };
 
 struct Model {
-	vk::UniqueBuffer buffer{};
-	rn::vlk::memory::Handle memory{};
+	vk::Buffer vertexBuffer{};
+	vk::Buffer indexBuffer{};
+
+	uint32_t indices = 0;
+	vk::DeviceSize positionOffset = 0;
+	vk::DeviceSize normalOffset = 0;
+	vk::DeviceSize coordOffset = 0;
+
+	vk::DeviceSize indexOffset = 0;
 };
 
 struct Handles {
 	vk::RenderPass renderPass{};
 	vk::Pipeline pipeline{};
 
-	vk::Buffer modelBuffer{};
+	Model model{};
 
 	uint32_t imageIndex{};
 
@@ -109,7 +130,7 @@ struct NeedsWaitStats {
 class RingPool {
 public:
 	rn::Window &window;
-	rn::vlk::Context &context;
+	rn::vki::Context &context;
 
 	uint32_t imageCount = 0;
 
@@ -124,8 +145,26 @@ public:
 	NeedsWaitStats needsWaitStats{};
 	#endif
 
-	RingPool(rn::Window &window, rn::vlk::Context &context) :
-		window(window), context(context)
+	rn::vki::db::Texture texDb{};
+	rn::vki::db::Mesh meshDb{};
+	rn::vki::db::texture::Loader texLoader;
+	rn::vki::db::mesh::Loader meshLoader;
+
+	struct {
+		vk::UniqueBuffer vertexBuffer{};
+		vk::UniqueBuffer indexBuffer{};
+
+		rn::vki::memory::Handle vertexMemory{};
+		rn::vki::memory::Handle indexMemory{};
+	} staticModel;
+
+	rn::vki::db::mesh::Handle quadHandle{};
+
+	RingPool(rn::Window &window, rn::vki::Context &context) :
+		window(window),
+		context(context),
+		texLoader{context, texDb},
+		meshLoader{context, meshDb}
 	{}
 
 	~RingPool() {
@@ -140,16 +179,24 @@ public:
 	}
 
 	void init() {
+		auto start = glfwGetTime();
+
+		quadHandle = meshDb.emplace("assets/models/quad.msb");
+		meshLoader.load(quadHandle).get();
+
 		imageCount = context.surface.images.size();
 		// perInstance = initPerInstance();
 		perSwapchain = initPerSwapchain();
 		perAquireList = initPerAquireList(imageCount);
 		perSubmitList = initPerSubmitList(imageCount);
 		perImageList = initPerImageList(imageCount);
+
+		auto end = glfwGetTime();
+		ngn::log::debug("RingPool::init() => {}ms", 1000.0 * (end - start));
 	}
 
 	void deinit() {
-		if (context.device == vk::Device{} || imageCount == 0) {
+		if ( ! context.device || imageCount == 0) {
 			return;
 		}
 
@@ -172,7 +219,9 @@ public:
 
 		// wait for both device and presentation to finish all work
 		RN_VLK_TRACE(context.device.waitIdle());
-		RN_VLK_TRACE(context.device.waitForFences(fences, true, std::numeric_limits<uint64_t>::max()));
+		if ( ! fences.empty()) {
+			RN_VLK_TRACE(context.device.waitForFences(fences, true, std::numeric_limits<uint64_t>::max()));
+		}
 
 		// perInstance = {};
 		perSwapchain = {};
@@ -185,7 +234,7 @@ public:
 	Handles next() {
 		NGN_PROF_SCOPE("app::main::Resources::next()");
 
-		if (context.device == vk::Device{}) {
+		if ( ! context.device) {
 			throw std::runtime_error("app::main::Resource not initialized");
 		}
 
@@ -227,7 +276,7 @@ public:
 		handles.renderPass = perSwapchain.renderPass.get();
 		handles.pipeline = perSwapchain.pipeline.get();
 
-		handles.modelBuffer = perSwapchain.model.buffer.get();
+		handles.model = perSwapchain.model;
 
 		handles.imageIndex = idx;
 
@@ -375,7 +424,17 @@ public:
 		result.renderPass = createRenderPass();
 		result.pipeline = createGraphicsPipeline(result.renderPass.get());
 
-		result.model = createModel();
+		result.model = meshDb.map(quadHandle, [&] (const auto &entry) {
+			return Model{
+				/*.vertexBuffer=*/ entry.vertexBuffer.get(),
+				/*.indexBuffer=*/ entry.indexBuffer.get(),
+				/*.indices.=*/ entry.subMeshes[0].indices,
+				/*.positionOffset.=*/ entry.subMeshes[0].positionOffset,
+				/*.normalOffset.=*/ entry.subMeshes[0].normalOffset,
+				/*.coordOffset.=*/ entry.subMeshes[0].coordOffset,
+				/*.indexOffset.=*/ entry.subMeshes[0].indexBufferOffset
+			};
+		});
 
 		result.dummyFence = createFence();
 
@@ -505,8 +564,8 @@ public:
 
 	vk::UniquePipeline createGraphicsPipeline(const vk::RenderPass &renderPass) {
 		// shader modules
-		std::vector<std::byte> vertCode = ngn::fs::read("shaders/main.vert.spv", 4);
-		std::vector<std::byte> fragCode = ngn::fs::read("shaders/main.frag.spv", 4);
+		std::vector<std::byte> vertCode = ngn::fs::read("assets/shaders/main.vert.spv", 4);
+		std::vector<std::byte> fragCode = ngn::fs::read("assets/shaders/main.frag.spv", 4);
 
 		vk::UniqueShaderModule vertShaderModule = createShaderModule(vertCode);
 		vk::UniqueShaderModule fragShaderModule = createShaderModule(fragCode);
@@ -532,7 +591,17 @@ public:
 		std::vector<vk::VertexInputBindingDescription> vertexBindingDescriptions{
 			{
 				/*.binding=*/ 0,
-				/*.stride=*/ sizeof(VertexData),
+				/*.stride=*/ sizeof(float) * 3,
+				/*.inputRate=*/ vk::VertexInputRate::eVertex
+			},
+			{
+				/*.binding=*/ 1,
+				/*.stride=*/ sizeof(float) * 3,
+				/*.inputRate=*/ vk::VertexInputRate::eVertex
+			},
+			{
+				/*.binding=*/ 2,
+				/*.stride=*/ sizeof(float) * 2,
 				/*.inputRate=*/ vk::VertexInputRate::eVertex
 			}
 		};
@@ -541,14 +610,20 @@ public:
 			{
 				/*.location=*/ 0,
 				/*.binding=*/ vertexBindingDescriptions[0].binding,
-				/*.format=*/ vk::Format::eR32G32B32A32Sfloat,
-				/*.offset=*/ offsetof(struct VertexData, position)
+				/*.format=*/ vk::Format::eR32G32B32Sfloat,
+				/*.offset=*/ 0
 			},
 			{
 				/*.location=*/ 1,
-				/*.binding=*/ vertexBindingDescriptions[0].binding,
-				/*.format=*/ vk::Format::eR32G32B32A32Sfloat,
-				/*.offset=*/ offsetof(struct VertexData, color)
+				/*.binding=*/ vertexBindingDescriptions[1].binding,
+				/*.format=*/ vk::Format::eR32G32B32Sfloat,
+				/*.offset=*/ 0
+			},
+			{
+				/*.location=*/ 2,
+				/*.binding=*/ vertexBindingDescriptions[2].binding,
+				/*.format=*/ vk::Format::eR32G32Sfloat,
+				/*.offset=*/ 0
 			}
 		};
 
@@ -563,7 +638,7 @@ public:
 		// input assembly state
 		vk::PipelineInputAssemblyStateCreateInfo inputAssemblyState{
 			/*.flags=*/ vk::PipelineInputAssemblyStateCreateFlags{},
-			/*.topology=*/ vk::PrimitiveTopology::eTriangleStrip,
+			/*.topology=*/ vk::PrimitiveTopology::eTriangleList,
 			/*.primitiveRestartEnable=*/ false
 		};
 
@@ -689,37 +764,73 @@ public:
 	}
 
 	Model createModel() {
-		vk::BufferCreateInfo bufferCreateInfo{
+		vk::BufferCreateInfo vertexBufferCreateInfo{
 			/*.flags=*/ vk::BufferCreateFlags{},
-			/*.size=*/ staticData.modelData.size() * sizeof(staticData.modelData[0]),
+			/*.size=*/ staticData.vertexData.size() * sizeof(staticData.vertexData[0]),
 			/*.usage=*/ vk::BufferUsageFlagBits::eVertexBuffer,
 			/*.sharingMode=*/ vk::SharingMode::eExclusive,
 			/*.queueFamilyIndexCount=*/ 0,
 			/*.pQueueFamilyIndices=*/ nullptr
 		};
+		vk::UniqueBuffer vertexBuffer = RN_VLK_TRACE(context.device.createBufferUnique(vertexBufferCreateInfo));
+		vk::MemoryRequirements vertexMemoryRequirements = RN_VLK_TRACE(context.device.getBufferMemoryRequirements(vertexBuffer.get()));
+		rn::vki::memory::Handle vertexMemory = context.allocator.buffer.alloc(rn::vki::memory::Usage::CPU_TO_GPU, vertexMemoryRequirements);
 
-		vk::UniqueBuffer buffer = RN_VLK_TRACE(context.device.createBufferUnique(bufferCreateInfo));
-		vk::MemoryRequirements memoryRequirements = RN_VLK_TRACE(context.device.getBufferMemoryRequirements(buffer.get()));
-		rn::vlk::memory::Handle memory = context.allocator.mesh.alloc(rn::vlk::memory::Usage::CPU_TO_GPU, memoryRequirements);
+		assert(vertexMemory.pointer);
+		assert(vertexMemory.flags & vk::MemoryPropertyFlagBits::eHostVisible);
 
-		assert(memory.pointer);
-		assert(memory.flags & vk::MemoryPropertyFlagBits::eHostVisible);
+		vk::BufferCreateInfo indexBufferCreateInfo{
+			/*.flags=*/ vk::BufferCreateFlags{},
+			/*.size=*/ staticData.indexData.size() * sizeof(staticData.indexData[0]),
+			/*.usage=*/ vk::BufferUsageFlagBits::eIndexBuffer,
+			/*.sharingMode=*/ vk::SharingMode::eExclusive,
+			/*.queueFamilyIndexCount=*/ 0,
+			/*.pQueueFamilyIndices=*/ nullptr
+		};
+		vk::UniqueBuffer indexBuffer = RN_VLK_TRACE(context.device.createBufferUnique(indexBufferCreateInfo));
+		vk::MemoryRequirements indexMemoryRequirements = RN_VLK_TRACE(context.device.getBufferMemoryRequirements(indexBuffer.get()));
+		rn::vki::memory::Handle indexMemory = context.allocator.buffer.alloc(rn::vki::memory::Usage::CPU_TO_GPU, indexMemoryRequirements);
 
-		RN_VLK_TRACE(context.device.bindBufferMemory(buffer.get(), memory.memory, memory.offset));
-		std::copy(std::begin(staticData.modelData), std::end(staticData.modelData), reinterpret_cast<decltype(staticData.modelData.data())>(memory.pointer));
-		if (memory.needsFlushing()) {
+		assert(vertexMemory.pointer);
+		assert(vertexMemory.flags & vk::MemoryPropertyFlagBits::eHostVisible);
+
+		RN_VLK_TRACE(context.device.bindBufferMemory(vertexBuffer.get(), vertexMemory.memory, vertexMemory.offset));
+		std::copy(std::begin(staticData.vertexData), std::end(staticData.vertexData), reinterpret_cast<decltype(staticData.vertexData.data())>(vertexMemory.pointer));
+		if (vertexMemory.needsFlushing()) {
 			RN_VLK_TRACE(context.device.flushMappedMemoryRanges({
 				{
-					/*.memory=*/ memory.memory,
-					/*.offset=*/ memory.offset,
-					/*.size=*/ memoryRequirements.size
+					/*.memory=*/ vertexMemory.memory,
+					/*.offset=*/ vertexMemory.offset,
+					/*.size=*/ vertexMemoryRequirements.size
 				}
 			}));
 		}
 
+		RN_VLK_TRACE(context.device.bindBufferMemory(indexBuffer.get(), indexMemory.memory, indexMemory.offset));
+		std::copy(std::begin(staticData.indexData), std::end(staticData.indexData), reinterpret_cast<decltype(staticData.indexData.data())>(indexMemory.pointer));
+		if (indexMemory.needsFlushing()) {
+			RN_VLK_TRACE(context.device.flushMappedMemoryRanges({
+				{
+					/*.memory=*/ indexMemory.memory,
+					/*.offset=*/ indexMemory.offset,
+					/*.size=*/ indexMemoryRequirements.size
+				}
+			}));
+		}
+
+		staticModel.vertexBuffer = std::move(vertexBuffer);
+		staticModel.indexBuffer = std::move(indexBuffer);
+		staticModel.vertexMemory = std::move(vertexMemory);
+		staticModel.indexMemory = std::move(indexMemory);
+
 		return Model{
-			std::move(buffer),
-			std::move(memory),
+			/*.vertexBuffer=*/ staticModel.vertexBuffer.get(),
+			/*.indexBuffer=*/ staticModel.indexBuffer.get(),
+			/*.indices.=*/ 6,
+			/*.positionOffset.=*/ 0,
+			/*.normalOffset.=*/ sizeof(float) * 3 * 4,
+			/*.coordOffset.=*/ sizeof(float) * 3 * 8,
+			/*.indexOffset.=*/ 0
 		};
 	}
 

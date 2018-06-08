@@ -11,11 +11,13 @@ namespace ngn::fs {
 
 std::vector<std::string> searchDirectories{
 	"./",
-	"../assets/",
-	"../assets/meshes/",
-	"../assets/shaders/",
-	"../assets/fonts/",
-	"../assets/textures/",
+	"../",
+	// "../assets/",
+	// "../assets/meshes/",
+	// "../assets/models/",
+	// "../assets/shaders/",
+	// "../assets/fonts/",
+	// "../assets/textures/",
 };
 
 uint32_t normalize(uint32_t alignment) {
@@ -179,6 +181,12 @@ int64_t size(std::ifstream &in) {
 	}
 
 	return -1;
+}
+
+
+bool fileExist(const std::string_view &fileName) {
+	std::ifstream file(fileName.data());
+	return file.good();
 }
 
 } // ngn::fs

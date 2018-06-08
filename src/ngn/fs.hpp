@@ -23,4 +23,6 @@ std::string ext(const std::string_view &fileName);
 int64_t size(const std::string_view &fileName);
 int64_t size(std::ifstream &in);
 
+bool fileExist(const std::string_view &fileName);
+
 } // ngn::fs

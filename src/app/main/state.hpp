@@ -9,8 +9,8 @@
 #include <ngn/prof.hpp>
 
 #include <rn/window.hpp>
-#include <rn/vlk/context.hpp>
-#include <rn/vlk/trace.hpp>
+#include <rn/vki/context.hpp>
+#include <rn/vki/trace.hpp>
 
 #include "resources.hpp"
 
@@ -21,9 +21,9 @@ public:
 	RingPool resources;
 
 	rn::Window &window;
-	rn::vlk::Context &context;
+	rn::vki::Context &context;
 
-	State(rn::Window &window, rn::vlk::Context &context) :
+	State(rn::Window &window, rn::vki::Context &context) :
 		resources(window, context), window(window), context(context)
 	{}
 
@@ -103,8 +103,19 @@ public:
 				};
 				RN_VLK_TRACE(handles.commandBuffer.setScissor(0, { scissor }));
 
-				RN_VLK_TRACE(handles.commandBuffer.bindVertexBuffers(0, { handles.modelBuffer }, { 0 }));
-				RN_VLK_TRACE(handles.commandBuffer.draw(4, 1, 0, 0));
+				const std::array<vk::Buffer, 3> buffers{
+					handles.model.vertexBuffer,
+					handles.model.vertexBuffer,
+					handles.model.vertexBuffer,
+				};
+				const std::array<vk::DeviceSize, 3> offsets{
+					handles.model.positionOffset,
+					handles.model.normalOffset,
+					handles.model.coordOffset,
+				};
+				RN_VLK_TRACE(handles.commandBuffer.bindVertexBuffers(0, buffers, offsets));
+				RN_VLK_TRACE(handles.commandBuffer.bindIndexBuffer(handles.model.indexBuffer, handles.model.indexOffset, vk::IndexType::eUint32));
+				RN_VLK_TRACE(handles.commandBuffer.drawIndexed(handles.model.indices, 1, 0, 0, 0));
 
 			RN_VLK_TRACE(handles.commandBuffer.endRenderPass());
 

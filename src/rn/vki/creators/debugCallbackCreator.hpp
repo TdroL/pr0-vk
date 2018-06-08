@@ -1,0 +1,100 @@
+#pragma once
+
+#include <cassert>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+#include <vulkan/vulkan.hpp>
+
+#include "../../../ngn/config.hpp"
+#include "../context.hpp"
+// #include "../exts/debugCallbackDispatchTable.hpp"
+#include "../trace.hpp"
+
+namespace rn::vki {
+
+VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+	VkDebugReportFlagsEXT flags,
+	VkDebugReportObjectTypeEXT objectType,
+	uint64_t object,
+	size_t location,
+	int32_t messageCode,
+	const char *pLayerPrefix,
+	const char *pMessage,
+	void *pUserData
+);
+
+class DebugCallbackCreator {
+public:
+	bool enabled = true;
+	bool isAvailable = false;
+
+	int initialLogLevel = 0;
+
+	std::vector<std::string> optionalExtensions{
+		VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
+		// "VK_EXT_debug_utils",
+	};
+
+	std::vector<std::string> optionalLayers{
+		"VK_LAYER_LUNARG_standard_validation",
+	};
+
+	DebugCallbackCreator() {
+		if (ngn::config::core.debug.vk.useRenderDoc()) {
+			optionalLayers.push_back("VK_LAYER_RENDERDOC_Capture");
+		}
+	}
+
+	vk::UniqueDebugReportCallbackEXT create(Context &context) {
+		if ( ! isAvailable) {
+			return vk::UniqueDebugReportCallbackEXT{};
+		}
+
+		vk::Instance instance = context.instance;
+
+		assert(instance);
+
+		// const std::vector<vk::ExtensionProperties> debugReportExtensionProperties = instance.enumerateInstanceExtensionProperties("VK_EXT_debug_report");
+		// if (debugReportExtensionProperties.empty()) {
+		// 	//
+		// }
+
+		// initDebugCallbackDispatchTable(instance);
+
+		vk::DebugReportFlagsEXT flags{};
+
+		switch (ngn::config::core.debug.vk.logLevel()) {
+			case 0:
+				flags = flags | vk::DebugReportFlagBitsEXT::eDebug;
+				[[fallthrough]];
+			case 1:
+				flags = flags | vk::DebugReportFlagBitsEXT::eInformation;
+				[[fallthrough]];
+			case 2:
+				flags = flags | vk::DebugReportFlagBitsEXT::eWarning;
+				[[fallthrough]];
+			case 3:
+				flags = flags | vk::DebugReportFlagBitsEXT::ePerformanceWarning;
+				[[fallthrough]];
+			case 4:
+				flags = flags | vk::DebugReportFlagBitsEXT::eError;
+		}
+
+		vk::DebugReportCallbackCreateInfoEXT debugReportCallbackCreateInfo{};
+		debugReportCallbackCreateInfo.flags       = flags;
+		debugReportCallbackCreateInfo.pfnCallback = debugCallback;
+
+		vk::UniqueDebugReportCallbackEXT debugCallbackOwner{RN_VLK_TRACE(instance.createDebugReportCallbackEXTUnique(debugReportCallbackCreateInfo))};
+
+		if ( ! debugCallbackOwner) {
+			throw std::runtime_error{"Vulkan debug callback could not be created"};
+		}
+
+		return debugCallbackOwner;
+	}
+};
+
+} // rn::vki

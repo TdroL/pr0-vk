@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.3)
 
-set(NAME pr0-vk)
+project(pr0-vk)
 
-project(${NAME})
+set(APP_NAME app)
+set(CONV_NAME conv)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake/Modules")
 
@@ -37,13 +38,22 @@ else ()
 endif ()
 
 # Project files
-file(GLOB_RECURSE SOURCES "src/*.cpp")
 file(GLOB_RECURSE HEADERS "src/*.hpp")
 
+file(GLOB_RECURSE NGN_SOURCES "src/ngn/*.cpp")
+file(GLOB_RECURSE RN_SOURCES "src/rn/*.cpp")
+file(GLOB_RECURSE UTIL_SOURCES "src/util/*.cpp")
+
+file(GLOB_RECURSE APP_SOURCES "src/app/*.cpp")
+list(APPEND APP_SOURCES ${NGN_SOURCES} ${RN_SOURCES} ${UTIL_SOURCES} "src/app.cpp")
+
+file(GLOB_RECURSE CONV_SOURCES "src/conv/*.cpp")
+list(APPEND CONV_SOURCES ${NGN_SOURCES} ${UTIL_SOURCES} "src/conv.cpp")
+
 set(INCLUDE_DIRS "")
-foreach(_headerFile ${HEADERS})
-	get_filename_component(_dir ${_headerFile} PATH)
-	list(APPEND INCLUDE_DIRS ${_dir})
+foreach(HEADER ${HEADERS})
+	get_filename_component(DIR ${HEADER} PATH)
+	list(APPEND INCLUDE_DIRS ${DIR})
 endforeach()
 
 list(REMOVE_DUPLICATES INCLUDE_DIRS)
@@ -52,17 +62,10 @@ include_directories(${INCLUDE_DIRS})
 # GLFW
 find_package(GLFW 3.2.1 REQUIRED)
 include_directories(${GLFW_INCLUDE_DIR})
-list(APPEND LIBS ${GLFW_LIBRARY})
 
 # Vulkan
 find_package(Vulkan REQUIRED)
 include_directories(${VULKAN_INCLUDE_DIR})
-list(APPEND LIBS ${VULKAN_LIBRARIES})
-
-# Assimp
-find_package(Assimp 4.1.0 REQUIRED)
-include_directories(${ASSIMP_INCLUDE_DIR})
-list(APPEND LIBS ${ASSIMP_LIBRARIES})
 
 # GLI
 find_package(GLI 0.8.2.0 REQUIRED)
@@ -71,26 +74,45 @@ include_directories(${GLI_INCLUDE_DIR})
 # Stb image
 find_package(Stb_image 2.16 REQUIRED)
 include_directories(${STB_IMAGE_INCLUDE_DIR})
-list(APPEND LIBS ${STB_IMAGE_LIBRARIES})
 
 # GLM
 find_package(GLM 0.9.8.5 REQUIRED)
 include_directories(${GLM_INCLUDE_DIR})
 
 # JSON
-find_package(JSON 2.1.1 REQUIRED)
+find_package(JSON 3.1.2 REQUIRED)
 include_directories(${JSON_INCLUDE_DIR})
 
 # Spdlog
-find_package(Spdlog 0.14.0 REQUIRED)
+find_package(Spdlog 0.17.0 REQUIRED)
 include_directories(${SPDLOG_INCLUDE_DIR})
 
 # Remotery
-find_package(Remotery 17.10.03 REQUIRED)
+find_package(Remotery 18.06.02 REQUIRED)
 include_directories(${REMOTERY_INCLUDE_DIR})
-list(APPEND LIBS ${REMOTERY_LIBRARIES})
 
-# executable
-add_executable(${NAME} ${SOURCES})
-target_link_libraries(${NAME} ${LIBS})
-cotire(${NAME})
+# Assimp
+find_package(Assimp 4.1.0 REQUIRED)
+include_directories(${ASSIMP_INCLUDE_DIR})
+
+list(APPEND APP_LIBS ${GLFW_LIBRARY} ${VULKAN_LIBRARIES} ${STB_IMAGE_LIBRARIES} ${REMOTERY_LIBRARIES})
+list(APPEND CONV_LIBS ${REMOTERY_LIBRARIES} ${ASSIMP_LIBRARIES})
+
+# executables
+add_executable(${APP_NAME} ${APP_SOURCES})
+target_link_libraries(${APP_NAME} ${APP_LIBS})
+cotire(${APP_NAME})
+
+add_executable(${CONV_NAME} ${CONV_SOURCES})
+target_link_libraries(${CONV_NAME} ${CONV_LIBS})
+cotire(${CONV_NAME})
+
+add_custom_target(deploy)
+set(DEPLOY_LIBS ${APP_LIBS} ${CONV_LIBS})
+list(REMOVE_DUPLICATES DEPLOY_LIBS)
+foreach(LIB ${DEPLOY_LIBS})
+	if(${LIB} MATCHES "^.+/external/.+\\/([^/]+.dll)$")
+		string(REGEX REPLACE "^.+/external/.+\\/([^/]+.dll)$" "\\1" LIB_BIN ${LIB})
+		add_custom_command(TARGET deploy POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${LIB} ${PROJECT_BINARY_DIR}/.)
+	endif()
+endforeach()
