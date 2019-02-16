@@ -2,18 +2,18 @@
 
 #include <stdexcept>
 
-#include "../../ngn/log.hpp"
+#include "../../../ngn/log.hpp"
 #include "../id.hpp"
 #include "pool.hpp"
 
 namespace rn::vki::memory {
 
-Handle::Handle(vk::DeviceMemory memory, vk::DeviceSize offset, vk::MemoryPropertyFlags flags, void *pointer, Pool *pool, uint32_t blockIdx, uint32_t leafIdx) noexcept :
-	memory{memory},
+Handle::Handle(rn::vki::HandleDeviceMemory &&memory, vk::DeviceSize offset, vk::MemoryPropertyFlags flags, void *pointer, Pool &pool, uint32_t blockIdx, uint32_t leafIdx) noexcept :
+	memory{std::move(memory)},
 	offset{offset},
 	flags{flags},
 	pointer{pointer},
-	pool{pool},
+	pool{&pool},
 	blockIdx{blockIdx},
 	leafIdx{leafIdx}
 {}
@@ -27,7 +27,7 @@ Handle::Handle(Handle &&other) noexcept :
 	blockIdx{std::move(other.blockIdx)},
 	leafIdx{std::move(other.leafIdx)}
 {
-	other.memory = vk::DeviceMemory{};
+	other.memory = rn::vki::HandleDeviceMemory{};
 }
 
 Handle & Handle::operator=(Handle &&other) noexcept {
@@ -41,7 +41,7 @@ Handle & Handle::operator=(Handle &&other) noexcept {
 	blockIdx = std::move(other.blockIdx);
 	leafIdx = std::move(other.leafIdx);
 
-	other.memory = vk::DeviceMemory{};
+	other.memory = rn::vki::HandleDeviceMemory{};
 
 	return *this;
 }
@@ -55,14 +55,14 @@ bool Handle::needsFlushing() {
 }
 
 void Handle::release() {
-	if (memory != vk::DeviceMemory{}) {
+	if (memory) {
 		if (pool == nullptr) {
-			ngn::log::error("rn::vki::memory::Handle::release() <{:x}> => unable to release memory handle, unknown pool", rn::vki::id(memory));
+			ngn::log::error("rn::vki::memory::Handle::release() <{:x}> => unable to release memory handle, unknown pool", rn::vki::id(memory.get()));
 		} else {
 			pool->free(*this);
 		}
 
-		memory = vk::DeviceMemory{};
+		memory = rn::vki::HandleDeviceMemory{};
 	}
 }
 

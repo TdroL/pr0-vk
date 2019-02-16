@@ -3,6 +3,8 @@
 #include <memory>
 #include <mutex>
 
+#include <spdlog/sinks/stdout_sinks.h>
+
 namespace ngn::log {
 
 spdlog::level::level_enum currentLevel{spdlog::level::debug};

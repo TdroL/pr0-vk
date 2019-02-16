@@ -6,13 +6,13 @@
 #include <string>
 #include <vector>
 
-#include "ngn/fs.hpp"
-#include "ngn/log.hpp"
-#include "ngn/config.hpp"
+#include <ngn/fs.hpp>
+#include <ngn/log.hpp>
+#include <ngn/config.hpp>
 
-#include "util/implode.hpp"
-#include "util/opts.hpp"
-#include "util/map.hpp"
+#include <util/join.hpp>
+#include <util/opts.hpp>
+#include <util/map.hpp>
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -59,18 +59,18 @@ std::string propertyToString(aiMaterialProperty *property) {
 	switch (property->mType) {
 		case aiPTI_Float: {
 			std::vector<float> values{reinterpret_cast<float *>(property->mData), reinterpret_cast<float *>(property->mData + property->mDataLength)};
-			return "[" + util::implode(util::map(values, [] (float value) { return std::to_string(value); })) + "]";
+			return "[" + util::join(util::map(values, [] (float value) { return std::to_string(value); })) + "]";
 		}
 		case aiPTI_Double: {
 			std::vector<double> values{reinterpret_cast<double *>(property->mData), reinterpret_cast<double *>(property->mData + property->mDataLength)};
-			return "[" + util::implode(util::map(values, [] (double value) { return std::to_string(value); })) + "]";
+			return "[" + util::join(util::map(values, [] (double value) { return std::to_string(value); })) + "]";
 		}
 		case aiPTI_String: {
 			return "[" + std::string{property->mData, property->mData + property->mDataLength} + "]";
 		}
 		case aiPTI_Integer: {
 			std::vector<int> values{reinterpret_cast<int *>(property->mData), reinterpret_cast<int *>(property->mData + property->mDataLength)};
-			return "[" + util::implode(util::map(values, [] (int value) { return std::to_string(value); })) + "]";
+			return "[" + util::join(util::map(values, [] (int value) { return std::to_string(value); })) + "]";
 		}
 		case aiPTI_Buffer: {
 			if (property->mDataLength == 4) {

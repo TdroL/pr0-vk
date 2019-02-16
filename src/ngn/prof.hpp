@@ -15,7 +15,7 @@ class Sampler {
 public:
 	bool started = false;
 
-	Sampler() = default;
+	Sampler() noexcept = default;
 
 	Sampler(Sampler &&) = delete;
 	Sampler & operator=(Sampler &&) = delete;
@@ -27,5 +27,7 @@ public:
 
 	~Sampler();
 };
+
+double now();
 
 } // ngn::prof

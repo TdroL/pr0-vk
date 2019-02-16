@@ -19,7 +19,7 @@ void trace(uint32_t line, const std::string_view &file, const std::string_view &
 	stores.insert_or_assign(std::this_thread::get_id(), store);
 }
 
-LastCall & lastCall() {
+LastCall & traceLastCall() {
 	return stores[std::this_thread::get_id()];
 }
 

@@ -7,34 +7,37 @@
 
 namespace rn::vki {
 
+vk::Format fromCommon(rn::PixelFormat pixelFormat);
+
+vk::Format fromCommon(rn::DataFormat dataFormat);
+
+vk::ImageType fromCommon(rn::ImageType imageType);
+
+vk::ImageViewType fromCommon(rn::ImageViewType imageViewType);
+
+vk::PresentModeKHR fromCommon(rn::VSync vsync);
+
+vk::ColorSpaceKHR fromCommon(rn::ColorSpace colorSpace);
+
 template<typename T, typename U>
-T toCore(U value);
-
-vk::Format fromCore(rn::PixelFormat pixelFormat);
-
-vk::Format fromCore(rn::VertexFormat vertexFormat);
-
-vk::ImageType fromCore(rn::ImageType imageType);
-
-vk::ImageViewType fromCore(rn::ImageViewType imageViewType);
-
-vk::PresentModeKHR fromCore(rn::VSync vsync);
-
-vk::ColorSpaceKHR fromCore(rn::ColorSpace colorSpace);
+T toCommon(U value);
 
 template<>
-rn::PixelFormat toCore<rn::PixelFormat>(vk::Format pixelFormat);
+rn::PixelFormat toCommon<rn::PixelFormat>(vk::Format pixelFormat);
 
 template<>
-rn::VertexFormat toCore<rn::VertexFormat>(vk::Format vertexFormat);
+rn::DataFormat toCommon<rn::DataFormat>(vk::Format dataFormat);
 
 template<>
-rn::ImageType toCore<rn::ImageType>(vk::ImageType imageType);
+rn::ImageType toCommon<rn::ImageType>(vk::ImageType imageType);
 
 template<>
-rn::ImageViewType toCore<rn::ImageViewType>(vk::ImageViewType imageViewType);
+rn::ImageViewType toCommon<rn::ImageViewType>(vk::ImageViewType imageViewType);
 
 template<>
-rn::ColorSpace toCore<rn::ColorSpace>(vk::ColorSpaceKHR colorSpace);
+rn::VSync toCommon<rn::VSync>(vk::PresentModeKHR vsync);
+
+template<>
+rn::ColorSpace toCommon<rn::ColorSpace>(vk::ColorSpaceKHR colorSpace);
 
 } // rn::vki

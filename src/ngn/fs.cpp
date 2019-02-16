@@ -33,129 +33,113 @@ uint32_t normalize(uint32_t alignment) {
 }
 
 // http://insanecoding.blogspot.com/2011/11/how-to-read-in-file-in-c.html
-std::vector<std::byte> read(const std::string_view &fileName, uint32_t alignment, bool throws) {
-	std::string filePath = find(fileName, throws);
-	if (filePath.empty()) {
-		ngn::log::debug("ngn::fs::read({} [{}]) => file missing", fileName.data(), filePath);
+std::optional<std::vector<std::byte>> read(std::string_view fileName, uint32_t alignment) {
+	std::optional<std::string> filePathO = find(fileName);
+	if (!filePathO) {
+		ngn::log::debug("ngn::fs::read({}) => file missing", fileName.data());
 
-		return std::vector<std::byte>{};
+		return std::nullopt;
 	}
 
-	std::ifstream in(filePath, std::ios::in | std::ios::binary);
+	std::ifstream in(filePathO.value(), std::ios::in | std::ios::binary);
 
 	if (in && in.good()) {
-		std::vector<std::byte> contents{};
+		std::vector<std::byte> contentsStorage{};
+		uint64_t fileSize = size(in);
 
-		int64_t fileSize = size(in);
 		if (fileSize > 0) {
 			alignment = normalize(alignment);
-			int64_t alignedSize = ((fileSize + alignment - 1) / alignment) * alignment;
+			uint64_t alignedSize = ((fileSize + alignment - 1) / alignment) * alignment;
 
-			contents.resize(alignedSize);
+			contentsStorage.resize(alignedSize);
 
-			in.read(reinterpret_cast<char *>(contents.data()), fileSize);
+			in.read(reinterpret_cast<char *>(contentsStorage.data()), fileSize);
 		}
 
-		ngn::log::debug("ngn::fs::read({} [{}]) => {} bytes", fileName.data(), filePath, contents.size());
+		ngn::log::debug("ngn::fs::read({} [{}]) => {} bytes", fileName.data(), filePathO.value(), contentsStorage.size());
 
-		return contents;
+		return {contentsStorage};
 	}
 
-	if (throws) {
-		throw std::runtime_error{"ngn::fs::read(\"" + std::string{fileName} + "\") - failed to read the file"};
-	}
+	ngn::log::debug("ngn::fs::read({} [{}]) => failed", fileName.data(), filePathO.value());
 
-	ngn::log::debug("ngn::fs::read({} [{}]) => failed", fileName.data(), filePath);
-
-	return std::vector<std::byte>{};
+	return std::nullopt;
 }
 
-std::string contents(const std::string_view &fileName, bool throws) {
-	std::string filePath = find(fileName, throws);
-	if (filePath.empty()) {
-		ngn::log::debug("ngn::fs::contents({} [{}]) => file missing", fileName.data(), filePath);
+std::optional<std::string> contents(std::string_view fileName) {
+	std::optional<std::string> filePathO = find(fileName);
+	if (!filePathO) {
+		ngn::log::debug("ngn::fs::contents({}) => file missing", fileName.data());
 
-		return std::string{};
+		return std::nullopt;
 	}
 
-	std::ifstream in(filePath, std::ios::in | std::ios::binary);
+	std::ifstream in(filePathO.value(), std::ios::in | std::ios::binary);
 
 	if (in && in.good()) {
-		std::string contents{};
+		std::string contentsStorage{};
+		uint64_t fileSize = size(in);
 
-		int64_t fileSize = size(in);
 		if (fileSize > 0) {
-			contents.reserve(fileSize);
+			contentsStorage.reserve(fileSize);
 
-			contents.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
+			contentsStorage.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
 		}
 
-		ngn::log::debug("ngn::fs::contents({} [{}]) => {} bytes", fileName.data(), filePath, contents.size());
+		ngn::log::debug("ngn::fs::contents({} [{}]) => {} bytes", fileName.data(), filePathO.value(), contentsStorage.size());
 
-		return contents;
+		return {contentsStorage};
 	}
 
-	if (throws) {
-		throw std::runtime_error{"ngn::fs::contents(\"" + std::string{fileName} + "\") - failed to read the file"};
-	}
+	ngn::log::debug("ngn::fs::contents({} [{}]) => failed", fileName.data(), filePathO.value());
 
-	ngn::log::debug("ngn::fs::contents({} [{}]) => failed", fileName.data(), filePath);
-
-	return std::string{};
+	return std::nullopt;
 }
 
-bool write(const std::string_view &fileName, const std::byte *contents, size_t size, bool throws) {
-	std::string filePath = find(fileName, throws);
-	if (filePath.empty()) {
-		filePath = fileName;
+std::optional<std::string> write(std::string_view fileName, const std::byte *contents, size_t size) {
+	std::optional<std::string> filePathO = find(fileName);
+	if (!filePathO) {
+		filePathO = fileName;
 	}
 
-	std::ofstream out(filePath, std::ios::out | std::ios::trunc | std::ios::binary);
+	std::ofstream out(filePathO.value(), std::ios::out | std::ios::trunc | std::ios::binary);
 
 	if (out && out.good()) {
 		out.write(reinterpret_cast<const char *>(contents), size);
 
-		ngn::log::debug("ngn::fs::write({} [{}]) => {} bytes", fileName.data(), filePath, size);
+		ngn::log::debug("ngn::fs::write({} [{}]) => {} bytes", fileName.data(), filePathO.value(), size);
 
-		return true;
+		return filePathO;
 	}
 
-	if (throws) {
-		throw std::runtime_error{"ngn::fs::write(\"" + std::string{fileName} + "\", data) - failed to write to the file"};
-	}
+	ngn::log::debug("ngn::fs::write({} [{}]) => failed", fileName.data(), filePathO.value());
 
-	ngn::log::debug("ngn::fs::write({} [{}]) => failed", fileName.data(), filePath);
-
-	return false;
+	return std::nullopt;
 }
 
-bool write(const std::string_view &fileName, const std::vector<std::byte> &contents, bool throws) {
-	return write(fileName, contents.data(), contents.size(), throws);
+std::optional<std::string> write(std::string_view fileName, const std::vector<std::byte> &contents) {
+	return write(fileName, contents.data(), contents.size());
 }
 
-bool write(const std::string_view &fileName, const std::string_view &contents, bool throws) {
-	return write(fileName, reinterpret_cast<const std::byte *>(contents.data()), contents.length() * sizeof(contents[0]), throws);
+std::optional<std::string> write(std::string_view fileName, std::string_view contents) {
+	return write(fileName, reinterpret_cast<const std::byte *>(contents.data()), contents.length() * sizeof(contents[0]));
 }
 
-std::string find(const std::string_view &fileName, bool throws) {
+std::optional<std::string> find(std::string_view fileName) {
 	const std::string fileNameStr{fileName};
 
 	for (const auto &directory : searchDirectories) {
 		std::string filePath = directory + fileNameStr;
 
 		if (std::ifstream{filePath}.is_open()) {
-			return filePath;
+			return {filePath};
 		}
 	}
 
-	if (throws) {
-		throw std::runtime_error{"ngn::fs::find(\"" + fileNameStr + "\") - could not find the file"};
-	}
-
-	return "";
+	return std::nullopt;
 }
 
-std::string ext(const std::string_view &fileName) {
+std::string ext(std::string_view fileName) {
 	size_t pos = fileName.find_last_of('.');
 
 	if (pos != std::string::npos && (pos + 1) < fileName.size()) {
@@ -165,13 +149,20 @@ std::string ext(const std::string_view &fileName) {
 	return "";
 }
 
-int64_t size(const std::string_view &fileName) {
-	std::ifstream in(find(fileName), std::ios::ate | std::ios::binary);
+std::optional<uint64_t> size(std::string_view fileName) {
+	std::optional<std::string> filePathO = find(fileName);
+	if (!filePathO) {
+		ngn::log::debug("ngn::fs::size({}) => file missing", fileName.data());
 
-	return static_cast<int64_t>(in.tellg());
+		return std::nullopt;
+	}
+
+	std::ifstream in(filePathO.value(), std::ios::ate | std::ios::binary);
+
+	return {static_cast<uint64_t>(in.tellg())};
 }
 
-int64_t size(std::ifstream &in) {
+uint64_t size(std::ifstream &in) {
 	if (in && in.good()) {
 		in.seekg(0, std::ios::end);
 		int64_t length = static_cast<int64_t>(in.tellg());
@@ -180,11 +171,10 @@ int64_t size(std::ifstream &in) {
 		return length;
 	}
 
-	return -1;
+	return 0;
 }
 
-
-bool fileExist(const std::string_view &fileName) {
+bool fileExist(std::string_view fileName) {
 	std::ifstream file(fileName.data());
 	return file.good();
 }

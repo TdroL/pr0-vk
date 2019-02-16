@@ -74,32 +74,46 @@ public:
 };
 
 template <class F>
-inline ScopeExit<F> makeScopeExit(const F& f) noexcept {
+inline ScopeExit<F> createScopeExit(const F& f) noexcept {
 	return ScopeExit<F>(f);
 }
 
 template <class F>
-inline ScopeExit<F> makeScopeExit(F&& f) noexcept {
+inline ScopeExit<F> createScopeExit(F&& f) noexcept {
+	return ScopeExit<F>(std::forward<F>(f));
+}
+
+template <class E, class F>
+inline ScopeExit<F> createScopeExit(const E& e, const F& f) noexcept {
+	e();
+
+	return ScopeExit<F>(f);
+}
+
+template <class E, class F>
+inline ScopeExit<F> createScopeExit(E&& e, F&& f) noexcept {
+	e();
+
 	return ScopeExit<F>(std::forward<F>(f));
 }
 
 template <class F>
-inline ScopeSuccess<F> makeScopeSuccess(const F& f) noexcept {
+inline ScopeSuccess<F> createScopeSuccess(const F& f) noexcept {
 	return ScopeSuccess<F>(f);
 }
 
 template <class F>
-inline ScopeSuccess<F> makeScopeSuccess(F&& f) noexcept {
+inline ScopeSuccess<F> createScopeSuccess(F&& f) noexcept {
 	return ScopeSuccess<F>(std::forward<F>(f));
 }
 
 template <class F>
-inline ScopeFail<F> makeScopeFail(const F& f) noexcept {
+inline ScopeFail<F> createScopeFail(const F& f) noexcept {
 	return ScopeFail<F>(f);
 }
 
 template <class F>
-inline ScopeFail<F> makeScopeFail(F&& f) noexcept {
+inline ScopeFail<F> createScopeFail(F&& f) noexcept {
 	return ScopeFail<F>(std::forward<F>(f));
 }
 

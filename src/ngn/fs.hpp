@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <fstream>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -9,20 +10,20 @@ namespace ngn::fs {
 
 extern std::vector<std::string> searchDirectories;
 
-std::vector<std::byte> read(const std::string_view &fileName, uint32_t alignment = 1, bool throws = true);
-std::string contents(const std::string_view &fileName, bool throws = true);
+std::optional<std::vector<std::byte>> read(std::string_view fileName, uint32_t alignment = 1);
+std::optional<std::string> contents(std::string_view fileName);
 
-bool write(const std::string_view &fileName, const std::byte *contents, size_t size, bool throws = true);
-bool write(const std::string_view &fileName, const std::vector<std::byte> &contents, bool throws = true);
-bool write(const std::string_view &fileName, const std::string_view &contents, bool throws = true);
+std::optional<std::string> write(std::string_view fileName, const std::byte *contents, size_t size);
+std::optional<std::string> write(std::string_view fileName, const std::vector<std::byte> &contents);
+std::optional<std::string> write(std::string_view fileName, std::string_view contents);
 
-std::string find(const std::string_view &fileName, bool throws = true);
+std::optional<std::string> find(std::string_view fileName);
 
-std::string ext(const std::string_view &fileName);
+std::string ext(std::string_view fileName);
 
-int64_t size(const std::string_view &fileName);
-int64_t size(std::ifstream &in);
+std::optional<uint64_t> size(std::string_view fileName);
+uint64_t size(std::ifstream &in);
 
-bool fileExist(const std::string_view &fileName);
+bool fileExist(std::string_view fileName);
 
 } // ngn::fs

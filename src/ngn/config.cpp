@@ -2,6 +2,10 @@
 
 namespace ngn::config {
 
-Core core{};
+Config Config::factory() {
+	return {
+		/*.core=*/ Core::load("core.json")
+	};
+}
 
 } // ngn::config

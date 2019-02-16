@@ -2,13 +2,13 @@
 
 #include <stdexcept>
 
-#include "../../ngn/log.hpp"
-#include "../../util/leadingZeroes.hpp"
+#include "../../../ngn/log.hpp"
+#include "../../../util/leadingZeroes.hpp"
 #include "../id.hpp"
 
 namespace rn::vki::memory {
 
-Block::Block(vk::UniqueDeviceMemory &&deviceMemory, Mapping &&mapping, vk::DeviceSize blockSize, uint32_t levels, uint32_t memoryTypeIndex, vk::MemoryPropertyFlags flags) :
+Block::Block(rn::vki::UniqueDeviceMemory &&deviceMemory, Mapping &&mapping, vk::DeviceSize blockSize, uint32_t levels, uint32_t memoryTypeIndex, vk::MemoryPropertyFlags flags) :
 	deviceMemory{std::move(deviceMemory)},
 	mapping{std::move(mapping)},
 	blockSize{blockSize},
@@ -27,10 +27,12 @@ Block::Block(Block &&other) noexcept :
 	flags{std::move(other.flags)},
 	leafs{std::move(other.leafs)}
 {
-	other.deviceMemory = vk::UniqueDeviceMemory{};
+	other.deviceMemory = rn::vki::UniqueDeviceMemory{};
 }
 
 Block & Block::operator=(Block &&other) noexcept {
+	reset();
+
 	deviceMemory = std::move(other.deviceMemory);
 	mapping = std::move(other.mapping);
 	blockSize = std::move(other.blockSize);
@@ -39,21 +41,21 @@ Block & Block::operator=(Block &&other) noexcept {
 	flags = std::move(other.flags);
 	leafs = std::move(other.leafs);
 
-	other.deviceMemory = vk::UniqueDeviceMemory{};
+	other.deviceMemory = rn::vki::UniqueDeviceMemory{};
 
 	return *this;
 }
 
 Block::~Block() {
-	if (deviceMemory) {
-		if (leafs.size() && leafs[0]) {
-			ngn::log::error("rn::vki::memory::Block::~Block() <{:x}> => some allocations were not freed before Block was destroyed", rn::vki::id(deviceMemory));
-		}
-	}
+	reset();
 }
 
-BlockAllocationHandle Block::alloc(const vk::MemoryRequirements &requirements) {
-	int32_t level = findLevel(requirements.size);
+BlockAllocationHandle Block::alloc(const vk::MemoryRequirements2 &requirements) {
+	if ( ! deviceMemory) {
+		throw std::runtime_error{"Memory block not initialized"};
+	}
+
+	int32_t level = findLevel(requirements.memoryRequirements.size);
 
 	while (level >= 0) {
 		uint32_t start = (1u << level) - 1u;
@@ -80,7 +82,7 @@ BlockAllocationHandle Block::alloc(const vk::MemoryRequirements &requirements) {
 			markDown(leafIdx);
 
 			return BlockAllocationHandle{
-				deviceMemory.get(),
+				deviceMemory.handle(),
 				offset,
 				leafIdx,
 				memoryTypeIndex,
@@ -105,6 +107,21 @@ void Block::free(uint32_t leafIdx) {
 	unmarkDown(leafIdx);
 }
 
+bool Block::isEmpty() {
+	return leafs.size() == 0 || leafs[0];
+}
+
+void Block::reset() {
+	if (deviceMemory) {
+		if ( ! isEmpty()) {
+			ngn::log::error("rn::vki::memory::Block::reset() <{:x}> => some allocations were not freed before block destruction", rn::vki::id(deviceMemory.get()));
+		}
+
+		mapping.reset();
+		deviceMemory = {};
+	}
+}
+
 uint32_t Block::levelFromIdx(uint32_t idx) const {
 	return 31u - util::leadingZeroes(idx + 1u);
 }
@@ -121,15 +138,15 @@ int32_t Block::findLevel(vk::DeviceSize requiredSize) const {
 	return -1;
 }
 
-vk::DeviceSize Block::findOffset(uint32_t idx, const vk::MemoryRequirements &requirements) const {
+vk::DeviceSize Block::findOffset(uint32_t idx, const vk::MemoryRequirements2 &requirements) const {
 	uint32_t levelSize = 1u << levelFromIdx(idx);
 	uint32_t idxOffset = (idx + 1u) - levelSize;
 
 	vk::DeviceSize leafSize = blockSize / levelSize;
 	vk::DeviceSize leafOffset = leafSize * idxOffset;
 
-	vk::DeviceSize offset = ((leafOffset + requirements.alignment - 1u) / requirements.alignment) * requirements.alignment;
-	vk::DeviceSize end = offset + requirements.size;
+	vk::DeviceSize offset = ((leafOffset + requirements.memoryRequirements.alignment - 1u) / requirements.memoryRequirements.alignment) * requirements.memoryRequirements.alignment;
+	vk::DeviceSize end = offset + requirements.memoryRequirements.size;
 
 	if (end <= leafOffset + leafSize) {
 		return offset;
@@ -139,6 +156,10 @@ vk::DeviceSize Block::findOffset(uint32_t idx, const vk::MemoryRequirements &req
 }
 
 void Block::markUp(uint32_t idx) {
+	if (idx >= leafs.size()) {
+		return;
+	}
+
 	while (true) {
 		if (leafs[idx]) {
 			return;
@@ -155,6 +176,10 @@ void Block::markUp(uint32_t idx) {
 }
 
 void Block::unmarkUp(uint32_t idx) {
+	if (idx >= leafs.size()) {
+		return;
+	}
+
 	while (true) {
 		leafs[idx] = false;
 
@@ -173,6 +198,10 @@ void Block::unmarkUp(uint32_t idx) {
 }
 
 void Block::markDown(uint32_t idx) {
+	if (idx >= leafs.size()) {
+		return;
+	}
+
 	uint32_t left = idx;
 	uint32_t right = idx;
 
@@ -189,6 +218,10 @@ void Block::markDown(uint32_t idx) {
 }
 
 void Block::unmarkDown(uint32_t idx) {
+	if (idx >= leafs.size()) {
+		return;
+	}
+
 	uint32_t left = idx;
 	uint32_t right = idx;
 

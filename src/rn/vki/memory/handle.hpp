@@ -5,13 +5,15 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "../dispatch.hpp"
+
 namespace rn::vki::memory {
 
 class Pool;
 
 class Handle {
 public:
-	vk::DeviceMemory memory{};
+	rn::vki::HandleDeviceMemory memory{};
 	vk::DeviceSize offset{std::numeric_limits<vk::DeviceSize>::max()};
 	vk::MemoryPropertyFlags flags{};
 	void *pointer = nullptr;
@@ -23,7 +25,7 @@ public:
 
 	Handle() = default;
 
-	explicit Handle(vk::DeviceMemory memory, vk::DeviceSize offset, vk::MemoryPropertyFlags flags, void *pointer, Pool *pool, uint32_t blockIdx, uint32_t leafIdx) noexcept;
+	Handle(rn::vki::HandleDeviceMemory &&memory, vk::DeviceSize offset, vk::MemoryPropertyFlags flags, void *pointer, Pool &pool, uint32_t blockIdx, uint32_t leafIdx) noexcept;
 
 	Handle(Handle &&other) noexcept;
 	Handle & operator=(Handle &&other) noexcept;

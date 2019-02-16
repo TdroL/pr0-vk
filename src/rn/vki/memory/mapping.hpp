@@ -2,21 +2,23 @@
 
 #include <cstddef>
 
-#include "../device.hpp"
+#include <vulkan/vulkan.hpp>
+
+#include "../dispatch.hpp"
 
 namespace rn::vki::memory {
 
 class Mapping {
 public:
-	Device &device;
-	vk::DeviceMemory memory{};
+	rn::vki::HandleDevice device{};
+	rn::vki::HandleDeviceMemory memory{};
 	void *pointer = nullptr;
 
-	Mapping() noexcept;
+	Mapping() = default;
 
-	explicit Mapping(Device &device, vk::DeviceMemory memory, void *pointer = nullptr) noexcept :
-		device(device),
-		memory{memory},
+	Mapping(rn::vki::HandleDevice &&device, rn::vki::HandleDeviceMemory &&memory, void *pointer = nullptr) noexcept :
+		device{std::move(device)},
+		memory{std::move(memory)},
 		pointer{pointer}
 	{}
 
@@ -28,7 +30,7 @@ public:
 
 	~Mapping();
 
-	void unmap();
+	void reset();
 
 	void * get(vk::DeviceSize offset) const;
 };

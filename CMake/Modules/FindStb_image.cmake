@@ -4,7 +4,6 @@
 # STB_IMAGE_LIBRARIES
 # STB_IMAGE_FOUND
 
-
 find_path(STB_IMAGE_INCLUDE_DIR NAMES stb/stb_image.h HINTS
 	"${CMAKE_SOURCE_DIR}/external/stb_image-${Stb_image_FIND_VERSION}/include")
 

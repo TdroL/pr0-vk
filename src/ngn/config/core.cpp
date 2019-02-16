@@ -1,463 +1,312 @@
 #include "core.hpp"
 
+#include <tuple>
 #include <nlohmann/json.hpp>
 #include "../fs.hpp"
 
 using json = nlohmann::json;
 
+namespace rn {
+
+NLOHMANN_JSON_SERIALIZE_ENUM(VSync, {
+	{VSync::Fifo, "fifo"},
+	{VSync::FifoRelaxed, "fiforelaxed"},
+	{VSync::Mailbox, "mailbox"},
+	{VSync::Immediate, "immediate"},
+})
+
+NLOHMANN_JSON_SERIALIZE_ENUM(WindowMode, {
+	{WindowMode::Windowed, "windowed"},
+	{WindowMode::Borderless, "borderless"},
+	{WindowMode::Fullscreen, "fullscreen"},
+})
+
+NLOHMANN_JSON_SERIALIZE_ENUM(PixelFormat, {
+	{PixelFormat::Undefined, "undefined"},
+	{PixelFormat::R8UNorm, "r8unorm"},
+	{PixelFormat::R8SNorm, "r8snorm"},
+	{PixelFormat::R8UInt, "r8uint"},
+	{PixelFormat::R8SInt, "r8sint"},
+	{PixelFormat::R8G8UNorm, "r8g8unorm"},
+	{PixelFormat::R8G8SNorm, "r8g8snorm"},
+	{PixelFormat::R8G8UInt, "r8g8uint"},
+	{PixelFormat::R8G8SInt, "r8g8sint"},
+	{PixelFormat::R8G8B8A8UNorm, "r8g8b8a8unorm"},
+	{PixelFormat::R8G8B8A8SNorm, "r8g8b8a8snorm"},
+	{PixelFormat::R8G8B8A8UInt, "r8g8b8a8uint"},
+	{PixelFormat::R8G8B8A8SInt, "r8g8b8a8sint"},
+	{PixelFormat::B8G8R8A8UNorm, "b8g8r8a8unorm"},
+	{PixelFormat::R16UNorm, "r16unorm"},
+	{PixelFormat::R16SNorm, "r16snorm"},
+	{PixelFormat::R16UInt, "r16uint"},
+	{PixelFormat::R16SInt, "r16sint"},
+	{PixelFormat::R16Float, "r16float"},
+	{PixelFormat::R16G16UNorm, "r16g16unorm"},
+	{PixelFormat::R16G16SNorm, "r16g16snorm"},
+	{PixelFormat::R16G16UInt, "r16g16uint"},
+	{PixelFormat::R16G16SInt, "r16g16sint"},
+	{PixelFormat::R16G16Float, "r16g16float"},
+	{PixelFormat::R16G16B16A16UNorm, "r16g16b16a16unorm"},
+	{PixelFormat::R16G16B16A16SNorm, "r16g16b16a16snorm"},
+	{PixelFormat::R16G16B16A16UInt, "r16g16b16a16uint"},
+	{PixelFormat::R16G16B16A16SInt, "r16g16b16a16sint"},
+	{PixelFormat::R16G16B16A16Float, "r16g16b16a16float"},
+	{PixelFormat::R32UInt, "r32uint"},
+	{PixelFormat::R32SInt, "r32sint"},
+	{PixelFormat::R32Float, "r32float"},
+	{PixelFormat::R32G32UInt, "r32g32uint"},
+	{PixelFormat::R32G32SInt, "r32g32sint"},
+	{PixelFormat::R32G32Float, "r32g32float"},
+	{PixelFormat::R32G32B32UInt, "r32g32b32uint"},
+	{PixelFormat::R32G32B32SInt, "r32g32b32sint"},
+	{PixelFormat::R32G32B32Float, "r32g32b32float"},
+	{PixelFormat::R32G32B32A32UInt, "r32g32b32a32uint"},
+	{PixelFormat::R32G32B32A32SInt, "r32g32b32a32sint"},
+	{PixelFormat::R32G32B32A32Float, "r32g32b32a32float"},
+	{PixelFormat::D16UNorm, "d16unorm"},
+	{PixelFormat::D32Float, "d32float"},
+	{PixelFormat::D24UNormS8UInt, "d24unorms8uint"},
+	{PixelFormat::D32FloatS8UInt, "d32floats8uint"},
+	{PixelFormat::BC1UNorm, "bc1unorm"},
+	{PixelFormat::BC1SRGB, "bc1srgb"},
+	{PixelFormat::BC2UNorm, "bc2unorm"},
+	{PixelFormat::BC2SRGB, "bc2srgb"},
+	{PixelFormat::BC3UNorm, "bc3unorm"},
+	{PixelFormat::BC3SRGB, "bc3srgb"},
+	{PixelFormat::BC4UNorm, "bc4unorm"},
+	{PixelFormat::BC4SNorm, "bc4snorm"},
+	{PixelFormat::BC5UNorm, "bc5unorm"},
+	{PixelFormat::BC5SNorm, "bc5snorm"},
+	{PixelFormat::BC6HUFloat, "bc6hufloat"},
+	{PixelFormat::BC6HSFloat, "bc6hsfloat"},
+	{PixelFormat::BC7UNorm, "bc7unorm"},
+	{PixelFormat::BC7SRGB, "bc7srgb"},
+	{PixelFormat::B4G4R4A4UNormPack16, "b4g4r4a4unormpack16"},
+	{PixelFormat::B5G6R5UNormPack16, "b5g6r5unormpack16"},
+	{PixelFormat::B5G5R5A1UNormPack16, "b5g5r5a1unormpack16"},
+	{PixelFormat::R10G10B10A2UNorm, "r10g10b10a2unorm"},
+	{PixelFormat::R10G10B10A2UInt, "r10g10b10a2uint"},
+	{PixelFormat::R11G11B10Float, "r11g11b10float"},
+})
+
+NLOHMANN_JSON_SERIALIZE_ENUM(ColorSpace, {
+	{ColorSpace::Undefined, "undefined"},
+	{ColorSpace::LDR, "ldr"},
+	{ColorSpace::HDR, "hdr"},
+})
+
+} // rn
+
+namespace nlohmann {
+
+template <>
+struct adl_serializer<std::variant<rn::PixelFormat, uint32_t>> {
+	static void to_json(json &j, const std::variant<rn::PixelFormat, uint32_t> &pixelFormat) {
+		if (pixelFormat.index() == 1) {
+			j = std::get<1>(pixelFormat);
+		} else {
+			j = std::get<0>(pixelFormat);
+		}
+	}
+
+	static void from_json(const json &j, std::variant<rn::PixelFormat, uint32_t> &pixelFormat) {
+		if (j.is_number_unsigned()) {
+			pixelFormat = j.get<uint32_t>();
+		} else if (j.is_string()) {
+			pixelFormat = j.get<rn::PixelFormat>();
+		}
+	}
+};
+
+template <>
+struct adl_serializer<std::variant<rn::ColorSpace, uint32_t>> {
+	static void to_json(json &j, const std::variant<rn::ColorSpace, uint32_t> &colorSpace) {
+		if (colorSpace.index() == 1) {
+			j = std::get<1>(colorSpace);
+		} else {
+			j = std::get<0>(colorSpace);
+		}
+	}
+
+	static void from_json(const json &j, std::variant<rn::ColorSpace, uint32_t> &colorSpace) {
+		if (j.is_number_unsigned()) {
+			colorSpace = j.get<uint32_t>();
+		} else if (j.is_string()) {
+			colorSpace = j.get<rn::ColorSpace>();
+		}
+	}
+};
+
+template <>
+struct adl_serializer<ngn::config::Core::Debug::Vki> {
+	static void to_json(json& j, const ngn::config::Core::Debug::Vki& vki) {
+		j.emplace("useRenderDoc", vki.useRenderDoc);
+		j.emplace("logLevel", vki.logLevel);
+	}
+
+	static void from_json(const json& j, ngn::config::Core::Debug::Vki& vki) {
+		vki.useRenderDoc = j.value("useRenderDoc", vki.useRenderDoc);
+		vki.logLevel = j.value("logLevel", vki.logLevel);
+	}
+};
+
+template <>
+struct adl_serializer<ngn::config::Core::Debug> {
+	static void to_json(json& j, const ngn::config::Core::Debug& debug) {
+		j.emplace("vki", debug.vki);
+	}
+
+	static void from_json(const json& j, ngn::config::Core::Debug& debug) {
+		debug.vki = j.value("vki", debug.vki);
+	}
+};
+
+template <>
+struct adl_serializer<ngn::config::Core::Window> {
+	static void to_json(json& j, const ngn::config::Core::Window& window) {
+		j.emplace("width", window.width);
+		j.emplace("height", window.height);
+		j.emplace("mode", window.mode);
+		j.emplace("monitor", window.monitor);
+		j.emplace("vsync", window.vsync);
+		j.emplace("swapchainSize", window.swapchainSize);
+		j.emplace("surfaceFormat", window.surfaceFormat);
+		j.emplace("surfaceColorSpace", window.surfaceColorSpace);
+	}
+
+	static void from_json(const json& j, ngn::config::Core::Window& window) {
+		window.width = j.value("width", window.width);
+		window.height = j.value("height", window.height);
+		window.mode = j.value("mode", window.mode);
+		window.monitor = j.value("monitor", window.monitor);
+		window.vsync = j.value("vsync", window.vsync);
+		window.swapchainSize = j.value("swapchainSize", window.swapchainSize);
+		window.surfaceFormat = j.value("surfaceFormat", window.surfaceFormat);
+		window.surfaceColorSpace = j.value("surfaceColorSpace", window.surfaceColorSpace);
+	}
+};
+
+template <>
+struct adl_serializer<ngn::config::Core::PhysicalDevice> {
+	static void to_json(json& j, const ngn::config::Core::PhysicalDevice& physicalDevice) {
+		j.emplace("deviceId", physicalDevice.deviceId);
+		j.emplace("vendorId", physicalDevice.vendorId);
+	}
+
+	static void from_json(const json& j, ngn::config::Core::PhysicalDevice& physicalDevice) {
+		physicalDevice.deviceId = j.value("deviceId", physicalDevice.deviceId);
+		physicalDevice.vendorId = j.value("vendorId", physicalDevice.vendorId);
+	}
+};
+
+template <>
+struct adl_serializer<ngn::config::Core> {
+	static void to_json(json& j, const ngn::config::Core& core) {
+		j.emplace("physicalDevice", core.physicalDevice);
+		j.emplace("window", core.window);
+		j.emplace("debug", core.debug);
+	}
+
+	static void from_json(const json& j, ngn::config::Core& core) {
+		core.physicalDevice = j.value("physicalDevice", core.physicalDevice);
+		core.window = j.value("window", core.window);
+		core.debug = j.value("debug", core.debug);
+	}
+};
+
+} // nlohmann
+
 namespace ngn::config {
 
-std::string toString(const VSync &value) {
-	switch (value) {
-		default:
-		case VSync::Immediate: { return "immediate"; }
-		case VSync::Fifo: { return "fifo"; }
-		case VSync::FifoRelaxed: { return "fiforelaxed"; }
-		case VSync::Mailbox: { return "mailbox"; }
-	}
+bool operator==(const Core::Debug::Vki &rhs, const Core::Debug::Vki &lhs) {
+	return std::tie(rhs.useRenderDoc, rhs.logLevel) == std::tie(lhs.useRenderDoc, lhs.logLevel);
 }
 
-VSync fromString(const std::string_view &name, const VSync &defaultValue) {
-	if (name == "immediate") { return VSync::Immediate; }
-	if (name == "fifo") { return VSync::Fifo; }
-	if (name == "fiforelaxed") { return VSync::FifoRelaxed; }
-	if (name == "mailbox") { return VSync::Mailbox; }
-	return defaultValue;
+bool operator==(const Core::Engine::Version &rhs, const Core::Engine::Version &lhs) {
+	return std::tie(rhs.major, rhs.minor, rhs.patch) == std::tie(lhs.major, lhs.minor, lhs.patch);
 }
 
-std::string toString(const WindowMode &value) {
-	switch (value) {
-		default:
-		case WindowMode::Windowed: { return "windowed"; }
-		case WindowMode::Borderless: { return "borderless"; }
-		case WindowMode::Fullscreen: { return "fullscreen"; }
-	}
+bool operator==(const Core::Application::Version &rhs, const Core::Application::Version &lhs) {
+	return std::tie(rhs.major, rhs.minor, rhs.patch) == std::tie(lhs.major, lhs.minor, lhs.patch);
 }
 
-WindowMode fromString(const std::string_view &name, const WindowMode &defaultValue) {
-	if (name == "windowed") { return WindowMode::Windowed; }
-	if (name == "borderless") { return WindowMode::Borderless; }
-	if (name == "fullscreen") { return WindowMode::Fullscreen; }
-	return defaultValue;
+bool operator==(const Core::Debug &rhs, const Core::Debug &lhs) {
+	return std::tie(rhs.vki) == std::tie(lhs.vki);
 }
 
-std::string toString(const PixelFormat &value) {
-	switch (value) {
-		default:
-		case PixelFormat::Undefined: { return "undefined"; }
-		case PixelFormat::R8UNorm: { return "r8unorm"; }
-		case PixelFormat::R8SNorm: { return "r8snorm"; }
-		case PixelFormat::R8UInt: { return "r8uint"; }
-		case PixelFormat::R8SInt: { return "r8sint"; }
-		case PixelFormat::R8G8UNorm: { return "r8g8unorm"; }
-		case PixelFormat::R8G8SNorm: { return "r8g8snorm"; }
-		case PixelFormat::R8G8UInt: { return "r8g8uint"; }
-		case PixelFormat::R8G8SInt: { return "r8g8sint"; }
-		case PixelFormat::R8G8B8A8UNorm: { return "r8g8b8a8unorm"; }
-		case PixelFormat::R8G8B8A8SNorm: { return "r8g8b8a8snorm"; }
-		case PixelFormat::R8G8B8A8UInt: { return "r8g8b8a8uint"; }
-		case PixelFormat::R8G8B8A8SInt: { return "r8g8b8a8sint"; }
-		case PixelFormat::B8G8R8A8UNorm: { return "b8g8r8a8unorm"; }
-		case PixelFormat::R16UNorm: { return "r16unorm"; }
-		case PixelFormat::R16SNorm: { return "r16snorm"; }
-		case PixelFormat::R16UInt: { return "r16uint"; }
-		case PixelFormat::R16SInt: { return "r16sint"; }
-		case PixelFormat::R16Float: { return "r16float"; }
-		case PixelFormat::R16G16UNorm: { return "r16g16unorm"; }
-		case PixelFormat::R16G16SNorm: { return "r16g16snorm"; }
-		case PixelFormat::R16G16UInt: { return "r16g16uint"; }
-		case PixelFormat::R16G16SInt: { return "r16g16sint"; }
-		case PixelFormat::R16G16Float: { return "r16g16float"; }
-		case PixelFormat::R16G16B16A16UNorm: { return "r16g16b16a16unorm"; }
-		case PixelFormat::R16G16B16A16SNorm: { return "r16g16b16a16snorm"; }
-		case PixelFormat::R16G16B16A16UInt: { return "r16g16b16a16uint"; }
-		case PixelFormat::R16G16B16A16SInt: { return "r16g16b16a16sint"; }
-		case PixelFormat::R16G16B16A16Float: { return "r16g16b16a16float"; }
-		case PixelFormat::R32UInt: { return "r32uint"; }
-		case PixelFormat::R32SInt: { return "r32sint"; }
-		case PixelFormat::R32Float: { return "r32float"; }
-		case PixelFormat::R32G32UInt: { return "r32g32uint"; }
-		case PixelFormat::R32G32SInt: { return "r32g32sint"; }
-		case PixelFormat::R32G32Float: { return "r32g32float"; }
-		case PixelFormat::R32G32B32UInt: { return "r32g32b32uint"; }
-		case PixelFormat::R32G32B32SInt: { return "r32g32b32sint"; }
-		case PixelFormat::R32G32B32Float: { return "r32g32b32float"; }
-		case PixelFormat::R32G32B32A32UInt: { return "r32g32b32a32uint"; }
-		case PixelFormat::R32G32B32A32SInt: { return "r32g32b32a32sint"; }
-		case PixelFormat::R32G32B32A32Float: { return "r32g32b32a32float"; }
-		case PixelFormat::D16UNorm: { return "d16unorm"; }
-		case PixelFormat::D32Float: { return "d32float"; }
-		case PixelFormat::D24UNormS8UInt: { return "d24unorms8uint"; }
-		case PixelFormat::D32FloatS8UInt: { return "d32floats8uint"; }
-		case PixelFormat::BC1UNorm: { return "bc1unorm"; }
-		case PixelFormat::BC1SRGB: { return "bc1srgb"; }
-		case PixelFormat::BC2UNorm: { return "bc2unorm"; }
-		case PixelFormat::BC2SRGB: { return "bc2srgb"; }
-		case PixelFormat::BC3UNorm: { return "bc3unorm"; }
-		case PixelFormat::BC3SRGB: { return "bc3srgb"; }
-		case PixelFormat::BC4UNorm: { return "bc4unorm"; }
-		case PixelFormat::BC4SNorm: { return "bc4snorm"; }
-		case PixelFormat::BC5UNorm: { return "bc5unorm"; }
-		case PixelFormat::BC5SNorm: { return "bc5snorm"; }
-		case PixelFormat::BC6HUFloat: { return "bc6hufloat"; }
-		case PixelFormat::BC6HSFloat: { return "bc6hsfloat"; }
-		case PixelFormat::BC7UNorm: { return "bc7unorm"; }
-		case PixelFormat::BC7SRGB: { return "bc7srgb"; }
-		case PixelFormat::B4G4R4A4UNormPack16: { return "b4g4r4a4unormpack16"; }
-		case PixelFormat::B5G6R5UNormPack16: { return "b5g6r5unormpack16"; }
-		case PixelFormat::B5G5R5A1UNormPack16: { return "b5g5r5a1unormpack16"; }
-		case PixelFormat::R10G10B10A2UNorm: { return "r10g10b10a2unorm"; }
-		case PixelFormat::R10G10B10A2UInt: { return "r10g10b10a2uint"; }
-		case PixelFormat::R11G11B10Float: { return "r11g11b10float"; }
-	}
+bool operator==(const Core::Window &rhs, const Core::Window &lhs) {
+	return std::tie(rhs.width, rhs.height, rhs.mode, rhs.monitor, rhs.vsync, rhs.swapchainSize, rhs.surfaceFormat, rhs.surfaceColorSpace) == std::tie(lhs.width, lhs.height, lhs.mode, lhs.monitor, lhs.vsync, lhs.swapchainSize, lhs.surfaceFormat, lhs.surfaceColorSpace);
 }
 
-PixelFormat fromString(const std::string_view &name, const PixelFormat &defaultValue) {
-	if (name == "undefined") { return PixelFormat::Undefined; }
-	if (name == "r8unorm") { return PixelFormat::R8UNorm; }
-	if (name == "r8snorm") { return PixelFormat::R8SNorm; }
-	if (name == "r8uint") { return PixelFormat::R8UInt; }
-	if (name == "r8sint") { return PixelFormat::R8SInt; }
-	if (name == "r8g8unorm") { return PixelFormat::R8G8UNorm; }
-	if (name == "r8g8snorm") { return PixelFormat::R8G8SNorm; }
-	if (name == "r8g8uint") { return PixelFormat::R8G8UInt; }
-	if (name == "r8g8sint") { return PixelFormat::R8G8SInt; }
-	if (name == "r8g8b8a8unorm") { return PixelFormat::R8G8B8A8UNorm; }
-	if (name == "r8g8b8a8snorm") { return PixelFormat::R8G8B8A8SNorm; }
-	if (name == "r8g8b8a8uint") { return PixelFormat::R8G8B8A8UInt; }
-	if (name == "r8g8b8a8sint") { return PixelFormat::R8G8B8A8SInt; }
-	if (name == "b8g8r8a8unorm") { return PixelFormat::B8G8R8A8UNorm; }
-	if (name == "r16unorm") { return PixelFormat::R16UNorm; }
-	if (name == "r16snorm") { return PixelFormat::R16SNorm; }
-	if (name == "r16uint") { return PixelFormat::R16UInt; }
-	if (name == "r16sint") { return PixelFormat::R16SInt; }
-	if (name == "r16float") { return PixelFormat::R16Float; }
-	if (name == "r16g16unorm") { return PixelFormat::R16G16UNorm; }
-	if (name == "r16g16snorm") { return PixelFormat::R16G16SNorm; }
-	if (name == "r16g16uint") { return PixelFormat::R16G16UInt; }
-	if (name == "r16g16sint") { return PixelFormat::R16G16SInt; }
-	if (name == "r16g16float") { return PixelFormat::R16G16Float; }
-	if (name == "r16g16b16a16unorm") { return PixelFormat::R16G16B16A16UNorm; }
-	if (name == "r16g16b16a16snorm") { return PixelFormat::R16G16B16A16SNorm; }
-	if (name == "r16g16b16a16uint") { return PixelFormat::R16G16B16A16UInt; }
-	if (name == "r16g16b16a16sint") { return PixelFormat::R16G16B16A16SInt; }
-	if (name == "r16g16b16a16float") { return PixelFormat::R16G16B16A16Float; }
-	if (name == "r32uint") { return PixelFormat::R32UInt; }
-	if (name == "r32sint") { return PixelFormat::R32SInt; }
-	if (name == "r32float") { return PixelFormat::R32Float; }
-	if (name == "r32g32uint") { return PixelFormat::R32G32UInt; }
-	if (name == "r32g32sint") { return PixelFormat::R32G32SInt; }
-	if (name == "r32g32float") { return PixelFormat::R32G32Float; }
-	if (name == "r32g32b32uint") { return PixelFormat::R32G32B32UInt; }
-	if (name == "r32g32b32sint") { return PixelFormat::R32G32B32SInt; }
-	if (name == "r32g32b32float") { return PixelFormat::R32G32B32Float; }
-	if (name == "r32g32b32a32uint") { return PixelFormat::R32G32B32A32UInt; }
-	if (name == "r32g32b32a32sint") { return PixelFormat::R32G32B32A32SInt; }
-	if (name == "r32g32b32a32float") { return PixelFormat::R32G32B32A32Float; }
-	if (name == "d16unorm") { return PixelFormat::D16UNorm; }
-	if (name == "d32float") { return PixelFormat::D32Float; }
-	if (name == "d24unorms8uint") { return PixelFormat::D24UNormS8UInt; }
-	if (name == "d32floats8uint") { return PixelFormat::D32FloatS8UInt; }
-	if (name == "bc1unorm") { return PixelFormat::BC1UNorm; }
-	if (name == "bc1srgb") { return PixelFormat::BC1SRGB; }
-	if (name == "bc2unorm") { return PixelFormat::BC2UNorm; }
-	if (name == "bc2srgb") { return PixelFormat::BC2SRGB; }
-	if (name == "bc3unorm") { return PixelFormat::BC3UNorm; }
-	if (name == "bc3srgb") { return PixelFormat::BC3SRGB; }
-	if (name == "bc4unorm") { return PixelFormat::BC4UNorm; }
-	if (name == "bc4snorm") { return PixelFormat::BC4SNorm; }
-	if (name == "bc5unorm") { return PixelFormat::BC5UNorm; }
-	if (name == "bc5snorm") { return PixelFormat::BC5SNorm; }
-	if (name == "bc6hufloat") { return PixelFormat::BC6HUFloat; }
-	if (name == "bc6hsfloat") { return PixelFormat::BC6HSFloat; }
-	if (name == "bc7unorm") { return PixelFormat::BC7UNorm; }
-	if (name == "bc7srgb") { return PixelFormat::BC7SRGB; }
-	if (name == "b4g4r4a4unormpack16") { return PixelFormat::B4G4R4A4UNormPack16; }
-	if (name == "b5g6r5unormpack16") { return PixelFormat::B5G6R5UNormPack16; }
-	if (name == "b5g5r5a1unormpack16") { return PixelFormat::B5G5R5A1UNormPack16; }
-	if (name == "r10g10b10a2unorm") { return PixelFormat::R10G10B10A2UNorm; }
-	if (name == "r10g10b10a2uint") { return PixelFormat::R10G10B10A2UInt; }
-	if (name == "r11g11b10float") { return PixelFormat::R11G11B10Float; }
-	return defaultValue;
+bool operator==(const Core::PhysicalDevice &rhs, const Core::PhysicalDevice &lhs) {
+	return std::tie(rhs.deviceId, rhs.vendorId) == std::tie(lhs.deviceId, lhs.vendorId);
 }
 
-std::string toString(const ColorSpace &value) {
-	switch (value) {
-		default:
-		case ColorSpace::LDR: { return "Ldr"; }
-		case ColorSpace::HDR: { return "hdr"; }
-	}
+bool operator==(const Core::Engine &rhs, const Core::Engine &lhs) {
+	return std::tie(rhs.name, rhs.version) == std::tie(lhs.name, lhs.version);
 }
 
-ColorSpace fromString(const std::string_view &name, const ColorSpace &defaultValue) {
-	if (name == "ldr") { return ColorSpace::LDR; }
-	if (name == "hdr") { return ColorSpace::HDR; }
-	return defaultValue;
+bool operator==(const Core::Application &rhs, const Core::Application &lhs) {
+	return std::tie(rhs.name, rhs.version) == std::tie(lhs.name, lhs.version);
 }
 
-struct PixelFormatVisitor {
-	json operator()(const PixelFormat &value) {
-		return json{toString(value)};
-	}
-	json operator()(uint32_t value) {
-		return json{value};
-	}
-};
-
-struct ColorSpaceVisitor {
-	json operator()(const ColorSpace &value) {
-		return json{toString(value)};
-	}
-	json operator()(uint32_t value) {
-		return json{value};
-	}
-};
-
-void Core::load() {
-	std::string contents = ngn::fs::contents(source(), false);
-	if (contents.empty()) {
-		contents = "{}";
-		dirty(true);
-	}
-
-	json body = json::parse(contents);
-
-	try {
-		physicalDevice.deviceId(body.at("/physicalDevice/deviceId"_json_pointer).get<uint32_t>());
-	} catch (const std::out_of_range &/*e*/) {
-		physicalDevice.deviceId(0);
-		dirty(true);
-	} catch (const std::domain_error &/*e*/) {
-		physicalDevice.deviceId(0);
-		dirty(true);
-	} catch (const std::invalid_argument &/*e*/) {
-		physicalDevice.deviceId(0);
-		dirty(true);
-	}
-
-	try {
-		physicalDevice.vendorId(body.at("/physicalDevice/vendorId"_json_pointer).get<uint32_t>());
-	} catch (const std::out_of_range &/*e*/) {
-		physicalDevice.vendorId(0);
-		dirty(true);
-	} catch (const std::domain_error &/*e*/) {
-		physicalDevice.vendorId(0);
-		dirty(true);
-	} catch (const std::invalid_argument &/*e*/) {
-		physicalDevice.vendorId(0);
-		dirty(true);
-	}
-
-	try {
-		db.mesh.forceSynchronusLoading(body.at("/db/mesh/forceSynchronusLoading"_json_pointer).get<bool>());
-	} catch (const std::out_of_range &/*e*/) {
-		db.mesh.forceSynchronusLoading(false);
-		dirty(true);
-	} catch (const std::domain_error &/*e*/) {
-		db.mesh.forceSynchronusLoading(false);
-		dirty(true);
-	} catch (const std::invalid_argument &/*e*/) {
-		db.mesh.forceSynchronusLoading(false);
-		dirty(true);
-	}
-
-	try {
-		db.texture.forceSynchronusLoading(body.at("/db/texture/forceSynchronusLoading"_json_pointer).get<bool>());
-	} catch (const std::out_of_range &/*e*/) {
-		db.texture.forceSynchronusLoading(false);
-		dirty(true);
-	} catch (const std::domain_error &/*e*/) {
-		db.texture.forceSynchronusLoading(false);
-		dirty(true);
-	} catch (const std::invalid_argument &/*e*/) {
-		db.texture.forceSynchronusLoading(false);
-		dirty(true);
-	}
-
-	try {
-		window.width(body.at("/window/width"_json_pointer).get<uint32_t>());
-	} catch (const std::out_of_range &/*e*/) {
-		window.width(1600);
-		dirty(true);
-	} catch (const std::domain_error &/*e*/) {
-		window.width(1600);
-		dirty(true);
-	} catch (const std::invalid_argument &/*e*/) {
-		window.width(1600);
-		dirty(true);
-	}
-
-	try {
-		window.height(body.at("/window/height"_json_pointer).get<uint32_t>());
-	} catch (const std::out_of_range &/*e*/) {
-		window.height(900);
-		dirty(true);
-	} catch (const std::domain_error &/*e*/) {
-		window.height(900);
-		dirty(true);
-	} catch (const std::invalid_argument &/*e*/) {
-		window.height(900);
-		dirty(true);
-	}
-
-	try {
-		window.mode(fromString(body.at("/window/mode"_json_pointer).get<std::string>(), WindowMode::Borderless));
-	} catch (const std::out_of_range &/*e*/) {
-		window.mode(WindowMode::Borderless);
-		dirty(true);
-	} catch (const std::domain_error &/*e*/) {
-		window.mode(WindowMode::Borderless);
-		dirty(true);
-	} catch (const std::invalid_argument &/*e*/) {
-		window.mode(WindowMode::Borderless);
-		dirty(true);
-	}
-
-	try {
-		window.monitor(body.at("/window/monitor"_json_pointer).get<int32_t>());
-	} catch (const std::out_of_range &/*e*/) {
-		window.monitor(-1);
-		dirty(true);
-	} catch (const std::domain_error &/*e*/) {
-		window.monitor(-1);
-		dirty(true);
-	} catch (const std::invalid_argument &/*e*/) {
-		window.monitor(-1);
-		dirty(true);
-	}
-
-	try {
-		window.vsync(fromString(body.at("/window/vsync"_json_pointer).get<std::string>(), VSync::Mailbox));
-	} catch (const std::out_of_range &/*e*/) {
-		window.vsync(VSync::Mailbox);
-		dirty(true);
-	} catch (const std::domain_error &/*e*/) {
-		window.vsync(VSync::Mailbox);
-		dirty(true);
-	} catch (const std::invalid_argument &/*e*/) {
-		window.vsync(VSync::Mailbox);
-		dirty(true);
-	}
-
-	try {
-		window.imageBuffers(body.at("/window/imageBuffers"_json_pointer).get<uint32_t>());
-	} catch (const std::out_of_range &/*e*/) {
-		window.imageBuffers(3);
-		dirty(true);
-	} catch (const std::domain_error &/*e*/) {
-		window.imageBuffers(3);
-		dirty(true);
-	} catch (const std::invalid_argument &/*e*/) {
-		window.imageBuffers(3);
-		dirty(true);
-	}
-
-	try {
-		if (body.at("/window/surfaceFormat"_json_pointer).is_number_unsigned()) {
-			window.surfaceFormat(body.at("/window/surfaceFormat"_json_pointer).get<uint32_t>());
-		} else {
-			window.surfaceFormat(fromString(body.at("/window/surfaceFormat"_json_pointer).get<std::string>(), PixelFormat::B8G8R8A8UNorm));
-		}
-
-		// window.surfaceFormat(fromString(body.at("/window/surfaceFormat"_json_pointer).get<std::string>(), PixelFormat::B8G8R8A8UNorm));
-	} catch (const std::out_of_range &/*e*/) {
-		window.surfaceFormat(PixelFormat::B8G8R8A8UNorm);
-		dirty(true);
-	} catch (const std::domain_error &/*e*/) {
-		window.surfaceFormat(PixelFormat::B8G8R8A8UNorm);
-		dirty(true);
-	} catch (const std::invalid_argument &/*e*/) {
-		window.surfaceFormat(PixelFormat::B8G8R8A8UNorm);
-		dirty(true);
-	}
-
-	try {
-		if (body.at("/window/surfaceColorSpace"_json_pointer).is_number_unsigned()) {
-			window.surfaceColorSpace(body.at("/window/surfaceColorSpace"_json_pointer).get<uint32_t>());
-		} else {
-			window.surfaceColorSpace(fromString(body.at("/window/surfaceColorSpace"_json_pointer).get<std::string>(), ColorSpace::LDR));
-		}
-		// window.surfaceColorSpace(fromString(body.at("/window/surfaceColorSpace"_json_pointer).get<std::string>(), ColorSpace::LDR));
-	} catch (const std::out_of_range &/*e*/) {
-		window.surfaceColorSpace(ColorSpace::LDR);
-		dirty(true);
-	} catch (const std::domain_error &/*e*/) {
-		window.surfaceColorSpace(ColorSpace::LDR);
-		dirty(true);
-	} catch (const std::invalid_argument &/*e*/) {
-		window.surfaceColorSpace(ColorSpace::LDR);
-		dirty(true);
-	}
-
-	try {
-		debug.vk.useRenderDoc(body.at("/debug/vk/useRenderDoc"_json_pointer).get<bool>());
-	} catch (const std::out_of_range &/*e*/) {
-		debug.vk.useRenderDoc(false);
-		dirty(true);
-	} catch (const std::domain_error &/*e*/) {
-		debug.vk.useRenderDoc(false);
-		dirty(true);
-	} catch (const std::invalid_argument &/*e*/) {
-		debug.vk.useRenderDoc(false);
-		dirty(true);
-	}
-
-	try {
-		debug.vk.logLevel(body.at("/debug/vk/logLevel"_json_pointer).get<uint32_t>());
-	} catch (const std::out_of_range &/*e*/) {
-		debug.vk.logLevel(1);
-		dirty(true);
-	} catch (const std::domain_error &/*e*/) {
-		debug.vk.logLevel(1);
-		dirty(true);
-	} catch (const std::invalid_argument &/*e*/) {
-		debug.vk.logLevel(1);
-		dirty(true);
-	}
+bool operator==(const Core &rhs, const Core &lhs) {
+	return std::tie(rhs.dirty, rhs.application, rhs.engine, rhs.physicalDevice, rhs.window, rhs.debug) == std::tie(lhs.dirty, lhs.application, lhs.engine, lhs.physicalDevice, lhs.window, lhs.debug);
 }
 
-std::string Core::dump(const int indent) {
-	json body = {
-		{"physicalDevice", {
-			{"deviceId", physicalDevice.deviceId()},
-			{"vendorId", physicalDevice.vendorId()}
-		}},
-		{"db", {
-			{"mesh", {
-				{"forceSynchronusLoading", db.mesh.forceSynchronusLoading()}
-			}},
-			{"texture", {
-				{"forceSynchronusLoading", db.texture.forceSynchronusLoading()}
-			}}
-		}},
-		{"window", {
-			{"width", window.width()},
-			{"height", window.height()},
-			{"mode", toString(window.mode())},
-			{"monitor", window.monitor()},
-			{"vsync", toString(window.vsync())},
-			{"imageBuffers", window.imageBuffers()},
-			{"surfaceFormat", std::visit(PixelFormatVisitor{}, window.surfaceFormat())},
-			{"surfaceColorSpace", std::visit(ColorSpaceVisitor{}, window.surfaceColorSpace())}
-		}},
-		{"debug", {
-			{"vk", {
-				{"useRenderDoc", debug.vk.useRenderDoc()},
-				{"logLevel", debug.vk.logLevel()}
-			}}
-		}}
-	};
+bool operator!=(const Core::Debug::Vki &rhs, const Core::Debug::Vki &lhs) {
+	return ! (rhs == lhs);
+}
+
+bool operator!=(const Core::Engine::Version &rhs, const Core::Engine::Version &lhs) {
+	return ! (rhs == lhs);
+}
+
+bool operator!=(const Core::Application::Version &rhs, const Core::Application::Version &lhs) {
+	return ! (rhs == lhs);
+}
+
+bool operator!=(const Core::Debug &rhs, const Core::Debug &lhs) {
+	return ! (rhs == lhs);
+}
+
+bool operator!=(const Core::Window &rhs, const Core::Window &lhs) {
+	return ! (rhs == lhs);
+}
+
+bool operator!=(const Core::PhysicalDevice &rhs, const Core::PhysicalDevice &lhs) {
+	return ! (rhs == lhs);
+}
+
+bool operator!=(const Core::Engine &rhs, const Core::Engine &lhs) {
+	return ! (rhs == lhs);
+}
+
+bool operator!=(const Core::Application &rhs, const Core::Application &lhs) {
+	return ! (rhs == lhs);
+}
+
+bool operator!=(const Core &rhs, const Core &lhs) {
+	return ! (rhs == lhs);
+}
+
+Core Core::load(std::string_view filePath) {
+	std::optional<std::string> contentsO = ngn::fs::contents(filePath);
+	if ( ! contentsO) {
+		contentsO = "{}";
+	}
+
+	return json::parse(contentsO.value()).get<Core>();
+}
+
+std::string Core::dump(const Core &core, int indent) {
+	json body = core;
 
 	return body.dump(indent);
 }
 
-bool Core::store() {
-	if (ngn::fs::write(source(), dump(2), false)) {
-		dirty(false);
-		return true;
-	} else {
-		return false;
-	}
+std::optional<std::string> Core::store(const Core &core, std::string_view filePath) {
+	return ngn::fs::write(filePath, Core::dump(core, 2));
 }
 
 } // ngn::config

@@ -4,6 +4,11 @@
 
 namespace ngn::config {
 
-extern Core core;
+struct Config {
+	Core core{};
+
+	static Config factory();
+};
+
 
 } // ngn::config
