@@ -22,10 +22,10 @@ Handle::Handle(Handle &&other) noexcept :
 	memory{std::move(other.memory)},
 	offset{std::move(other.offset)},
 	flags{std::move(other.flags)},
-	pointer{std::move(other.pointer)},
+	pointer{other.pointer},
 	pool{std::move(other.pool)},
-	blockIdx{std::move(other.blockIdx)},
-	leafIdx{std::move(other.leafIdx)}
+	blockIdx{other.blockIdx},
+	leafIdx{other.leafIdx}
 {
 	other.memory = rn::vki::HandleDeviceMemory{};
 }
@@ -36,10 +36,10 @@ Handle & Handle::operator=(Handle &&other) noexcept {
 	memory = std::move(other.memory);
 	offset = std::move(other.offset);
 	flags = std::move(other.flags);
-	pointer = std::move(other.pointer);
+	pointer = other.pointer;
 	pool = std::move(other.pool);
-	blockIdx = std::move(other.blockIdx);
-	leafIdx = std::move(other.leafIdx);
+	blockIdx = other.blockIdx;
+	leafIdx = other.leafIdx;
 
 	other.memory = rn::vki::HandleDeviceMemory{};
 
@@ -57,7 +57,7 @@ bool Handle::needsFlushing() {
 void Handle::release() {
 	if (memory) {
 		if (pool == nullptr) {
-			ngn::log::error("rn::vki::memory::Handle::release() <{:x}> => unable to release memory handle, unknown pool", rn::vki::id(memory.get()));
+			ngn::log::error("rn::vki::memory::Handle::release() <{:#x}> => unable to release memory handle, unknown pool", rn::vki::id(memory.get()));
 		} else {
 			pool->free(*this);
 		}

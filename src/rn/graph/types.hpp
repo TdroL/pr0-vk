@@ -122,7 +122,7 @@ constexpr rn::graph::Access operator&(rn::graph::Access left, rn::graph::Access 
 
 struct TextureCreate {
 	rn::PixelFormat format;
-	std::optional<rn::Extent3D> dimensions{};
+	rn::Extent3D dimensions{0, 0, 0};
 	rn::ImageType type{rn::ImageType::Tex2D};
 	uint32_t levels{1};
 	uint32_t layers{1};

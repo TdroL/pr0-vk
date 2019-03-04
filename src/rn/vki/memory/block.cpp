@@ -22,8 +22,8 @@ Block::Block(Block &&other) noexcept :
 	deviceMemory{std::move(other.deviceMemory)},
 	mapping{std::move(other.mapping)},
 	blockSize{std::move(other.blockSize)},
-	levels{std::move(other.levels)},
-	memoryTypeIndex{std::move(other.memoryTypeIndex)},
+	levels{other.levels},
+	memoryTypeIndex{other.memoryTypeIndex},
 	flags{std::move(other.flags)},
 	leafs{std::move(other.leafs)}
 {
@@ -36,8 +36,8 @@ Block & Block::operator=(Block &&other) noexcept {
 	deviceMemory = std::move(other.deviceMemory);
 	mapping = std::move(other.mapping);
 	blockSize = std::move(other.blockSize);
-	levels = std::move(other.levels);
-	memoryTypeIndex = std::move(other.memoryTypeIndex);
+	levels = other.levels;
+	memoryTypeIndex = other.memoryTypeIndex;
 	flags = std::move(other.flags);
 	leafs = std::move(other.leafs);
 
@@ -114,7 +114,7 @@ bool Block::isEmpty() {
 void Block::reset() {
 	if (deviceMemory) {
 		if ( ! isEmpty()) {
-			ngn::log::error("rn::vki::memory::Block::reset() <{:x}> => some allocations were not freed before block destruction", rn::vki::id(deviceMemory.get()));
+			ngn::log::error("rn::vki::memory::Block::reset() <{:#x}> => some allocations were not freed before block destruction", rn::vki::id(deviceMemory.get()));
 		}
 
 		mapping.reset();

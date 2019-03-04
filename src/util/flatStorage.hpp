@@ -35,9 +35,23 @@ public:
 		}
 	}
 
+	std::pair<Handle, std::reference_wrapper<std::pair<K, V>>> findOrAssign(K &&key, V &&value = V{}) {
+		const auto it = std::find_if(std::begin(entries), std::end(entries), [&] (const auto &entry) {
+			return entry.first == key;
+		});
+
+		if (it == std::end(entries)) {
+			entries.emplace_back(std::move(key), std::move(value));
+
+			return std::make_pair(entries.size(), std::ref(entries[entries.size()]));
+		} else {
+			return std::make_pair(it - std::begin(entries), std::ref(*it));
+		}
+	}
+
 	std::optional<std::reference_wrapper<std::pair<K, V>>> access(const Handle &handle) noexcept {
-		if (entries.size() > handle) {
-			return entries[handle];
+		if (handle < entries.size()) {
+			return std::ref(entries[handle]);
 		} else {
 			return std::nullopt;
 		}

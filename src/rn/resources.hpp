@@ -1,8 +1,11 @@
 #pragma once
 
 #include <functional>
+#include <map>
 #include <optional>
 #include <string>
+#include <string_view>
+#include <vector>
 
 #include "types.hpp"
 
@@ -56,22 +59,27 @@ public:
 		const auto handleO = find(name);
 
 		if (handleO) {
-			return retire(*handleO);
+			retire(*handleO);
 		}
 
 		const auto handle = internal.createTexture(description);
 
 		size_t index = handle.index;
 
-		if (index >= textureSlots.size()) {
-			textureSlots.resize(index);
-		}
+		// if (index >= textureSlots.size()) {
+		// 	textureSlots.resize(index + 1);
+		// }
 
-		textureSlots[index] = {
+		// textureSlots[index] = {
+		// 	handle,
+		// 	description,
+		// 	std::string{name},
+		// };
+		textureSlots.insert(std::begin(textureSlots) + index, {
 			handle,
 			description,
-			std::string{name},
-		};
+			std::string{name}
+		});
 		textureSlotHandleIndices.insert_or_assign(textureSlots[index].name, handle);
 
 		return handle;
@@ -97,7 +105,8 @@ public:
 		};
 		textureRetireHandleIndices.insert_or_assign(textureRetires[index].name, handle);
 
-		textureSlots[index] = {};
+		// textureSlots[index] = {};
+		textureSlots.insert(std::begin(textureSlots) + index, {});
 		textureSlotHandleIndices.erase(textureRetires[index].name);
 
 		return true;
@@ -122,7 +131,7 @@ public:
 		textureSlotHandleIndices.insert_or_assign(textureSlots[index].name, handle);
 
 		textureRetires[index] = {};
-		textureRetireHandleIndices.erase(textureSlots[index].name, handle);
+		textureRetireHandleIndices.erase(textureSlots[index].name);
 
 		return true;
 	}
@@ -198,6 +207,202 @@ class BufferResources {
 public:
 	T &internal;
 
+	struct BufferSlot {
+		rn::BufferHandle handle;
+		rn::BufferDescription description;
+		std::string name;
+	};
+
+	struct BufferRetire {
+		rn::BufferHandle handle;
+		rn::BufferDescription description;
+		std::string name;
+		uint64_t tick;
+	};
+
+	std::vector<BufferSlot> bufferSlots{};
+	std::map<std::string_view, rn::BufferHandle> bufferSlotHandleIndices{};
+
+	std::vector<BufferRetire> bufferRetires{};
+	std::map<std::string_view, rn::BufferHandle> bufferRetireHandleIndices{};
+
+	std::optional<rn::BufferHandle> find(std::string_view name) {
+		const auto mappingIt = bufferSlotHandleIndices.find(name);
+
+		if (mappingIt == std::end(bufferSlotHandleIndices)) {
+			return std::nullopt;
+		}
+
+		return mappingIt->second;
+	}
+
+	std::optional<rn::BufferHandle> findRetired(std::string_view name) {
+		const auto mappingIt = bufferRetireHandleIndices.find(name);
+
+		if (mappingIt == std::end(bufferRetireHandleIndices)) {
+			return std::nullopt;
+		}
+
+		return mappingIt->second;
+	}
+
+	rn::BufferHandle create(std::string_view name, const rn::BufferDescription &description) {
+		const auto handleO = find(name);
+
+		if (handleO) {
+			retire(*handleO);
+		}
+
+		const auto handle = internal.createBuffer(description);
+
+		size_t index = handle.index;
+
+		// if (index >= bufferSlots.size()) {
+		// 	bufferSlots.resize(index + 1);
+		// }
+
+		// bufferSlots[index] = {
+		// 	handle,
+		// 	description,
+		// 	std::string{name},
+		// };
+		bufferSlots.insert(std::begin(bufferSlots) + index, {
+			handle,
+			description,
+			std::string{name}
+		});
+		bufferSlotHandleIndices.insert_or_assign(bufferSlots[index].name, handle);
+
+		return handle;
+	}
+
+	bool retire(rn::BufferHandle handle) {
+		size_t index = handle.index;
+
+		if (index >= bufferSlots.size() || bufferSlots[index].handle == rn::end<rn::BufferHandle>()) {
+			return false;
+		}
+
+		if (index >= bufferRetires.size()) {
+			bufferRetires.resize(std::max(index + 1, bufferSlots.size()));
+		}
+
+		uint64_t tick = 0;
+		// bufferRetires[index] = {
+		// 	std::move(bufferSlots[index].handle),
+		// 	std::move(bufferSlots[index].description),
+		// 	std::move(bufferSlots[index].name),
+		// 	tick,
+		// };
+		bufferRetires.insert(std::begin(bufferRetires) + index, {
+			std::move(bufferSlots[index].handle),
+			std::move(bufferSlots[index].description),
+			std::move(bufferSlots[index].name),
+			tick,
+		});
+		bufferRetireHandleIndices.insert_or_assign(bufferRetires[index].name, handle);
+
+		// bufferSlots[index] = {};
+		bufferSlots.insert(std::begin(bufferSlots) + index, {});
+		bufferSlotHandleIndices.erase(bufferRetires[index].name);
+
+		return true;
+	}
+
+	bool restore(rn::BufferHandle handle) {
+		size_t index = handle.index;
+
+		if (index >= bufferRetires.size() || bufferRetires[index].handle == rn::end<rn::BufferHandle>()) {
+			return false;
+		}
+
+		if (index >= bufferSlots.size()) {
+			bufferSlots.resize(std::max(index + 1, bufferRetires.size()));
+		}
+
+		// bufferSlots[index] = {
+		// 	std::move(bufferRetires[index].handle),
+		// 	std::move(bufferRetires[index].description),
+		// 	std::move(bufferRetires[index].name),
+		// };
+		bufferSlots.insert(std::begin(bufferSlots) + index, {
+			std::move(bufferRetires[index].handle),
+			std::move(bufferRetires[index].description),
+			std::move(bufferRetires[index].name),
+		});
+		bufferSlotHandleIndices.insert_or_assign(bufferSlots[index].name, handle);
+
+		// bufferRetires[index] = {};
+		bufferRetires.insert(std::begin(bufferRetires) + index, {});
+		bufferRetireHandleIndices.erase(bufferSlots[index].name);
+
+		return true;
+	}
+
+	std::optional<std::reference_wrapper<rn::BufferDescription>> describe(rn::BufferHandle handle) {
+		size_t index = handle.index;
+
+		if (index >= bufferSlots.size() || bufferSlots[index].handle == rn::end<rn::BufferHandle>()) {
+			return std::nullopt;
+		}
+
+		return bufferSlots[index].description;
+	}
+
+	std::optional<std::reference_wrapper<rn::BufferDescription>> describeRetired(rn::BufferHandle handle) {
+		size_t index = handle.index;
+
+		if (index >= bufferRetires.size() || bufferRetires[index].handle == rn::end<rn::BufferHandle>()) {
+			return std::nullopt;
+		}
+
+		return bufferRetires[index].description;
+	}
+
+	bool retire(std::string_view name) {
+		const auto handleO = find(name);
+
+		if (handleO) {
+			return retire(*handleO);
+		}
+
+		return false;
+	}
+
+	std::optional<std::reference_wrapper<rn::BufferDescription>> describe(std::string_view name) {
+		const auto handleO = find(name);
+
+		if (handleO) {
+			return describe(*handleO);
+		} else {
+			return std::nullopt;
+		}
+	}
+
+	rn::BufferHandle findOrCreate(std::string_view name, const rn::BufferDescription &description) {
+		const auto handleO = find(name);
+
+		if (handleO) {
+			auto descriptionO = describe(*handleO);
+
+			if (descriptionO) {
+				if (descriptionO->get() == description) {
+					return *handleO;
+				} else {
+					retire(*handleO);
+				}
+			} else {
+				descriptionO = describeRetired(*handleO);
+
+				if (descriptionO->get() == description) {
+					restore(*handleO);
+					return *handleO;
+				}
+			}
+		}
+
+		return create(name, description);
+	}
 };
 
 template<class T>

@@ -52,10 +52,10 @@ public:
 	}
 };
 
-using BufferDescritors = Descritors<rn::graph::BufferResourceHandle, rn::graph::BufferCreate, rn::graph::BufferModify>;
-using TextureDescritors = Descritors<rn::graph::TextureResourceHandle, rn::graph::TextureCreate, rn::graph::TextureModify>;
+using BufferDescritors = rn::graph::Descritors<rn::graph::BufferResourceHandle, rn::graph::BufferCreate, rn::graph::BufferModify>;
+using TextureDescritors = rn::graph::Descritors<rn::graph::TextureResourceHandle, rn::graph::TextureCreate, rn::graph::TextureModify>;
 
-struct Resources {
+struct ResourceDescriptors {
 	rn::graph::BufferDescritors buffer{};
 	rn::graph::TextureDescritors texture{};
 
@@ -68,8 +68,8 @@ template<class T>
 class Subpasses {
 public:
 	struct Entry {
-		std::vector<rn::graph::SubpassResourceHandle> dependencies;
-		T desc;
+		std::vector<rn::graph::SubpassResourceHandle> dependencies{};
+		T description{};
 	};
 
 	util::FlatStorage<std::string, Entry> storage{};
@@ -78,8 +78,8 @@ public:
 		storage.reserve(size);
 	}
 
-	rn::graph::SubpassResourceHandle add(std::string &&name, std::vector<rn::graph::SubpassResourceHandle> &&dependencies, T &&desc) {
-		auto index = storage.assign(std::move(name), Entry{ std::move(dependencies), std::move(desc) });
+	rn::graph::SubpassResourceHandle add(std::string &&name, std::vector<rn::graph::SubpassResourceHandle> &&dependencies, T &&description) {
+		auto index = storage.assign(std::move(name), Entry{ std::move(dependencies), std::move(description) });
 		assert(index < (1ull << (sizeof(rn::graph::SubpassResourceHandle::InternalType) * 8)));
 		return rn::graph::SubpassResourceHandle{ static_cast<rn::graph::SubpassResourceHandle::InternalType>(index) };
 	}
@@ -117,8 +117,8 @@ struct ComputeSubpassDesc {
 	std::vector<rn::graph::BufferResourceHandle> buffers{};
 };
 
-using GraphicSubpasses = Subpasses<rn::graph::GraphicSubpassDesc>;
-using ComputeSubpasses = Subpasses<rn::graph::ComputeSubpassDesc>;
+using GraphicSubpasses = rn::graph::Subpasses<rn::graph::GraphicSubpassDesc>;
+using ComputeSubpasses = rn::graph::Subpasses<rn::graph::ComputeSubpassDesc>;
 
 using GraphicCommandList = std::vector<rn::graph::GraphicCommandVariant>;
 using ComputeCommandList = std::vector<rn::graph::ComputeCommandVariant>;
@@ -131,20 +131,37 @@ using TransferCommandListRecorder = std::function<rn::graph::TransferCommandList
 using GraphicSubpassRecorders = std::vector<std::tuple<rn::graph::SubpassResourceHandle, rn::graph::GraphicCommandListRecorder>>;
 using ComputeSubpassRecorders = std::vector<std::tuple<rn::graph::SubpassResourceHandle, rn::graph::ComputeCommandListRecorder>>;
 
+struct GraphicSetupResult {
+	rn::graph::ResourceDescriptors resourceDescriptors;
+	rn::graph::GraphicSubpasses subpasses;
+	rn::graph::GraphicSubpassRecorders recorder;
+};
+
+struct ComputeSetupResult {
+	rn::graph::ResourceDescriptors resourceDescriptors;
+	rn::graph::ComputeSubpasses subpasses;
+	rn::graph::ComputeSubpassRecorders recorder;
+};
+
+struct TransferSetupResult {
+	rn::graph::ResourceDescriptors resourceDescriptors;
+	rn::graph::TransferCommandListRecorder recorder;
+};
+
 struct GraphicPass {
 	std::string name;
 	rn::Extent3D dimensions;
-	std::function<std::tuple<rn::graph::Resources, rn::graph::GraphicSubpasses, rn::graph::GraphicSubpassRecorders> ()> setup;
+	std::function<rn::graph::GraphicSetupResult ()> setup;
 };
 
 struct ComputePass {
 	std::string name;
-	std::function<std::tuple<rn::graph::Resources, rn::graph::ComputeSubpasses, rn::graph::ComputeSubpassRecorders> ()> setup;
+	std::function<rn::graph::ComputeSetupResult ()> setup;
 };
 
 struct TransferPass {
 	std::string name;
-	std::function<std::tuple<rn::graph::Resources, rn::graph::TransferCommandListRecorder> ()> setup;
+	std::function<rn::graph::TransferSetupResult ()> setup;
 };
 
 using Passes = std::vector<std::variant<rn::graph::GraphicPass, rn::graph::ComputePass, rn::graph::TransferPass>>;

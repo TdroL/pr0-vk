@@ -1,8 +1,11 @@
 #include "log.hpp"
 
+#include <ctime>
+#include <iomanip>
 #include <memory>
 #include <mutex>
 
+#include <fmt/format.h>
 #include <spdlog/sinks/stdout_sinks.h>
 
 namespace ngn::log {
@@ -17,6 +20,14 @@ spdlog::logger & logger() {
 		console = spdlog::stdout_logger_mt("console");
 		console->set_level(spdlog::level::debug);
 		console->set_pattern("[%H:%M:%S.%e T#%t] <%l> %v");
+
+		spdlog::set_error_handler([&] (const std::string& message) {
+			std::time_t now = std::time(nullptr);
+			char dataBuffer[100] = { 0 };
+			std::strftime(dataBuffer, sizeof(dataBuffer), "%Y-%m-%d %H:%M:%S", std::localtime(&now));
+
+			fmt::print(stderr, "[*** LOG ERROR ***] [{}] [{}] {}\n", dataBuffer, console->name(), message);
+		});
 	});
 
 	return *console;

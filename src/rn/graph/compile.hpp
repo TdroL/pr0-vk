@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "../../util/either.hpp"
+#include "../../util/flatStorage.hpp"
 #include "passes.hpp"
 
 namespace rn::graph {
@@ -28,14 +29,11 @@ public:
 	}
 };
 
-struct ResourcesUsage {
-	std::string passName;
-	rn::graph::Resources resources;
-};
+using SetupResult = std::variant<rn::graph::GraphicSetupResult, rn::graph::ComputeSetupResult, rn::graph::TransferSetupResult>;
 
 struct CompileData {
 	std::vector<std::string_view> resolvedPassNames{};
-	std::vector<rn::graph::ResourcesUsage> resourcesUsageList{};
+	util::FlatStorage<std::string, rn::graph::SetupResult> setupResults{};
 };
 
 using CompileResult = util::EitherOption<rn::graph::CompileError, rn::graph::CompileData>;

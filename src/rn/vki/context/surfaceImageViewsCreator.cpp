@@ -12,11 +12,11 @@ namespace rn::vki::context {
 
 std::vector<rn::vki::UniqueImageView> SurfaceImageViewsCreator::create(rn::vki::context::SurfaceDescription &surfaceDescription, rn::vki::HandleDevice &&device, ngn::config::Config &config) {
 	vk::Format imageFormat;
-	if (auto ptr = std::get_if<rn::PixelFormat>(&config.core.window.surfaceFormat)) {
-		imageFormat = fromCommon(*ptr);
-	} else if (auto ptr = std::get_if<uint32_t>(&config.core.window.surfaceFormat)) {
-		static_assert(sizeof(vk::Format) == sizeof(*ptr));
-		imageFormat = static_cast<vk::Format>(*ptr);
+	if (auto value = std::get_if<rn::PixelFormat>(&config.core.window.surfaceFormat)) {
+		imageFormat = fromCommon(*value);
+	} else if (auto value = std::get_if<uint32_t>(&config.core.window.surfaceFormat)) {
+		static_assert(sizeof(vk::Format) == sizeof(*value));
+		imageFormat = static_cast<vk::Format>(*value);
 	} else {
 		assert("config.core.window.surfaceFormat holds unknown alternative");
 	}

@@ -36,6 +36,22 @@ rn::BufferUsage operator&(rn::BufferUsage left, rn::BufferUsage right) {
 	return static_cast<rn::BufferUsage>(static_cast<uint32_t>(left) & static_cast<uint32_t>(right));
 }
 
+bool operator==(const rn::BufferDescription &a, const rn::BufferDescription &b) {
+	return std::tie(a.size, a.usage, a.paging) == std::tie(b.size, b.usage, b.paging);
+}
+
+bool operator!=(const rn::BufferDescription &a, const rn::BufferDescription &b) {
+	return !(a == b);
+}
+
+bool operator==(const rn::TextureDescription &a, const rn::TextureDescription &b) {
+	return std::tie(a.format, a.dimensions, a.type, a.levels, a.layers, a.usage) == std::tie(b.format, b.dimensions, b.type, b.levels, b.layers, b.usage);
+}
+
+bool operator!=(const rn::TextureDescription &a, const rn::TextureDescription &b) {
+	return !(a == b);
+}
+
 bool operator==(rn::TextureHandle a, rn::TextureHandle b) {
 	return a.index == b.index;
 }

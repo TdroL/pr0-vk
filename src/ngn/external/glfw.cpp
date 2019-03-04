@@ -54,7 +54,7 @@ void errorCallback(int code, const char *message) {
 void GLFW::initialize() {
 	// static GLFWInstance glfwInstance{create()};
 	static auto instance = util::createScopeExit(
-		[] () {
+		[&] () {
 			ngn::log::debug("ngn::external::GLFW::initialize() => initialize GLFW");
 
 			glfwSetErrorCallback(errorCallback);

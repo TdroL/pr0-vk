@@ -80,6 +80,7 @@ int main() {
 			// mainState.render();
 		}
 
+		ngn::log::info("done, cleanup");
 		return EXIT_SUCCESS;
 	} catch (std::runtime_error const &e) {
 		ngn::log::critical("Runtime exception: {}", e.what());

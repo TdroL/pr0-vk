@@ -20,11 +20,11 @@ vk::SurfaceFormatKHR SurfaceFormatSelector::select(rn::vki::HandleSurfaceKHR &&s
 	}
 
 	vk::Format desiredFormat = vk::Format::eUndefined;
-	if (auto ptr = std::get_if<rn::PixelFormat>(&config.core.window.surfaceFormat)) {
-		desiredFormat = fromCommon(*ptr);
-	} else if (auto ptr = std::get_if<uint32_t>(&config.core.window.surfaceFormat)) {
-		static_assert(sizeof(vk::Format) == sizeof(*ptr));
-		desiredFormat = static_cast<vk::Format>(*ptr);
+	if (auto value = std::get_if<rn::PixelFormat>(&config.core.window.surfaceFormat)) {
+		desiredFormat = fromCommon(*value);
+	} else if (auto value = std::get_if<uint32_t>(&config.core.window.surfaceFormat)) {
+		static_assert(sizeof(vk::Format) == sizeof(*value));
+		desiredFormat = static_cast<vk::Format>(*value);
 	} else {
 		assert("config.core.window.surfaceFormat holds unknown alternative");
 	}
@@ -41,8 +41,8 @@ vk::SurfaceFormatKHR SurfaceFormatSelector::select(rn::vki::HandleSurfaceKHR &&s
 	}
 
 	// try to match both format and color space
-	if (auto ptr = std::get_if<rn::ColorSpace>(&config.core.window.surfaceColorSpace)) {
-		if (*ptr == rn::ColorSpace::LDR) {
+	if (auto value = std::get_if<rn::ColorSpace>(&config.core.window.surfaceColorSpace)) {
+		if (*value == rn::ColorSpace::LDR) {
 			const auto foundFormatLDR = std::find_if(std::begin(surfaceFormats), std::end(surfaceFormats), [=] (const auto &surfaceFormat) {
 				return surfaceFormat.format == desiredFormat && surfaceFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear;
 			});
@@ -50,7 +50,7 @@ vk::SurfaceFormatKHR SurfaceFormatSelector::select(rn::vki::HandleSurfaceKHR &&s
 			if (foundFormatLDR != std::end(surfaceFormats)) {
 				return *foundFormatLDR;
 			}
-		} else if (*ptr == rn::ColorSpace::HDR) {
+		} else if (*value == rn::ColorSpace::HDR) {
 			const auto foundFormatHDR = std::find_if(std::begin(surfaceFormats), std::end(surfaceFormats), [=] (const auto &surfaceFormat) {
 				if (surfaceFormat.format == desiredFormat) {
 					switch (surfaceFormat.colorSpace) {
@@ -83,10 +83,10 @@ vk::SurfaceFormatKHR SurfaceFormatSelector::select(rn::vki::HandleSurfaceKHR &&s
 				return *foundFormatHDR;
 			}
 		}
-	} else if (auto ptr = std::get_if<uint32_t>(&config.core.window.surfaceColorSpace)) {
-		static_assert(sizeof(vk::ColorSpaceKHR) == sizeof(*ptr));
+	} else if (auto value = std::get_if<uint32_t>(&config.core.window.surfaceColorSpace)) {
+		static_assert(sizeof(vk::ColorSpaceKHR) == sizeof(*value));
 
-		const auto foundFormatSpec = std::find_if(std::begin(surfaceFormats), std::end(surfaceFormats), [=, desiredColorSpace = static_cast<vk::ColorSpaceKHR>(*ptr)] (const auto &surfaceFormat) {
+		const auto foundFormatSpec = std::find_if(std::begin(surfaceFormats), std::end(surfaceFormats), [=, desiredColorSpace = static_cast<vk::ColorSpaceKHR>(*value)] (const auto &surfaceFormat) {
 			return surfaceFormat.format == desiredFormat && surfaceFormat.colorSpace == desiredColorSpace;
 		});
 

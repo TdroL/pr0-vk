@@ -48,27 +48,39 @@ struct MappingMap {
 	std::unordered_map<std::string_view, rn::graph::PassMapping> passes{};
 };
 
-rn::graph::Resources applyPassProperties(const rn::graph::GraphicPass &pass, rn::graph::Resources &&resources) {
+rn::graph::ResourceDescriptors applyPassProperties(const rn::graph::GraphicPass &pass, rn::graph::ResourceDescriptors &&resources) {
 	for (auto &&it : resources.texture) {
 		if (auto value = std::get_if<rn::graph::TextureCreate>(&it.second)) {
-			if ( ! value->dimensions) {
-				value->dimensions = {{ pass.dimensions.width, pass.dimensions.height, pass.dimensions.depth }};
+			if (value->dimensions.width == 0) {
+				value->dimensions.width = pass.dimensions.width;
 			}
+
+			if (value->dimensions.height == 0) {
+				value->dimensions.height = pass.dimensions.height;
+			}
+
+			if (value->dimensions.depth == 0) {
+				value->dimensions.depth = pass.dimensions.depth;
+			}
+
+			value->dimensions.width = std::max(1u, pass.dimensions.width);
+			value->dimensions.height = std::max(1u, pass.dimensions.height);
+			value->dimensions.depth = std::max(1u, pass.dimensions.depth);
 		}
 	}
 
 	return resources;
 }
 
-rn::graph::Resources applyPassProperties([[maybe_unused]] const rn::graph::ComputePass &pass, rn::graph::Resources &&resources) {
+rn::graph::ResourceDescriptors applyPassProperties([[maybe_unused]] const rn::graph::ComputePass &pass, rn::graph::ResourceDescriptors &&resources) {
 	return resources;
 }
 
-rn::graph::Resources applyPassProperties([[maybe_unused]] const rn::graph::TransferPass &pass, rn::graph::Resources &&resources) {
+rn::graph::ResourceDescriptors applyPassProperties([[maybe_unused]] const rn::graph::TransferPass &pass, rn::graph::ResourceDescriptors &&resources) {
 	return resources;
 }
 
-void registerResources(rn::graph::MappingMap &mapping, std::string_view passName, const rn::graph::Resources &resources) {
+void registerResources(rn::graph::MappingMap &mapping, std::string_view passName, const rn::graph::ResourceDescriptors &resources) {
 	const auto passIt = mapping.passes.try_emplace(passName, rn::graph::PassMapping{});
 	auto &passMapping = passIt.first->second;
 
@@ -90,10 +102,12 @@ void registerResources(rn::graph::MappingMap &mapping, std::string_view passName
 			bufferMapping.desc = std::nullopt;
 
 			passMapping.buffers.modifies.insert(key);
-		} else {
+		} else if (std::holds_alternative<std::monostate>(it.second)) {
 			bufferMapping.readers.insert(passName);
 
 			passMapping.buffers.reads.insert(key);
+		} else {
+			ngn::log::warn("rn::graph::registerResource({}) => unknown resource type for buffer {}", passName, it.first);
 		}
 	}
 
@@ -115,10 +129,12 @@ void registerResources(rn::graph::MappingMap &mapping, std::string_view passName
 			textureMapping.desc = std::nullopt;
 
 			passMapping.textures.modifies.insert(key);
-		} else {
+		} else if (std::holds_alternative<std::monostate>(it.second)) {
 			textureMapping.readers.insert(passName);
 
 			passMapping.textures.reads.insert(key);
+		} else {
+			ngn::log::warn("rn::graph::registerResource({}) => unknown resource type for texture {}", passName, it.first);
 		}
 	}
 }
@@ -299,27 +315,33 @@ rn::graph::CompileResult compile(rn::graph::Passes &&passes, std::string_view ro
 	mapping.textures.reserve(passes.size() * 4);
 	mapping.passes.reserve(passes.size());
 
-	std::vector<rn::graph::ResourcesUsage> resourcesUsageList{};
-	resourcesUsageList.reserve(passes.size());
+	util::FlatStorage<std::string, rn::graph::SetupResult> setupResults{};
+	setupResults.reserve(passes.size());
 
 	for (size_t i = 0; i < passes.size(); i++) {
 		auto &pass = passes[i];
 
 		if (auto value = std::get_if<rn::graph::GraphicPass>(&pass)) {
-			auto [resources, subpasses, recorders] = value->setup();
-			resourcesUsageList.push_back(rn::graph::ResourcesUsage{std::string{value->name}, applyPassProperties(*value, std::move(resources))});
+			auto setupResult = value->setup();
 
-			registerResources(mapping, resourcesUsageList.back().passName, resourcesUsageList.back().resources);
+			setupResult.resourceDescriptors = applyPassProperties(*value, std::move(setupResult.resourceDescriptors));
+			registerResources(mapping, value->name, setupResult.resourceDescriptors);
+
+			setupResults.assign(std::string{value->name}, std::move(setupResult));
 		} else if (auto value = std::get_if<rn::graph::ComputePass>(&pass)) {
-			auto [resources, subpasses, recorders] = value->setup();
-			resourcesUsageList.push_back(rn::graph::ResourcesUsage{std::string{value->name}, applyPassProperties(*value, std::move(resources))});
+			auto setupResult = value->setup();
 
-			registerResources(mapping, resourcesUsageList.back().passName, resourcesUsageList.back().resources);
+			setupResult.resourceDescriptors = applyPassProperties(*value, std::move(setupResult.resourceDescriptors));
+			registerResources(mapping, value->name, setupResult.resourceDescriptors);
+
+			setupResults.assign(std::string{value->name}, std::move(setupResult));
 		} else if (auto value = std::get_if<rn::graph::TransferPass>(&pass)) {
-			auto [resources, recorder] = value->setup();
-			resourcesUsageList.push_back(rn::graph::ResourcesUsage{std::string{value->name}, applyPassProperties(*value, std::move(resources))});
+			auto setupResult = value->setup();
 
-			registerResources(mapping, resourcesUsageList.back().passName, resourcesUsageList.back().resources);
+			setupResult.resourceDescriptors = applyPassProperties(*value, std::move(setupResult.resourceDescriptors));
+			registerResources(mapping, value->name, setupResult.resourceDescriptors);
+
+			setupResults.assign(std::string{value->name}, std::move(setupResult));
 		} else {
 			ngn::log::warn("rn::graph::compile([passes: {}], {}) => unknown pass type for item {} (index: {})", passes.size(), std::string{rootPass}, pass.index(), i);
 			continue;
@@ -328,50 +350,18 @@ rn::graph::CompileResult compile(rn::graph::Passes &&passes, std::string_view ro
 
 	auto dependentPassesE = findDependentPasses(mapping, rootPass);
 
-	// if (dependentPassesE.isRight()) {
-	// 	ngn::log::debug("dependentPasses={}", util::join(util::map(dependentPassesE.right(), [] (const auto &item) {
-	// 		return util::format("{}[{}]", std::get<0>(item), std::get<1>(item));
-	// 		// return std::string{std::get<0>(item)} + "[" + std::string{std::get<1>(item)} + "]";
-	// 	})));
-	// } else {
-	// 	ngn::log::debug("error={}", dependentPassesE.left().message);
-	// }
-
-	// for (auto &&buffer : mapping.buffers) {
-	// 	const auto desc = buffer.second.desc.value_or(BufferCreate{});
-	// 	std::vector<std::string> readers{std::begin(buffer.second.readers), std::end(buffer.second.readers)};
-	// 	ngn::log::debug("buffer={} ({}):\n  .creator={}\n  .size={}\n  .usage={}\n  .readers={}", buffer.first, reinterpret_cast<const void *>(buffer.first.data()), buffer.second.creator.value_or("[null]"), desc.size, static_cast<uint32_t>(desc.usage), util::join(readers));
-	// }
-
-	// for (auto &&texture : mapping.textures) {
-	// 	const auto desc = texture.second.desc.value_or(TextureCreate{});
-	// 	std::vector<std::string> readers{std::begin(texture.second.readers), std::end(texture.second.readers)};
-	// 	ngn::log::debug("texture={} ({}):\n  .creator={}\n  .format={}\n  .type={}\n  .readers={}", texture.first, reinterpret_cast<const void *>(texture.first.data()), texture.second.creator.value_or("[null]"), static_cast<uint32_t>(desc.format), static_cast<uint32_t>(desc.type), util::join(readers));
-	// }
-
-	// for (auto &&mapping : mapping.passes) {
-	// 	std::string bufferCreates{util::join(std::vector<std::string>{std::begin(mapping.second.buffers.creates), std::end(mapping.second.buffers.creates)})};
-	// 	std::string bufferReads{util::join(std::vector<std::string>{std::begin(mapping.second.buffers.reads), std::end(mapping.second.buffers.reads)})};
-	// 	std::string bufferModifies{util::join(std::vector<std::string>{std::begin(mapping.second.buffers.modifies), std::end(mapping.second.buffers.modifies)})};
-	// 	std::string textureCreates{util::join(std::vector<std::string>{std::begin(mapping.second.textures.creates), std::end(mapping.second.textures.creates)})};
-	// 	std::string textureReads{util::join(std::vector<std::string>{std::begin(mapping.second.textures.reads), std::end(mapping.second.textures.reads)})};
-	// 	std::string textureModifies{util::join(std::vector<std::string>{std::begin(mapping.second.textures.modifies), std::end(mapping.second.textures.modifies)})};
-
-	// 	ngn::log::debug("pass={} ({}):\n  .buffer.creates={}\n  .buffer.reads={}\n  .buffer.modifies={}\n  .texture.creates={}\n  .texture.reads={}\n  .texture.modifies={}", mapping.first, reinterpret_cast<const void *>(mapping.first.data()), bufferCreates, bufferReads, bufferModifies, textureCreates, textureReads, textureModifies);
-	// }
-
 	if (dependentPassesE.isRight()) {
-		std::vector<std::string_view> resolvedPassNames = util::map(dependentPassesE.right(), [&] (const auto &item) {
+		std::vector<std::string_view> resolvedPassNames = util::map(dependentPassesE.right(), [] (const auto &item) {
 			return std::get<std::string_view>(item);
 		});
 
-		resourcesUsageList.erase(std::remove_if(std::begin(resourcesUsageList), std::end(resourcesUsageList), [&] (auto &resourcesUsage) {
-			return ! util::contains(resolvedPassNames, std::string_view{resourcesUsage.passName});
-		}), std::end(resourcesUsageList));
+		setupResults.entries.erase(std::remove_if(std::begin(setupResults.entries), std::end(setupResults.entries), [&] (auto &entry) {
+			return ! util::contains(resolvedPassNames, std::string_view{entry.first});
+		}), std::end(setupResults.entries));
 
 		return CompileData{
 			/*.resolvedPassNames=*/ std::move(resolvedPassNames),
-			/*.resourcesUsageList=*/ std::move(resourcesUsageList),
+			/*.setupResults=*/ std::move(setupResults),
 		};
 	} else {
 		return std::move(dependentPassesE.left());

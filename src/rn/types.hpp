@@ -9,9 +9,9 @@ template<class T>
 constexpr T end();
 
 struct Extent3D {
-	uint32_t width;
-	uint32_t height;
-	uint32_t depth{1};
+	uint32_t width{0};
+	uint32_t height{0};
+	uint32_t depth{0};
 };
 
 bool operator==(const rn::Extent3D &a, const rn::Extent3D &b);
@@ -198,6 +198,9 @@ struct BufferDescription {
 	rn::BufferPaging paging{rn::BufferPaging::SwapchainSize};
 };
 
+bool operator==(const rn::BufferDescription &a, const rn::BufferDescription &b);
+bool operator!=(const rn::BufferDescription &a, const rn::BufferDescription &b);
+
 struct BufferHandle {
 	using InternalType = uint32_t;
 
@@ -238,6 +241,9 @@ struct TextureDescription {
 	uint32_t layers{1};
 	rn::TextureUsage usage{rn::TextureUsage::None};
 };
+
+bool operator==(const rn::TextureDescription &a, const rn::TextureDescription &b);
+bool operator!=(const rn::TextureDescription &a, const rn::TextureDescription &b);
 
 struct TextureHandle {
 	using InternalType = uint32_t;

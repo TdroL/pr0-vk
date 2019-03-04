@@ -1,39 +1,48 @@
 #include "id.hpp"
 
+#include <cstring>
+
 namespace rn::vki {
 
-#define ID(type) template<> \
-void * id(const vk::type &handle) { \
-	return reinterpret_cast<void *>(static_cast<Vk ## type>(handle)); \
+// TODO: replace with <bit> std::bit_cast()
+#define X(type) template<> \
+uintptr_t id(const vk::type &handle) { \
+	static_assert(sizeof(uintptr_t) == sizeof(Vk ## type)); \
+	uintptr_t result = 0; \
+	Vk ## type vkHandle = static_cast<Vk ## type>(handle); \
+	std::memcpy(&result, &vkHandle, sizeof(vkHandle)); \
+	return result; \
 }
 
-ID(Buffer)
-ID(BufferView)
-ID(CommandBuffer)
-ID(CommandPool)
-ID(DebugReportCallbackEXT)
-ID(DescriptorPool)
-ID(DescriptorSet)
-ID(DescriptorSetLayout)
-ID(DescriptorUpdateTemplateKHR)
-ID(Device)
-ID(DeviceMemory)
-ID(Event)
-ID(Fence)
-ID(Framebuffer)
-ID(Image)
-ID(ImageView)
-ID(IndirectCommandsLayoutNVX)
-ID(Instance)
-ID(ObjectTableNVX)
-ID(Pipeline)
-ID(PipelineCache)
-ID(PipelineLayout)
-ID(QueryPool)
-ID(RenderPass)
-ID(Sampler)
-ID(SamplerYcbcrConversionKHR)
-ID(Semaphore)
-ID(ShaderModule)
+X(Buffer)
+X(BufferView)
+X(CommandBuffer)
+X(CommandPool)
+X(DebugReportCallbackEXT)
+X(DescriptorPool)
+X(DescriptorSet)
+X(DescriptorSetLayout)
+X(DescriptorUpdateTemplateKHR)
+X(Device)
+X(DeviceMemory)
+X(Event)
+X(Fence)
+X(Framebuffer)
+X(Image)
+X(ImageView)
+X(IndirectCommandsLayoutNVX)
+X(Instance)
+X(ObjectTableNVX)
+X(Pipeline)
+X(PipelineCache)
+X(PipelineLayout)
+X(QueryPool)
+X(RenderPass)
+X(Sampler)
+X(SamplerYcbcrConversionKHR)
+X(Semaphore)
+X(ShaderModule)
+
+#undef X
 
 } // rn::vki

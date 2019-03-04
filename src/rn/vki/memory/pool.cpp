@@ -1,6 +1,7 @@
 #include "pool.hpp"
 
 #include <stdexcept>
+#include <fmt/format.h>
 
 #include "../../../ngn/log.hpp"
 #include "../id.hpp"
@@ -19,7 +20,7 @@ Pool::Pool(rn::vki::HandleDevice &&device, vk::PhysicalDeviceMemoryProperties2 m
 Pool::Pool(Pool &&other) noexcept :
 	device{std::move(other.device)},
 	memoryProperties{std::move(other.memoryProperties)},
-	baseLevels{std::move(other.baseLevels)},
+	baseLevels{other.baseLevels},
 	baseMemorySize{std::move(other.baseMemorySize)},
 	blocks{std::move(other.blocks)}
 {
@@ -31,7 +32,7 @@ Pool & Pool::operator=(Pool &&other) noexcept {
 
 	device = std::move(other.device);
 	memoryProperties = std::move(other.memoryProperties);
-	baseLevels = std::move(other.baseLevels);
+	baseLevels = other.baseLevels;
 	baseMemorySize = std::move(other.baseMemorySize);
 	blocks = std::move(other.blocks);
 
@@ -102,10 +103,12 @@ Handle Pool::alloc(const Usage usage, const vk::MemoryRequirements2 &requirement
 		}
 
 		if (memoryTypeIndex == std::numeric_limits<uint32_t>::max()) {
-			throw std::runtime_error{"Could not find a valid memory type with " + std::to_string(static_cast<uint32_t>(preferred)) + "/" + std::to_string(static_cast<uint32_t>(required)) + " flag for " + std::to_string(requirements.memoryRequirements.memoryTypeBits) + " types"};
+			static_assert(sizeof(preferred) <= sizeof(uint32_t));
+			static_assert(sizeof(required) <= sizeof(uint32_t));
+			throw std::runtime_error{fmt::format("Could not find a valid memory type with {}/{} ({:#b}/{:#b}) flags for 0b{:b} types", vk::to_string(preferred), static_cast<uint32_t>(preferred), vk::to_string(required), static_cast<uint32_t>(required), requirements.memoryRequirements.memoryTypeBits)};
 		}
 
-		if ( ! std::holds_alternative<std::monostate>(dedicatedFor)) {
+		if (std::holds_alternative<std::monostate>(dedicatedFor)) {
 			for (uint32_t blockIdx = 0; blockIdx < blocks.size(); blockIdx++) {
 				auto &block = blocks[blockIdx];
 
@@ -152,7 +155,7 @@ Handle Pool::alloc(const Usage usage, const vk::MemoryRequirements2 &requirement
 		} catch (const vk::OutOfHostMemoryError &e) {
 			if (memoryTypeIndex + 1 < memoryProperties.memoryProperties.memoryTypeCount) {
 				//  try another memory type
-				ngn::log::warn("rn::vki::memory::Pool::alloc({} bytes) => out of host memory for memory type {:x}", requirements.memoryRequirements.size, memoryTypeIndex);
+				ngn::log::warn("rn::vki::memory::Pool::alloc({} bytes) => out of host memory for memory type {:#x}", requirements.memoryRequirements.size, memoryTypeIndex);
 
 				start = memoryTypeIndex + 1;
 			} else {
@@ -162,7 +165,7 @@ Handle Pool::alloc(const Usage usage, const vk::MemoryRequirements2 &requirement
 		} catch (const vk::OutOfDeviceMemoryError &e) {
 			if (memoryTypeIndex + 1 < memoryProperties.memoryProperties.memoryTypeCount) {
 				//  try another memory type
-				ngn::log::warn("rn::vki::memory::Pool::alloc({} bytes) => out of device memory for memory type {:x}", requirements.memoryRequirements.size, memoryTypeIndex);
+				ngn::log::warn("rn::vki::memory::Pool::alloc({} bytes) => out of device memory for memory type {:#x}", requirements.memoryRequirements.size, memoryTypeIndex);
 
 				start = memoryTypeIndex + 1;
 			} else {
@@ -248,31 +251,7 @@ Block & Pool::appendBlock(uint32_t memoryTypeIndex, vk::MemoryPropertyFlags flag
 	vk::DeviceSize leafSize = 0;
 	rn::vki::UniqueDeviceMemory deviceMemory{};
 
-	if ( ! std::holds_alternative<std::monostate>(dedicatedFor)) {
-		size = requirements.memoryRequirements.size;
-		leafSize = requirements.memoryRequirements.size;
-
-		ngn::log::debug("rn::vki::memory::Pool::appendBlock({:x}, {}, {} bytes) => created new dedicated block: {} bytes", memoryTypeIndex, vk::to_string(flags), requirements.memoryRequirements.size, size);
-
-		auto imageIt = std::get_if<vk::Image>(&dedicatedFor);
-		auto bufferIt = std::get_if<vk::Buffer>(&dedicatedFor);
-
-		vk::StructureChain<vk::MemoryAllocateInfo, vk::MemoryDedicatedAllocateInfo> structureChain{
-			{
-				/*.allocationSize=*/ size,
-				/*.memoryTypeIndex=*/ memoryTypeIndex,
-			},
-			{
-				/*.image=*/ imageIt ? *imageIt : vk::Image{},
-				/*.buffer=*/ bufferIt ? *bufferIt : vk::Buffer{},
-			}
-		};
-
-		deviceMemory = rn::vki::UniqueDeviceMemory{
-			RN_VKI_TRACE(device->allocateMemoryUnique(structureChain.get<vk::MemoryAllocateInfo>(), nullptr, device.table())),
-			device.table()
-		};
-	} else {
+	if (std::holds_alternative<std::monostate>(dedicatedFor)) {
 		size = std::max(requirements.memoryRequirements.size, baseMemorySize);
 
 		leafSize = 1u << (baseLevels - 1);
@@ -281,13 +260,37 @@ Block & Pool::appendBlock(uint32_t memoryTypeIndex, vk::MemoryPropertyFlags flag
 		size = ((size + leafSize - 1u) / leafSize) * leafSize;
 
 		if (size > baseMemorySize) {
-			ngn::log::warn("rn::vki::memory::Pool::appendBlock({:x}, {}, {} bytes) => created bigger block than expected: {} bytes > {} bytes, leaf {} bytes [{:x}: {}]", memoryTypeIndex, vk::to_string(flags), requirements.memoryRequirements.size, size, baseMemorySize, leafSize);
+			ngn::log::warn("rn::vki::memory::Pool::appendBlock({:#x}, {}, {} bytes) => created bigger block than expected: {} bytes > {} bytes, leaf {} bytes [{:#x}: {}]", memoryTypeIndex, vk::to_string(flags), requirements.memoryRequirements.size, size, baseMemorySize, leafSize);
 		} else {
-			ngn::log::debug("rn::vki::memory::Pool::appendBlock({:x}, {}, {} bytes) => created new block: {} bytes, leaf {} bytes", memoryTypeIndex, vk::to_string(flags), requirements.memoryRequirements.size, size, leafSize);
+			ngn::log::debug("rn::vki::memory::Pool::appendBlock({:#x}, {}, {} bytes) => created new block: {} bytes, leaf {} bytes", memoryTypeIndex, vk::to_string(flags), requirements.memoryRequirements.size, size, leafSize);
 		}
 
 		deviceMemory = rn::vki::UniqueDeviceMemory{
 			RN_VKI_TRACE(device->allocateMemoryUnique({ size, memoryTypeIndex }, nullptr, device.table())),
+			device.table()
+		};
+	} else {
+		size = requirements.memoryRequirements.size;
+		leafSize = requirements.memoryRequirements.size;
+
+		ngn::log::debug("rn::vki::memory::Pool::appendBlock({:#x}, {}, {} bytes) => created new dedicated block: {} bytes", memoryTypeIndex, vk::to_string(flags), requirements.memoryRequirements.size, size);
+
+		auto imageValue = std::get_if<vk::Image>(&dedicatedFor);
+		auto bufferValue = std::get_if<vk::Buffer>(&dedicatedFor);
+
+		vk::StructureChain<vk::MemoryAllocateInfo, vk::MemoryDedicatedAllocateInfo> structureChain{
+			{
+				/*.allocationSize=*/ size,
+				/*.memoryTypeIndex=*/ memoryTypeIndex,
+			},
+			{
+				/*.image=*/ imageValue ? *imageValue : vk::Image{},
+				/*.buffer=*/ bufferValue ? *bufferValue : vk::Buffer{},
+			}
+		};
+
+		deviceMemory = rn::vki::UniqueDeviceMemory{
+			RN_VKI_TRACE(device->allocateMemoryUnique(structureChain.get<vk::MemoryAllocateInfo>(), nullptr, device.table())),
 			device.table()
 		};
 	}

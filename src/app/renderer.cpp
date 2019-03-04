@@ -10,9 +10,9 @@ rn::graph::CompileResult Renderer::compile() {
 	const rn::Extent3D windowExtents{ window.currentProperties.width, window.currentProperties.height };
 
 	passes.push_back(rn::graph::GraphicPass{"z-prepass", { windowExtents }, [] () {
-		rn::graph::Resources resources{};
+		rn::graph::ResourceDescriptors resources{};
 
-		const auto depthTex = resources.texture.create("depth", {
+		const auto depthTex = resources.texture.create("app/rn:depth", {
 			/*.format=*/ rn::PixelFormat::R8UNorm,
 		});
 
@@ -29,19 +29,21 @@ rn::graph::CompileResult Renderer::compile() {
 			/*.buffers=*/ {}
 		});
 
-		return std::make_tuple(resources, subpasses, rn::graph::GraphicSubpassRecorders{
-			{ depthSubpass, [=] () {
+		rn::graph::GraphicSubpassRecorders recorders{
+			std::make_tuple(depthSubpass, [=] () {
 				return rn::graph::GraphicCommandList{};
-			} },
-		});
+			}),
+		};
+
+		return rn::graph::GraphicSetupResult{ std::move(resources), std::move(subpasses), std::move(recorders) };
 	}});
 
 	passes.push_back(rn::graph::GraphicPass{"cascade-shadowmap", { 2048, 2048 }, [] () {
-		rn::graph::Resources resources{};
+		rn::graph::ResourceDescriptors resources{};
 
-		const auto cascadeShadowmapTex = resources.texture.create("cascade-shadowmap", {
+		const auto cascadeShadowmapTex = resources.texture.create("app/rn:cascade-shadowmap", {
 			/*.format=*/ rn::PixelFormat::D32Float,
-			/*.dimensions=*/ {{ 4 * 2048, 2048 }},
+			/*.dimensions=*/ { 4 * 2048, 2048 },
 		});
 
 		rn::graph::GraphicSubpasses subpasses{};
@@ -57,19 +59,21 @@ rn::graph::CompileResult Renderer::compile() {
 			/*.buffers=*/ {}
 		});
 
-		return std::make_tuple(resources, subpasses, rn::graph::GraphicSubpassRecorders{
-			{ cascadeShadowmapSubpass, [=] () {
+		rn::graph::GraphicSubpassRecorders recorders{
+			std::make_tuple(cascadeShadowmapSubpass, [=] () {
 				return rn::graph::GraphicCommandList{};
-			} },
-		});
+			}),
+		};
+
+		return rn::graph::GraphicSetupResult{ std::move(resources), std::move(subpasses), std::move(recorders) };
 	}});
 
 	passes.push_back(rn::graph::GraphicPass{"spotlight-shadowmap", { 1024, 1024 }, [] () {
-		rn::graph::Resources resources{};
+		rn::graph::ResourceDescriptors resources{};
 
-		const auto spotlightShadowmapTex = resources.texture.create("spotlight-shadowmap", {
+		const auto spotlightShadowmapTex = resources.texture.create("app/rn:spotlight-shadowmap", {
 			/*.format=*/ rn::PixelFormat::D32Float,
-			/*.dimensions=*/ {{ 4 * 2048, 2048 }},
+			/*.dimensions=*/ { 4 * 2048, 2048 },
 		});
 
 		rn::graph::GraphicSubpasses subpasses{};
@@ -85,23 +89,25 @@ rn::graph::CompileResult Renderer::compile() {
 			/*.buffers=*/ {}
 		});
 
-		return std::make_tuple(resources, subpasses, rn::graph::GraphicSubpassRecorders{
-			{ spotlightShadowmapSubpass, [=] () {
+		rn::graph::GraphicSubpassRecorders recorders{
+			std::make_tuple(spotlightShadowmapSubpass, [=] () {
 				return rn::graph::GraphicCommandList{};
-			} },
-		});
+			}),
+		};
+
+		return rn::graph::GraphicSetupResult{ std::move(resources), std::move(subpasses), std::move(recorders) };
 	}});
 
 	passes.push_back(rn::graph::GraphicPass{"sao", { windowExtents }, [] () {
-		rn::graph::Resources resources{};
+		rn::graph::ResourceDescriptors resources{};
 
-		const auto depthTex = resources.texture.read("depth");
+		const auto depthTex = resources.texture.read("app/rn:depth");
 
-		const auto saoTempTex = resources.texture.create("sao-temp", {
+		const auto saoTempTex = resources.texture.create("app/rn:sao-temp", {
 			/*.format=*/ rn::PixelFormat::R8UNorm,
 		});
 
-		const auto saoTex = resources.texture.create("sao", {
+		const auto saoTex = resources.texture.create("app/rn:sao", {
 			/*.format=*/ rn::PixelFormat::R8UNorm,
 		});
 
@@ -134,30 +140,32 @@ rn::graph::CompileResult Renderer::compile() {
 			/*.buffers=*/ {}
 		});
 
-		return std::make_tuple(resources, subpasses, rn::graph::GraphicSubpassRecorders{
-			{ saoNoiseSubpass, [=] () {
+		rn::graph::GraphicSubpassRecorders recorders{
+			std::make_tuple(saoNoiseSubpass, [=] () {
 				return rn::graph::GraphicCommandList{};
-			} },
-			{ saoBlurHSubpass, [=] () {
+			}),
+			std::make_tuple(saoBlurHSubpass, [=] () {
 				return rn::graph::GraphicCommandList{};
-			} },
-			{ saoBlurVSubpass, [=] () {
+			}),
+			std::make_tuple(saoBlurVSubpass, [=] () {
 				return rn::graph::GraphicCommandList{};
-			} },
-		});
+			}),
+		};
+
+		return rn::graph::GraphicSetupResult{ std::move(resources), std::move(subpasses), std::move(recorders) };
 	}});
 
 	passes.push_back(rn::graph::ComputePass{"classify", [] () {
-		rn::graph::Resources resources{};
+		rn::graph::ResourceDescriptors resources{};
 
-		const auto depthTex = resources.texture.read("depth");
+		const auto depthTex = resources.texture.read("app/rn:depth");
 
-		const auto lightGridBuf = resources.buffer.create("light-grid", {
+		const auto lightGridBuf = resources.buffer.create("app/rn:light-grid", {
 			/*.size=*/ 1024,
 			/*.usage=*/ rn::BufferUsage::Uniform
 		});
 
-		const auto lightListBuf = resources.buffer.create("light-list", {
+		const auto lightListBuf = resources.buffer.create("app/rn:light-list", {
 			/*.size=*/ 1024,
 			/*.usage=*/ rn::BufferUsage::Uniform
 		});
@@ -169,27 +177,29 @@ rn::graph::CompileResult Renderer::compile() {
 			/*.buffers=*/ { lightGridBuf, lightListBuf }
 		});
 
-		return std::make_tuple(resources, subpasses, rn::graph::ComputeSubpassRecorders{
-			{ classifySubpass, [=] () {
+		rn::graph::ComputeSubpassRecorders recorders{
+			std::make_tuple(classifySubpass, [=] () {
 				return rn::graph::ComputeCommandList{};
-			} },
-		});
+			}),
+		};
+
+		return rn::graph::ComputeSetupResult{ std::move(resources), std::move(subpasses), std::move(recorders) };
 	}});
 
 	passes.push_back(rn::graph::GraphicPass{"gbuffer", { windowExtents }, [] () {
-		rn::graph::Resources resources{};
+		rn::graph::ResourceDescriptors resources{};
 
-		const auto depthTex = resources.texture.read("depth");
+		const auto depthTex = resources.texture.read("app/rn:depth");
 
-		const auto gbufferNormalTex = resources.texture.create("gbuffer-normal", {
+		const auto gbufferNormalTex = resources.texture.create("app/rn:gbuffer-normal", {
 			/*.format=*/ rn::PixelFormat::R16G16Float,
 		});
 
-		const auto gbufferAlbedoTex = resources.texture.create("gbuffer-albedo", {
+		const auto gbufferAlbedoTex = resources.texture.create("app/rn:gbuffer-albedo", {
 			/*.format=*/ rn::PixelFormat::R8G8B8A8UNorm,
 		});
 
-		const auto gbufferMetalnessRoughnessTex = resources.texture.create("gbuffer-metalness-roughness", {
+		const auto gbufferMetalnessRoughnessTex = resources.texture.create("app/rn:gbuffer-metalness-roughness", {
 			/*.format=*/ rn::PixelFormat::R8G8UNorm,
 		});
 
@@ -206,26 +216,28 @@ rn::graph::CompileResult Renderer::compile() {
 			/*.buffers=*/ {}
 		});
 
-		return std::make_tuple(resources, subpasses, rn::graph::GraphicSubpassRecorders{
-			{ gbufferSubpass, [=] () {
+		rn::graph::GraphicSubpassRecorders recorders{
+			std::make_tuple(gbufferSubpass, [=] () {
 				return rn::graph::GraphicCommandList{};
-			} },
-		});
+			}),
+		};
+
+		return rn::graph::GraphicSetupResult{ std::move(resources), std::move(subpasses), std::move(recorders) };
 	}});
 
 	passes.push_back(rn::graph::GraphicPass{"lighting", { windowExtents }, [] () {
-		rn::graph::Resources resources{};
+		rn::graph::ResourceDescriptors resources{};
 
-		const auto depthTex = resources.texture.read("depth");
-		const auto spotlightShadowmapTex = resources.texture.read("spotlight-shadowmap");
-		const auto cascadeShadowmapTex = resources.texture.read("cascade-shadowmap");
-		const auto gbufferNormalTex = resources.texture.read("gbuffer-normal");
-		const auto gbufferAlbedoTex = resources.texture.read("gbuffer-albedo");
-		const auto gbufferMetalnessRoughnessTex = resources.texture.read("gbuffer-metalness-roughness");
-		const auto saoTex = resources.texture.read("sao");
-		const auto lightGridBuf = resources.buffer.read("light-grid");
-		const auto lightListBuf = resources.buffer.read("light-list");
-		const auto gbufferLightingTex = resources.texture.create("gbuffer-lighting", {
+		const auto depthTex = resources.texture.read("app/rn:depth");
+		const auto spotlightShadowmapTex = resources.texture.read("app/rn:spotlight-shadowmap");
+		const auto cascadeShadowmapTex = resources.texture.read("app/rn:cascade-shadowmap");
+		const auto gbufferNormalTex = resources.texture.read("app/rn:gbuffer-normal");
+		const auto gbufferAlbedoTex = resources.texture.read("app/rn:gbuffer-albedo");
+		const auto gbufferMetalnessRoughnessTex = resources.texture.read("app/rn:gbuffer-metalness-roughness");
+		const auto saoTex = resources.texture.read("app/rn:sao");
+		const auto lightGridBuf = resources.buffer.read("app/rn:light-grid");
+		const auto lightListBuf = resources.buffer.read("app/rn:light-list");
+		const auto gbufferLightingTex = resources.texture.create("app/rn:gbuffer-lighting", {
 			/*.format=*/ rn::PixelFormat::R16G16B16A16UNorm,
 		});
 		const auto swapchainTex = resources.swapchain();
@@ -284,29 +296,31 @@ rn::graph::CompileResult Renderer::compile() {
 			/*.buffers=*/ {}
 		});
 
-		return std::make_tuple(resources, subpasses, rn::graph::GraphicSubpassRecorders{
-			{ opaqueSubpass, [=] () {
+		rn::graph::GraphicSubpassRecorders recorders{
+			std::make_tuple(opaqueSubpass, [=] () {
 				return rn::graph::GraphicCommandList{};
-			} },
-			{ skyboxSubpass, [=] () {
+			}),
+			std::make_tuple(skyboxSubpass, [=] () {
 				return rn::graph::GraphicCommandList{};
-			} },
-			{ transparentSubpass, [=] () {
+			}),
+			std::make_tuple(transparentSubpass, [=] () {
 				return rn::graph::GraphicCommandList{};
-			} },
-			{ particlesSubpass, [=] () {
+			}),
+			std::make_tuple(particlesSubpass, [=] () {
 				return rn::graph::GraphicCommandList{};
-			} },
-			{ swapchainSubpass, [=] () {
+			}),
+			std::make_tuple(swapchainSubpass, [=] () {
 				return rn::graph::GraphicCommandList{};
-			} },
-		});
+			}),
+		};
+
+		return rn::graph::GraphicSetupResult{ std::move(resources), std::move(subpasses), std::move(recorders) };
 	}});
 
 	passes.push_back(rn::graph::GraphicPass{"debug", { windowExtents }, [] () {
-		rn::graph::Resources resources{};
+		rn::graph::ResourceDescriptors resources{};
 
-		const auto debugTex = resources.texture.create("debug", {
+		const auto debugTex = resources.texture.create("app/rn:debug", {
 			/*.format=*/ rn::PixelFormat::R8G8B8A8UNorm,
 		});
 		const auto swapchainTex = resources.swapchain();
@@ -321,11 +335,13 @@ rn::graph::CompileResult Renderer::compile() {
 			/*.buffers=*/ {}
 		});
 
-		return std::make_tuple(resources, subpasses, rn::graph::GraphicSubpassRecorders{
-			{ debugSubpass, [=] () {
+		rn::graph::GraphicSubpassRecorders recorders{
+			std::make_tuple(debugSubpass, [=] () {
 				return rn::graph::GraphicCommandList{};
-			} },
-		});
+			}),
+		};
+
+		return rn::graph::GraphicSetupResult{ std::move(resources), std::move(subpasses), std::move(recorders) };
 	}});
 
 	rn::graph::CompileResult compileResultE = rn::graph::compile(std::move(passes), "lighting");
@@ -333,7 +349,7 @@ rn::graph::CompileResult Renderer::compile() {
 	if (compileResultE.isRight()) {
 		auto &compileData = compileResultE.right();
 
-		rn::graph::resolve(context, compileData.resourcesUsageList);
+		rn::graph::resolve(context, resources, compileData.setupResults);
 	}
 
 	return compileResultE;
