@@ -14,6 +14,12 @@ public:
 	using Iterator = typename std::vector<std::pair<K, V>>::iterator;
 	using ConstIterator = typename std::vector<std::pair<K, V>>::const_iterator;
 
+	struct FoundResult {
+		Handle handle;
+		K &key;
+		V &value;
+	};
+
 	void reserve(size_t size) {
 		entries.reserve(size);
 	}
@@ -27,25 +33,26 @@ public:
 			size_t index = entries.size();
 			entries.emplace_back(std::move(key), std::move(value));
 
-			return index;
+			return static_cast<Handle>(index);
 		} else {
 			it->second = std::move(value);
 
-			return it - std::begin(entries);
+			return static_cast<Handle>(it - std::begin(entries));
 		}
 	}
 
-	std::pair<Handle, std::reference_wrapper<std::pair<K, V>>> findOrAssign(K &&key, V &&value = V{}) {
+	FoundResult findOrAssign(K &&key, V &&value = V{}) {
 		const auto it = std::find_if(std::begin(entries), std::end(entries), [&] (const auto &entry) {
 			return entry.first == key;
 		});
 
 		if (it == std::end(entries)) {
+			size_t index = entries.size();
 			entries.emplace_back(std::move(key), std::move(value));
 
-			return std::make_pair(entries.size(), std::ref(entries[entries.size()]));
+			return { static_cast<Handle>(index), entries[index].first, entries[index].second };
 		} else {
-			return std::make_pair(it - std::begin(entries), std::ref(*it));
+			return { static_cast<Handle>(it - std::begin(entries)), it->first, it->second };
 		}
 	}
 

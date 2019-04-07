@@ -133,7 +133,10 @@ rn::vki::UniqueTableDevice DeviceCreator::create(rn::vki::HandleInstance &&insta
 		throw std::runtime_error{"Vulkan device could not be created"};
 	}
 
-	std::unique_ptr<vk::DispatchLoaderDynamic> table = std::make_unique<vk::DispatchLoaderDynamic>(*instance, *deviceOwner);
+	PFN_vkGetInstanceProcAddr vkGetInstanceProcAddrTemp = reinterpret_cast<PFN_vkGetInstanceProcAddr>(instance->getProcAddr("vkGetInstanceProcAddr"));
+	PFN_vkGetDeviceProcAddr vkGetDeviceProcAddrTemp = reinterpret_cast<PFN_vkGetDeviceProcAddr>(deviceOwner->getProcAddr("vkGetDeviceProcAddr"));
+
+	std::unique_ptr<vk::DispatchLoaderDynamic> table = std::make_unique<vk::DispatchLoaderDynamic>(*instance, vkGetInstanceProcAddrTemp, *deviceOwner, vkGetDeviceProcAddrTemp);
 
 	return { std::move(deviceOwner), std::move(table) };
 }

@@ -24,39 +24,61 @@ bool resolve([[maybe_unused]] rn::Context<T> &context, [[maybe_unused]] rn::Reso
 
 	for (auto &&it : setupResults) {
 		if (auto setupResult = std::get_if<rn::graph::GraphicSetupResult>(&it.second)) {
-			for (auto &&bufferIt : setupResult->resourceDescriptors.buffer) {
-				const auto &name = bufferIt.first;
-				auto &descriptor = bufferIt.second;
+			auto &bufferEntries = setupResult->resourceDescriptors.buffer.storage.entries;
+			for (size_t i = 0; i < bufferEntries.size(); i++) {
+				rn::graph::BufferResourceHandle handle{ static_cast<rn::graph::BufferResourceHandle::InternalType>(i) };
+				const auto &name = bufferEntries[i].first;
+				const auto &descriptor = bufferEntries[i].second;
 
-				auto &&entry = bufferDescriptions.findOrAssign(std::string_view{name});
-				auto &bufferDescription = entry.second.get().second;
+				auto &bufferDescription = bufferDescriptions.findOrAssign(std::string_view{name}).value;
 
-				if (auto descriptorCreate = std::get_if<rn::graph::BufferCreate>(&descriptor)) {
+				if (const auto descriptorCreate = std::get_if<rn::graph::BufferCreate>(&descriptor)) {
 					bufferDescription.size = descriptorCreate->size;
 					bufferDescription.usage = bufferDescription.usage | descriptorCreate->usage;
 					bufferDescription.paging = descriptorCreate->paging;
 				}
+
+				for (auto &&subpassIt : setupResult->subpasses) {
+					const auto &subpassDescription = subpassIt.second.description;
+
+					if ((bufferDescription.usage & rn::BufferUsage::Uniform) == rn::BufferUsage::None && util::contains(subpassDescription.buffers, { handle, rn::graph::GraphicBufferUsage::Uniform })) {
+						bufferDescription.usage = bufferDescription.usage | rn::BufferUsage::Uniform;
+					}
+
+					if ((bufferDescription.usage & rn::BufferUsage::Storage) == rn::BufferUsage::None && util::contains(subpassDescription.buffers, { handle, rn::graph::GraphicBufferUsage::Storage })) {
+						bufferDescription.usage = bufferDescription.usage | rn::BufferUsage::Storage;
+					}
+
+					if ((bufferDescription.usage & rn::BufferUsage::Indirect) == rn::BufferUsage::None && util::contains(subpassDescription.buffers, { handle, rn::graph::GraphicBufferUsage::Indirect })) {
+						bufferDescription.usage = bufferDescription.usage | rn::BufferUsage::Indirect;
+					}
+
+					if ((bufferDescription.usage & rn::BufferUsage::Index) == rn::BufferUsage::None && util::contains(subpassDescription.buffers, { handle, rn::graph::GraphicBufferUsage::Index })) {
+						bufferDescription.usage = bufferDescription.usage | rn::BufferUsage::Index;
+					}
+
+					if ((bufferDescription.usage & rn::BufferUsage::Vertex) == rn::BufferUsage::None && util::contains(subpassDescription.buffers, { handle, rn::graph::GraphicBufferUsage::Vertex })) {
+						bufferDescription.usage = bufferDescription.usage | rn::BufferUsage::Vertex;
+					}
+				}
 			}
-			// for (auto &&textureIt : setupResult->resourceDescriptors.texture) {
-			auto &textureEntries = setupResult->resourceDescriptors.texture.storage.entries;
+
+			const auto &textureEntries = setupResult->resourceDescriptors.texture.storage.entries;
 			for (size_t i = 0; i < textureEntries.size(); i++) {
 				rn::graph::TextureResourceHandle handle{ static_cast<rn::graph::TextureResourceHandle::InternalType>(i) };
 				const auto &name = textureEntries[i].first;
 				const auto &descriptor = textureEntries[i].second;
 
-				auto &&entry = textureDescriptions.findOrAssign(std::string_view{name});
-				auto &textureDescription = entry.second.get().second;
+				auto &textureDescription = textureDescriptions.findOrAssign(std::string_view{name}).value;
 
-				if (auto descriptorCreate = std::get_if<rn::graph::TextureCreate>(&descriptor)) {
+				if (const auto descriptorCreate = std::get_if<rn::graph::TextureCreate>(&descriptor)) {
 					textureDescription.format = descriptorCreate->format;
-					continue;
 					textureDescription.dimensions = descriptorCreate->dimensions;
 					textureDescription.type = descriptorCreate->type;
 					textureDescription.levels = descriptorCreate->levels;
 					textureDescription.layers = descriptorCreate->layers;
 					textureDescription.usage = textureDescription.usage | descriptorCreate->usage;
 				}
-				continue;
 
 				for (auto &&subpassIt : setupResult->subpasses) {
 					const auto &subpassDescription = subpassIt.second.description;
@@ -69,20 +91,113 @@ bool resolve([[maybe_unused]] rn::Context<T> &context, [[maybe_unused]] rn::Reso
 						textureDescription.usage = textureDescription.usage | rn::TextureUsage::InputAttachment;
 					}
 
-					if ((textureDescription.usage & rn::TextureUsage::ColorAttachment) == rn::TextureUsage::None && util::contains(subpassDescription.outputs, handle)) {
-						textureDescription.usage = textureDescription.usage | rn::TextureUsage::ColorAttachment;
+					if ((textureDescription.usage & rn::TextureUsage::OutputAttachment) == rn::TextureUsage::None && util::contains(subpassDescription.outputs, handle)) {
+						textureDescription.usage = textureDescription.usage | rn::TextureUsage::OutputAttachment;
 					}
 
-					if ((textureDescription.usage & rn::TextureUsage::Sampled) == rn::TextureUsage::None && util::contains(subpassDescription.textures, handle)) {
+					if ((textureDescription.usage & rn::TextureUsage::Sampled) == rn::TextureUsage::None && util::contains(subpassDescription.textures, { handle, rn::graph::GraphicTextureUsage::Sampled })) {
 						textureDescription.usage = textureDescription.usage | rn::TextureUsage::Sampled;
+					}
+
+					if ((textureDescription.usage & rn::TextureUsage::Storage) == rn::TextureUsage::None && util::contains(subpassDescription.textures, { handle, rn::graph::GraphicTextureUsage::Storage })) {
+						textureDescription.usage = textureDescription.usage | rn::TextureUsage::Storage;
+					}
+				}
+			}
+		} else if (auto setupResult = std::get_if<rn::graph::ComputeSetupResult>(&it.second)) {
+			auto &bufferEntries = setupResult->resourceDescriptors.buffer.storage.entries;
+			for (size_t i = 0; i < bufferEntries.size(); i++) {
+				rn::graph::BufferResourceHandle handle{ static_cast<rn::graph::BufferResourceHandle::InternalType>(i) };
+				const auto &name = bufferEntries[i].first;
+				const auto &descriptor = bufferEntries[i].second;
+
+				auto &bufferDescription = bufferDescriptions.findOrAssign(std::string_view{name}).value;
+
+				if (const auto descriptorCreate = std::get_if<rn::graph::BufferCreate>(&descriptor)) {
+					bufferDescription.size = descriptorCreate->size;
+					bufferDescription.usage = bufferDescription.usage | descriptorCreate->usage;
+					bufferDescription.paging = descriptorCreate->paging;
+				}
+
+				for (auto &&subpassIt : setupResult->subpasses) {
+					const auto &subpassDescription = subpassIt.second.description;
+
+					if ((bufferDescription.usage & rn::BufferUsage::Uniform) == rn::BufferUsage::None && util::contains(subpassDescription.buffers, { handle, rn::graph::ComputeBufferUsage::Uniform })) {
+						bufferDescription.usage = bufferDescription.usage | rn::BufferUsage::Uniform;
+					}
+
+					if ((bufferDescription.usage & rn::BufferUsage::Storage) == rn::BufferUsage::None && util::contains(subpassDescription.buffers, { handle, rn::graph::ComputeBufferUsage::Storage })) {
+						bufferDescription.usage = bufferDescription.usage | rn::BufferUsage::Storage;
+					}
+
+					if ((bufferDescription.usage & rn::BufferUsage::Indirect) == rn::BufferUsage::None && util::contains(subpassDescription.buffers, { handle, rn::graph::ComputeBufferUsage::Indirect })) {
+						bufferDescription.usage = bufferDescription.usage | rn::BufferUsage::Indirect;
 					}
 				}
 			}
 
-		} else if (auto setupResult = std::get_if<rn::graph::ComputeSetupResult>(&it.second)) {
-			// value
+			const auto &textureEntries = setupResult->resourceDescriptors.texture.storage.entries;
+			for (size_t i = 0; i < textureEntries.size(); i++) {
+				rn::graph::TextureResourceHandle handle{ static_cast<rn::graph::TextureResourceHandle::InternalType>(i) };
+				const auto &name = textureEntries[i].first;
+				const auto &descriptor = textureEntries[i].second;
+
+				auto &textureDescription = textureDescriptions.findOrAssign(std::string_view{name}).value;
+
+				if (const auto descriptorCreate = std::get_if<rn::graph::TextureCreate>(&descriptor)) {
+					textureDescription.format = descriptorCreate->format;
+					textureDescription.dimensions = descriptorCreate->dimensions;
+					textureDescription.type = descriptorCreate->type;
+					textureDescription.levels = descriptorCreate->levels;
+					textureDescription.layers = descriptorCreate->layers;
+					textureDescription.usage = textureDescription.usage | descriptorCreate->usage;
+				}
+
+				for (auto &&subpassIt : setupResult->subpasses) {
+					const auto &subpassDescription = subpassIt.second.description;
+
+					if ((textureDescription.usage & rn::TextureUsage::Sampled) == rn::TextureUsage::None && util::contains(subpassDescription.textures, { handle, rn::graph::ComputeTextureUsage::Sampled })) {
+						textureDescription.usage = textureDescription.usage | rn::TextureUsage::Sampled;
+					}
+
+					if ((textureDescription.usage & rn::TextureUsage::Storage) == rn::TextureUsage::None && util::contains(subpassDescription.textures, { handle, rn::graph::ComputeTextureUsage::Storage })) {
+						textureDescription.usage = textureDescription.usage | rn::TextureUsage::Storage;
+					}
+				}
+			}
 		} else if (auto setupResult = std::get_if<rn::graph::TransferSetupResult>(&it.second)) {
-			// value
+			auto &bufferEntries = setupResult->resourceDescriptors.buffer.storage.entries;
+			for (size_t i = 0; i < bufferEntries.size(); i++) {
+				// rn::graph::BufferResourceHandle handle{ static_cast<rn::graph::BufferResourceHandle::InternalType>(i) };
+				const auto &name = bufferEntries[i].first;
+				const auto &descriptor = bufferEntries[i].second;
+
+				auto &bufferDescription = bufferDescriptions.findOrAssign(std::string_view{name}).value;
+
+				if (const auto descriptorCreate = std::get_if<rn::graph::BufferCreate>(&descriptor)) {
+					bufferDescription.size = descriptorCreate->size;
+					bufferDescription.usage = bufferDescription.usage | descriptorCreate->usage;
+					bufferDescription.paging = descriptorCreate->paging;
+				}
+			}
+
+			const auto &textureEntries = setupResult->resourceDescriptors.texture.storage.entries;
+			for (size_t i = 0; i < textureEntries.size(); i++) {
+				// rn::graph::TextureResourceHandle handle{ static_cast<rn::graph::TextureResourceHandle::InternalType>(i) };
+				const auto &name = textureEntries[i].first;
+				const auto &descriptor = textureEntries[i].second;
+
+				auto &textureDescription = textureDescriptions.findOrAssign(std::string_view{name}).value;
+
+				if (const auto descriptorCreate = std::get_if<rn::graph::TextureCreate>(&descriptor)) {
+					textureDescription.format = descriptorCreate->format;
+					textureDescription.dimensions = descriptorCreate->dimensions;
+					textureDescription.type = descriptorCreate->type;
+					textureDescription.levels = descriptorCreate->levels;
+					textureDescription.layers = descriptorCreate->layers;
+					textureDescription.usage = textureDescription.usage | descriptorCreate->usage;
+				}
+			}
 		} else {
 			ngn::log::warn("rn::graph::resolve() => unknown setup result type for pass {}", it.first);
 		}
@@ -124,6 +239,77 @@ bool resolve([[maybe_unused]] rn::Context<T> &context, [[maybe_unused]] rn::Reso
 	// 		// }
 	// 	}
 	// }
+
+	ngn::log::debug("bufferDescriptions={}", bufferDescriptions.entries.size());
+	ngn::log::debug("textureDescriptions={}", textureDescriptions.entries.size());
+
+	for (auto &&it : bufferDescriptions) {
+		std::string usage = "";
+		if ((it.second.usage & rn::BufferUsage::Index) != rn::BufferUsage::None) {
+			usage +=  "Index | ";
+		}
+
+		if ((it.second.usage & rn::BufferUsage::Storage) != rn::BufferUsage::None) {
+			usage +=  "Storage | ";
+		}
+
+		if ((it.second.usage & rn::BufferUsage::TransferDestination) != rn::BufferUsage::None) {
+			usage +=  "TransferDestination | ";
+		}
+
+		if ((it.second.usage & rn::BufferUsage::TransferSource) != rn::BufferUsage::None) {
+			usage +=  "TransferSource | ";
+		}
+
+		if ((it.second.usage & rn::BufferUsage::Uniform) != rn::BufferUsage::None) {
+			usage +=  "Uniform | ";
+		}
+
+		if ((it.second.usage & rn::BufferUsage::Vertex) != rn::BufferUsage::None) {
+			usage +=  "Vertex | ";
+		}
+
+		ngn::log::debug("buffer: {} [{}; {}] {}", it.first, it.second.size, it.second.paging, usage.empty() ? std::string_view{usage} : std::string_view{usage}.substr(0, usage.size() - 3));
+	}
+
+	for (auto &&it : textureDescriptions) {
+		std::string usage = "";
+
+		if ((it.second.usage & rn::TextureUsage::TransferSource) != rn::TextureUsage::None) {
+			usage +=  "TransferSource | ";
+		}
+
+		if ((it.second.usage & rn::TextureUsage::TransferDestination) != rn::TextureUsage::None) {
+			usage +=  "TransferDestination | ";
+		}
+
+		if ((it.second.usage & rn::TextureUsage::Sampled) != rn::TextureUsage::None) {
+			usage +=  "Sampled | ";
+		}
+
+		if ((it.second.usage & rn::TextureUsage::Storage) != rn::TextureUsage::None) {
+			usage +=  "Storage | ";
+		}
+
+		if ((it.second.usage & rn::TextureUsage::OutputAttachment) != rn::TextureUsage::None) {
+			usage +=  "OutputAttachment | ";
+		}
+
+		if ((it.second.usage & rn::TextureUsage::DepthStencilAttachment) != rn::TextureUsage::None) {
+			usage +=  "DepthStencilAttachment | ";
+		}
+
+		if ((it.second.usage & rn::TextureUsage::TransientAttachment) != rn::TextureUsage::None) {
+			usage +=  "TransientAttachment | ";
+		}
+
+		if ((it.second.usage & rn::TextureUsage::InputAttachment) != rn::TextureUsage::None) {
+			usage +=  "InputAttachment | ";
+		}
+
+		ngn::log::debug("texture: {} [{}, {}, {}] {}", it.first, it.second.dimensions.width, it.second.dimensions.height, it.second.dimensions.depth, usage.empty() ? std::string_view{usage} : std::string_view{usage}.substr(0, usage.size() - 3));
+	}
+
 
 	std::vector<std::pair<std::string_view, rn::BufferHandle>> bufferCreates{};
 	std::vector<std::pair<std::string_view, rn::TextureHandle>> textureCreates{};

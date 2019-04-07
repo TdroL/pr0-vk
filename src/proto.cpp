@@ -51,7 +51,7 @@ int main() {
 		const auto depthSubpass = subpasses.add("depth", {}, rn::graph::GraphicSubpassDesc{
 			/*.depthStencil=*/ {
 				/*.texture=*/ depthTex,
-				/*.usage=*/ rn::graph::Access::Modify,
+				/*.usage=*/ rn::graph::DepthStencilTextureUsage::Modify,
 			},
 			/*.inputs=*/ {},
 			/*.outputs=*/ {},
@@ -79,7 +79,7 @@ int main() {
 		const auto cascadeShadowmapSubpass = subpasses.add("cascade-shadowmap", {}, rn::graph::GraphicSubpassDesc{
 			/*.depthStencil=*/ {
 				/*.texture=*/ cascadeShadowmapTex,
-				/*.usage=*/ rn::graph::Access::Write,
+				/*.usage=*/ rn::graph::DepthStencilTextureUsage::Write,
 			},
 			/*.inputs=*/ {},
 			/*.outputs=*/ {},
@@ -107,7 +107,7 @@ int main() {
 		const auto spotlightShadowmapSubpass = subpasses.add("spotlight-shadowmap", {}, rn::graph::GraphicSubpassDesc{
 			/*.depthStencil=*/ {
 				/*.texture=*/ spotlightShadowmapTex,
-				/*.usage=*/ rn::graph::Access::Write,
+				/*.usage=*/ rn::graph::DepthStencilTextureUsage::Write,
 			},
 			/*.inputs=*/ {},
 			/*.outputs=*/ {},
@@ -140,7 +140,7 @@ int main() {
 		const auto saoNoiseSubpass = subpasses.add("sao-noise", {}, rn::graph::GraphicSubpassDesc{
 			/*.depthStencil=*/ {
 				/*.texture=*/ depthTex,
-				/*.usage=*/ rn::graph::Access::Read,
+				/*.usage=*/ rn::graph::DepthStencilTextureUsage::Read,
 			},
 			/*.inputs=*/ {},
 			/*.outputs=*/ { saoTex },
@@ -228,7 +228,7 @@ int main() {
 		const auto gbufferSubpass = subpasses.add("gbuffer", {}, rn::graph::GraphicSubpassDesc{
 			/*.depthStencil=*/ {
 				/*.texture=*/ depthTex,
-				/*.usage=*/ rn::graph::Access::Read,
+				/*.usage=*/ rn::graph::DepthStencilTextureUsage::Read,
 			},
 			/*.inputs=*/ {},
 			/*.outputs=*/ { gbufferNormalTex, gbufferAlbedoTex, gbufferMetalnessRoughnessTex },
@@ -264,7 +264,7 @@ int main() {
 		const auto opaqueSubpass = subpasses.add("opaque", {}, rn::graph::GraphicSubpassDesc{
 			/*.depthStencil=*/ {
 				/*.texture=*/ depthTex,
-				/*.usage=*/ rn::graph::Access::Modify,
+				/*.usage=*/ rn::graph::DepthStencilTextureUsage::Modify,
 			},
 			/*.inputs=*/ { saoTex, gbufferNormalTex, gbufferAlbedoTex, gbufferMetalnessRoughnessTex },
 			/*.outputs=*/ { gbufferLightingTex },
@@ -275,7 +275,7 @@ int main() {
 		const auto skyboxSubpass = subpasses.add("skybox", { opaqueSubpass }, rn::graph::GraphicSubpassDesc{
 			/*.depthStencil=*/ {
 				/*.texture=*/ depthTex,
-				/*.usage=*/ rn::graph::Access::Read,
+				/*.usage=*/ rn::graph::DepthStencilTextureUsage::Read,
 			},
 			/*.inputs=*/ {},
 			/*.outputs=*/ { gbufferLightingTex },
@@ -286,7 +286,7 @@ int main() {
 		const auto transparentSubpass = subpasses.add("transparent", { skyboxSubpass }, rn::graph::GraphicSubpassDesc{
 			/*.depthStencil=*/ {
 				/*.texture=*/ depthTex,
-				/*.usage=*/ rn::graph::Access::Read,
+				/*.usage=*/ rn::graph::DepthStencilTextureUsage::Read,
 			},
 			/*.inputs=*/ { saoTex },
 			/*.outputs=*/ { gbufferLightingTex },
@@ -297,7 +297,7 @@ int main() {
 		const auto particlesSubpass = subpasses.add("particles", { transparentSubpass }, rn::graph::GraphicSubpassDesc{
 			/*.depthStencil=*/ {
 				/*.texture=*/ depthTex,
-				/*.usage=*/ rn::graph::Access::Read,
+				/*.usage=*/ rn::graph::DepthStencilTextureUsage::Read,
 			},
 			/*.inputs=*/ {},
 			/*.outputs=*/ { gbufferLightingTex },

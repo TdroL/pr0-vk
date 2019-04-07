@@ -94,7 +94,9 @@ rn::vki::UniqueTableInstance InstanceCreator::create(ngn::config::Config &config
 		throw std::runtime_error{"Vulkan instance could not be created"};
 	}
 
-	std::unique_ptr<vk::DispatchLoaderDynamic> table = std::make_unique<vk::DispatchLoaderDynamic>(*instanceOwner);
+	PFN_vkGetInstanceProcAddr vkGetInstanceProcAddrTemp = reinterpret_cast<PFN_vkGetInstanceProcAddr>(instanceOwner->getProcAddr("vkGetInstanceProcAddr"));
+
+	std::unique_ptr<vk::DispatchLoaderDynamic> table = std::make_unique<vk::DispatchLoaderDynamic>(*instanceOwner, vkGetInstanceProcAddrTemp);
 
 	return { std::move(instanceOwner), std::move(table) };
 }

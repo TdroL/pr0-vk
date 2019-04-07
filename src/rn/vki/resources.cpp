@@ -78,7 +78,7 @@ rn::TextureHandle Resources::createTexture(const rn::TextureDescription &descrip
 	usage |= ((rn::TextureUsage::Storage & description.usage) != rn::TextureUsage::None)
 		? vk::ImageUsageFlagBits::eStorage
 		: vk::ImageUsageFlags{};
-	usage |= ((rn::TextureUsage::ColorAttachment & description.usage) != rn::TextureUsage::None)
+	usage |= ((rn::TextureUsage::OutputAttachment & description.usage) != rn::TextureUsage::None)
 		? vk::ImageUsageFlagBits::eColorAttachment
 		: vk::ImageUsageFlags{};
 	usage |= ((rn::TextureUsage::DepthStencilAttachment & description.usage) != rn::TextureUsage::None)

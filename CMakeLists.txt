@@ -65,15 +65,15 @@ find_package(GLI 0.8.2.0 REQUIRED)
 include_directories(${GLI_INCLUDE_DIR})
 
 # Stb image
-find_package(Stb_image 2.16 REQUIRED)
+find_package(Stb_image 2.22 REQUIRED)
 include_directories(${STB_IMAGE_INCLUDE_DIR})
 
 # GLM
-find_package(GLM 0.9.9.3 REQUIRED)
+find_package(GLM 0.9.9.4 REQUIRED)
 include_directories(${GLM_INCLUDE_DIR})
 
 # JSON
-find_package(JSON 3.5.0 REQUIRED)
+find_package(JSON 3.6.1 REQUIRED)
 include_directories(${JSON_INCLUDE_DIR})
 
 # Spdlog
@@ -85,7 +85,7 @@ find_package(Fmt 5.3.0 REQUIRED)
 include_directories(${FMT_INCLUDE_DIR})
 
 # Remotery
-find_package(Remotery 18.06.02 REQUIRED)
+find_package(Remotery 19.03.26 REQUIRED)
 include_directories(${REMOTERY_INCLUDE_DIR})
 
 # Assimp

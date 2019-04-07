@@ -6,7 +6,9 @@ vk::DispatchLoaderDynamic staticDispatchTable{};
 
 template<>
 void loadExtensions(vk::UniqueInstance &instance) {
-	staticDispatchTable.init(*instance);
+	PFN_vkGetInstanceProcAddr vkGetInstanceProcAddrTemp = reinterpret_cast<PFN_vkGetInstanceProcAddr>(instance->getProcAddr("vkGetInstanceProcAddr"));
+
+	staticDispatchTable.init(*instance, vkGetInstanceProcAddrTemp);
 }
 
 } // rn::vki

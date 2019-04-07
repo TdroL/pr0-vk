@@ -102,19 +102,16 @@ public:
 };
 
 struct GraphicSubpassDesc {
-	struct {
-		rn::graph::TextureResourceHandle texture{};
-		rn::graph::Access usage{Access::None};
-	} depthStencil{};
+	rn::graph::TextureResourceHandleWithUsage<rn::graph::DepthStencilTextureUsage> depthStencil{};
 	std::vector<rn::graph::TextureResourceHandle> inputs{};
 	std::vector<rn::graph::TextureResourceHandle> outputs{};
-	std::vector<rn::graph::TextureResourceHandle> textures{};
-	std::vector<rn::graph::BufferResourceHandle> buffers{};
+	std::vector<rn::graph::TextureResourceHandleWithUsageWithStages<rn::graph::GraphicTextureUsage, rn::graph::GraphicStage>> textures{};
+	std::vector<rn::graph::BufferResourceHandleWithUsageWithStages<rn::graph::GraphicBufferUsage, rn::graph::GraphicStage>> buffers{};
 };
 
 struct ComputeSubpassDesc {
-	std::vector<rn::graph::TextureResourceHandle> textures{};
-	std::vector<rn::graph::BufferResourceHandle> buffers{};
+	std::vector<rn::graph::TextureResourceHandleWithUsage<rn::graph::ComputeTextureUsage>> textures{};
+	std::vector<rn::graph::BufferResourceHandleWithUsage<rn::graph::ComputeBufferUsage>> buffers{};
 };
 
 using GraphicSubpasses = rn::graph::Subpasses<rn::graph::GraphicSubpassDesc>;

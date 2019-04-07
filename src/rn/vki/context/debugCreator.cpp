@@ -1,5 +1,6 @@
 #include "debugCreator.hpp"
 
+#include <cctype>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
@@ -13,6 +14,22 @@
 #include "../trace.hpp"
 
 namespace rn::vki::context {
+
+bool isSpecIdentifier(const char *text) {
+	if (!text || *text == '\0') {
+		return false;
+	}
+
+	while (*text != '\0') {
+		if (!(std::isupper(*text) || std::isdigit(*text) || *text == '_')) {
+			return false;
+		}
+
+		text++;
+	}
+
+	return true;
+}
 
 VKAPI_ATTR VkBool32 VKAPI_CALL debugReportCallback(VkDebugReportFlagsEXT flags, [[maybe_unused]] VkDebugReportObjectTypeEXT objectType, [[maybe_unused]] uint64_t object, [[maybe_unused]] size_t location, int32_t messageCode, const char *pLayerPrefix, const char *pMessage, [[maybe_unused]] void *pUserData) {
 	std::stringstream ss;
@@ -77,7 +94,10 @@ VkBool32 debugUtilsMessengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT mess
 
 	ss << " " << util::join(types, " | ") << ") ";
 
-	ss << "[" << pCallbackData->messageIdNumber << ":" << pCallbackData->pMessageIdName << "]: " << pCallbackData->pMessage << " (spec: https://www.khronos.org/registry/vulkan/specs/1.1/html/vkspec.html#" << pCallbackData->pMessageIdName << ")";
+	ss << "[" << pCallbackData->messageIdNumber << ":" << pCallbackData->pMessageIdName << "]: " << pCallbackData->pMessage;
+	if (isSpecIdentifier(pCallbackData->pMessageIdName)) {
+		ss << " (spec: https://www.khronos.org/registry/vulkan/specs/1.1/html/vkspec.html#" << pCallbackData->pMessageIdName << ")";
+	}
 
 	const auto &lastCall = rn::vki::traceLastCall();
 	ngn::log::debug("rn::vki::context::DebugCreator::debugUtilsMessengerCallback() => {} | Last call [{}:{}]: {}", ss.str(), std::string{lastCall.file}, lastCall.line, std::string{lastCall.code});

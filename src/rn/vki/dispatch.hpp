@@ -298,5 +298,4 @@ using UniqueInstance = UniqueDispatch<vk::Instance>;
 using UniqueTableDevice = UniqueTableDispatch<vk::Device>;
 using UniqueTableInstance = UniqueTableDispatch<vk::Instance>;
 
-
 } // rn::vki
