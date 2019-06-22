@@ -1,8 +1,11 @@
 #include "core.hpp"
 
 #include <tuple>
+
 #include <nlohmann/json.hpp>
+
 #include "../fs.hpp"
+#include "../log.hpp"
 
 using json = nlohmann::json;
 
@@ -138,6 +141,52 @@ struct adl_serializer<std::variant<rn::ColorSpace, uint32_t>> {
 };
 
 template <>
+struct adl_serializer<ngn::config::Core::Context::Vki::FamilyIndex> {
+	static void to_json(json& j, const ngn::config::Core::Context::Vki::FamilyIndex& familyIndex) {
+		j.emplace("index", familyIndex.index);
+		j.emplace("family", familyIndex.family);
+	}
+
+	static void from_json(const json& j, ngn::config::Core::Context::Vki::FamilyIndex& familyIndex) {
+		familyIndex.index = j.value("index", familyIndex.index);
+		familyIndex.family = j.value("family", familyIndex.family);
+	}
+};
+
+template <>
+struct adl_serializer<ngn::config::Core::Context::Vki> {
+	static void to_json(json& j, const ngn::config::Core::Context::Vki& vki) {
+		j.emplace("physicalDeviceId", vki.physicalDeviceId);
+		j.emplace("physicalDeviceVendorId", vki.physicalDeviceVendorId);
+
+		if (vki.forceGraphicQueue.family >= 0) {
+			j.emplace("forceGraphicQueue", vki.forceGraphicQueue);
+		}
+
+		if (vki.forceComputeQueue.family >= 0) {
+			j.emplace("forceComputeQueue", vki.forceComputeQueue);
+		}
+
+		if (vki.forceTransferQueue.family >= 0) {
+			j.emplace("forceTransferQueue", vki.forceTransferQueue);
+		}
+
+		if (vki.forcePresentQueue.family >= 0) {
+			j.emplace("forcePresentQueue", vki.forcePresentQueue);
+		}
+	}
+
+	static void from_json(const json& j, ngn::config::Core::Context::Vki& vki) {
+		vki.physicalDeviceId = j.value("physicalDeviceId", vki.physicalDeviceId);
+		vki.physicalDeviceVendorId = j.value("physicalDeviceVendorId", vki.physicalDeviceVendorId);
+		vki.forceGraphicQueue = j.value("forceGraphicQueue", vki.forceGraphicQueue);
+		vki.forceComputeQueue = j.value("forceComputeQueue", vki.forceComputeQueue);
+		vki.forceTransferQueue = j.value("forceTransferQueue", vki.forceTransferQueue);
+		vki.forcePresentQueue = j.value("forcePresentQueue", vki.forcePresentQueue);
+	}
+};
+
+template <>
 struct adl_serializer<ngn::config::Core::Debug::Vki> {
 	static void to_json(json& j, const ngn::config::Core::Debug::Vki& vki) {
 		j.emplace("useRenderDoc", vki.useRenderDoc);
@@ -147,6 +196,17 @@ struct adl_serializer<ngn::config::Core::Debug::Vki> {
 	static void from_json(const json& j, ngn::config::Core::Debug::Vki& vki) {
 		vki.useRenderDoc = j.value("useRenderDoc", vki.useRenderDoc);
 		vki.logLevel = j.value("logLevel", vki.logLevel);
+	}
+};
+
+template <>
+struct adl_serializer<ngn::config::Core::Threading> {
+	static void to_json(json& j, const ngn::config::Core::Threading& threading) {
+		j.emplace("forcePoolSize", threading.forcePoolSize);
+	}
+
+	static void from_json(const json& j, ngn::config::Core::Threading& threading) {
+		threading.forcePoolSize = j.value("forcePoolSize", threading.forcePoolSize);
 	}
 };
 
@@ -186,29 +246,44 @@ struct adl_serializer<ngn::config::Core::Window> {
 	}
 };
 
+// template <>
+// struct adl_serializer<ngn::config::Core::PhysicalDevice> {
+// 	static void to_json(json& j, const ngn::config::Core::PhysicalDevice& physicalDevice) {
+// 		j.emplace("deviceId", physicalDevice.deviceId);
+// 		j.emplace("vendorId", physicalDevice.vendorId);
+// 	}
+
+// 	static void from_json(const json& j, ngn::config::Core::PhysicalDevice& physicalDevice) {
+// 		physicalDevice.deviceId = j.value("deviceId", physicalDevice.deviceId);
+// 		physicalDevice.vendorId = j.value("vendorId", physicalDevice.vendorId);
+// 	}
+// };
+
 template <>
-struct adl_serializer<ngn::config::Core::PhysicalDevice> {
-	static void to_json(json& j, const ngn::config::Core::PhysicalDevice& physicalDevice) {
-		j.emplace("deviceId", physicalDevice.deviceId);
-		j.emplace("vendorId", physicalDevice.vendorId);
+struct adl_serializer<ngn::config::Core::Context> {
+	static void to_json(json& j, const ngn::config::Core::Context& context) {
+		j.emplace("vki", context.vki);
 	}
 
-	static void from_json(const json& j, ngn::config::Core::PhysicalDevice& physicalDevice) {
-		physicalDevice.deviceId = j.value("deviceId", physicalDevice.deviceId);
-		physicalDevice.vendorId = j.value("vendorId", physicalDevice.vendorId);
+	static void from_json(const json& j, ngn::config::Core::Context& context) {
+		context.vki = j.value("vki", context.vki);
 	}
 };
 
 template <>
 struct adl_serializer<ngn::config::Core> {
 	static void to_json(json& j, const ngn::config::Core& core) {
-		j.emplace("physicalDevice", core.physicalDevice);
+		// j.emplace("physicalDevice", core.physicalDevice);
+		j.emplace("threading", core.threading);
+		j.emplace("context", core.context);
 		j.emplace("window", core.window);
 		j.emplace("debug", core.debug);
 	}
 
 	static void from_json(const json& j, ngn::config::Core& core) {
-		core.physicalDevice = j.value("physicalDevice", core.physicalDevice);
+		// core.physicalDevice = j.value("physicalDevice", core.physicalDevice);
+		core.threading = j.value("threading", core.threading);
+		core.context = j.value("context", core.context);
 		core.window = j.value("window", core.window);
 		core.debug = j.value("debug", core.debug);
 	}
@@ -217,6 +292,14 @@ struct adl_serializer<ngn::config::Core> {
 } // nlohmann
 
 namespace ngn::config {
+
+bool operator==(const Core::Context::Vki::FamilyIndex &rhs, const Core::Context::Vki::FamilyIndex &lhs) {
+	return std::tie(rhs.index, rhs.family) == std::tie(lhs.index, lhs.family);
+}
+
+bool operator==(const Core::Context::Vki &rhs, const Core::Context::Vki &lhs) {
+	return std::tie(rhs.physicalDeviceId, rhs.physicalDeviceVendorId, rhs.forceGraphicQueue, rhs.forceComputeQueue, rhs.forceTransferQueue, rhs.forcePresentQueue) == std::tie(lhs.physicalDeviceId, lhs.physicalDeviceVendorId, lhs.forceGraphicQueue, lhs.forceComputeQueue, lhs.forceTransferQueue, lhs.forcePresentQueue);
+}
 
 bool operator==(const Core::Debug::Vki &rhs, const Core::Debug::Vki &lhs) {
 	return std::tie(rhs.useRenderDoc, rhs.logLevel) == std::tie(lhs.useRenderDoc, lhs.logLevel);
@@ -238,8 +321,16 @@ bool operator==(const Core::Window &rhs, const Core::Window &lhs) {
 	return std::tie(rhs.width, rhs.height, rhs.mode, rhs.monitor, rhs.vsync, rhs.swapchainSize, rhs.surfaceFormat, rhs.surfaceColorSpace) == std::tie(lhs.width, lhs.height, lhs.mode, lhs.monitor, lhs.vsync, lhs.swapchainSize, lhs.surfaceFormat, lhs.surfaceColorSpace);
 }
 
-bool operator==(const Core::PhysicalDevice &rhs, const Core::PhysicalDevice &lhs) {
-	return std::tie(rhs.deviceId, rhs.vendorId) == std::tie(lhs.deviceId, lhs.vendorId);
+// bool operator==(const Core::PhysicalDevice &rhs, const Core::PhysicalDevice &lhs) {
+// 	return std::tie(rhs.deviceId, rhs.vendorId) == std::tie(lhs.deviceId, lhs.vendorId);
+// }
+
+bool operator==(const Core::Context &rhs, const Core::Context &lhs) {
+	return std::tie(rhs.vki) == std::tie(lhs.vki);
+}
+
+bool operator==(const Core::Threading &rhs, const Core::Threading &lhs) {
+	return std::tie(rhs.forcePoolSize) == std::tie(lhs.forcePoolSize);
 }
 
 bool operator==(const Core::Engine &rhs, const Core::Engine &lhs) {
@@ -251,7 +342,15 @@ bool operator==(const Core::Application &rhs, const Core::Application &lhs) {
 }
 
 bool operator==(const Core &rhs, const Core &lhs) {
-	return std::tie(rhs.dirty, rhs.application, rhs.engine, rhs.physicalDevice, rhs.window, rhs.debug) == std::tie(lhs.dirty, lhs.application, lhs.engine, lhs.physicalDevice, lhs.window, lhs.debug);
+	return std::tie(rhs.dirty, rhs.application, rhs.engine, /*rhs.physicalDevice*/ rhs.context, rhs.window, rhs.debug) == std::tie(lhs.dirty, lhs.application, lhs.engine, /*lhs.physicalDevice*/ lhs.context, lhs.window, lhs.debug);
+}
+
+bool operator!=(const Core::Context::Vki::FamilyIndex &rhs, const Core::Context::Vki::FamilyIndex &lhs) {
+	return ! (rhs == lhs);
+}
+
+bool operator!=(const Core::Context::Vki &rhs, const Core::Context::Vki &lhs) {
+	return ! (rhs == lhs);
 }
 
 bool operator!=(const Core::Debug::Vki &rhs, const Core::Debug::Vki &lhs) {
@@ -274,7 +373,11 @@ bool operator!=(const Core::Window &rhs, const Core::Window &lhs) {
 	return ! (rhs == lhs);
 }
 
-bool operator!=(const Core::PhysicalDevice &rhs, const Core::PhysicalDevice &lhs) {
+// bool operator!=(const Core::PhysicalDevice &rhs, const Core::PhysicalDevice &lhs) {
+// 	return ! (rhs == lhs);
+// }
+
+bool operator!=(const Core::Threading &rhs, const Core::Threading &lhs) {
 	return ! (rhs == lhs);
 }
 
@@ -292,11 +395,102 @@ bool operator!=(const Core &rhs, const Core &lhs) {
 
 Core Core::load(std::string_view filePath) {
 	std::optional<std::string> contentsO = ngn::fs::contents(filePath);
-	if ( ! contentsO) {
+	if ( ! contentsO || contentsO->empty()) {
 		contentsO = "{}";
 	}
 
-	return json::parse(contentsO.value()).get<Core>();
+	// return json::parse(contentsO.value()).get<Core>();
+	Core core = json::parse(contentsO.value()).get<Core>();
+
+	/*
+	ngn::log::debug("{}={}", filePath, contentsO.value());
+	ngn::log::debug("core.dirty={}", core.dirty);
+	ngn::log::debug("core.application.name={}", core.application.name);
+	ngn::log::debug("core.application.version.major={}", core.application.version.major);
+	ngn::log::debug("core.application.version.minor={}", core.application.version.minor);
+	ngn::log::debug("core.application.version.patch={}", core.application.version.patch);
+	ngn::log::debug("core.engine.name={}", core.engine.name);
+	ngn::log::debug("core.engine.version.major={}", core.engine.version.major);
+	ngn::log::debug("core.engine.version.minor={}", core.engine.version.minor);
+	ngn::log::debug("core.engine.version.patch={}", core.engine.version.patch);
+	ngn::log::debug("core.context.vki.physicalDeviceId={}", core.context.vki.physicalDeviceId);
+	ngn::log::debug("core.context.vki.physicalDeviceVendorId={}", core.context.vki.physicalDeviceVendorId);
+	ngn::log::debug("core.context.vki.forceGraphicQueueFamily={}", core.context.vki.forceGraphicQueueFamily);
+	ngn::log::debug("core.context.vki.forceGraphicQueueIndex={}", core.context.vki.forceGraphicQueueIndex);
+	ngn::log::debug("core.context.vki.forceComputeQueueFamily={}", core.context.vki.forceComputeQueueFamily);
+	ngn::log::debug("core.context.vki.forceComputeQueueIndex={}", core.context.vki.forceComputeQueueIndex);
+	ngn::log::debug("core.context.vki.forceTransferQueueFamily={}", core.context.vki.forceTransferQueueFamily);
+	ngn::log::debug("core.context.vki.forceTransferQueueIndex={}", core.context.vki.forceTransferQueueIndex);
+	ngn::log::debug("core.context.vki.forcePresentQueueFamily={}", core.context.vki.forcePresentQueueFamily);
+	ngn::log::debug("core.context.vki.forcePresentQueueIndex={}", core.context.vki.forcePresentQueueIndex);
+	ngn::log::debug("core.window.width={}", core.window.width);
+	ngn::log::debug("core.window.height={}", core.window.height);
+	switch (core.window.mode) {
+		case rn::WindowMode::Windowed: {
+			ngn::log::debug("core.window.mode=Windowed");
+			break;
+		}
+		case rn::WindowMode::Borderless: {
+			ngn::log::debug("core.window.mode=Borderless");
+			break;
+		}
+		case rn::WindowMode::Fullscreen: {
+			ngn::log::debug("core.window.mode=Fullscreen");
+			break;
+		}
+		default: {
+			ngn::log::debug("core.window.mode=Unknown");
+		}
+	}
+	ngn::log::debug("core.window.monitor={}", core.window.monitor);
+	switch (core.window.vsync) {
+		case rn::VSync::Fifo: {
+			ngn::log::debug("core.window.vsync=Fifo");
+			break;
+		}
+		case rn::VSync::FifoRelaxed: {
+			ngn::log::debug("core.window.vsync=FifoRelaxed");
+			break;
+		}
+		case rn::VSync::Mailbox: {
+			ngn::log::debug("core.window.vsync=Mailbox");
+			break;
+		}
+		case rn::VSync::Immediate: {
+			ngn::log::debug("core.window.vsync=Immediate");
+			break;
+		}
+		default: {
+			ngn::log::debug("core.window.vsync=Unknown");
+		}
+	}
+	ngn::log::debug("core.window.swapchainSize={}", core.window.swapchainSize);
+	if (auto value = std::get_if<rn::PixelFormat>(&core.window.surfaceFormat)) {
+		ngn::log::debug("core.window.surfaceFormat=PixelFormat[{}]", static_cast<size_t>(*value));
+	} else if (auto value = std::get_if<uint32_t>(&core.window.surfaceFormat)) {
+		ngn::log::debug("core.window.surfaceFormat={:#4x}", *value);
+	} else {
+		ngn::log::debug("core.window.surfaceFormat=Unknown");
+	}
+
+	// ngn::log::debug("core.window.surfaceColorSpace={}", core.window.surfaceColorSpace);
+	if (auto value = std::get_if<rn::ColorSpace>(&core.window.surfaceColorSpace)) {
+		ngn::log::debug("core.window.surfaceColorSpace=ColorSpace[{}]", static_cast<size_t>(*value));
+	} else if (auto value = std::get_if<uint32_t>(&core.window.surfaceColorSpace)) {
+		ngn::log::debug("core.window.surfaceColorSpace={:#4x}", *value);
+	} else {
+		ngn::log::debug("core.window.surfaceColorSpace=Unknown");
+	}
+	ngn::log::debug("core.debug.vki.useRenderDoc={}", core.debug.vki.useRenderDoc);
+	ngn::log::debug("core.debug.vki.logLevel={}", core.debug.vki.logLevel);
+
+	// rn::WindowMode mode{rn::WindowMode::Borderless};
+	// rn::VSync vsync{rn::VSync::Mailbox};
+	// std::variant<rn::PixelFormat, uint32_t> surfaceFormat{rn::PixelFormat::B8G8R8A8UNorm};
+	// std::variant<rn::ColorSpace, uint32_t> surfaceColorSpace{rn::ColorSpace::Undefined};
+	*/
+
+	return core;
 }
 
 std::string Core::dump(const Core &core, int indent) {

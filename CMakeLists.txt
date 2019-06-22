@@ -24,7 +24,7 @@ endif ()
 # 	"${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 if (CMAKE_COMPILER_IS_GNUCXX OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -pedantic-errors -Wodr -Wall -Wextra -Wconversion -Wfatal-errors -m64 -pthread -fdiagnostics-color -gdwarf-2") # -std=c++1z
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -Og -Winvalid-pch")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -Og")
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -funroll-loops -msse2")
 
 	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -m64 -static")
@@ -50,6 +50,12 @@ list(APPEND CONV_SOURCES ${NGN_SOURCES} ${RN_SOURCES} ${UTIL_SOURCES} "${CMAKE_S
 file(GLOB_RECURSE PROTO_SOURCES "${CMAKE_SOURCE_DIR}/src/proto/*.cpp" "${CMAKE_SOURCE_DIR}/src/proto/*.hpp")
 list(APPEND PROTO_SOURCES ${NGN_SOURCES} ${RN_SOURCES} ${UTIL_SOURCES} "${CMAKE_SOURCE_DIR}/src/proto.cpp")
 
+if (CMAKE_COMPILER_IS_GNUCXX)
+	list(APPEND APP_LIBS stdc++fs)
+	list(APPEND CONV_LIBS stdc++fs)
+	list(APPEND PROTO_LIBS stdc++fs)
+endif ()
+
 include_directories("${CMAKE_SOURCE_DIR}/src")
 
 # GLFW
@@ -61,7 +67,7 @@ find_package(Vulkan REQUIRED)
 include_directories(${VULKAN_INCLUDE_DIR})
 
 # GLI
-find_package(GLI 0.8.2.0 REQUIRED)
+find_package(GLI 0.8.3.0 REQUIRED)
 include_directories(${GLI_INCLUDE_DIR})
 
 # Stb image
@@ -69,7 +75,7 @@ find_package(Stb_image 2.22 REQUIRED)
 include_directories(${STB_IMAGE_INCLUDE_DIR})
 
 # GLM
-find_package(GLM 0.9.9.4 REQUIRED)
+find_package(GLM 0.9.9.5 REQUIRED)
 include_directories(${GLM_INCLUDE_DIR})
 
 # JSON
@@ -84,6 +90,11 @@ include_directories(${SPDLOG_INCLUDE_DIR})
 find_package(Fmt 5.3.0 REQUIRED)
 include_directories(${FMT_INCLUDE_DIR})
 
+# span-lite
+find_package(SpanLite 0.5.0 REQUIRED)
+include_directories(${SPANLITE_INCLUDE_DIR})
+add_definitions(-Dspan_FEATURE_MAKE_SPAN=1)
+
 # Remotery
 find_package(Remotery 19.03.26 REQUIRED)
 include_directories(${REMOTERY_INCLUDE_DIR})
@@ -92,9 +103,17 @@ include_directories(${REMOTERY_INCLUDE_DIR})
 find_package(Assimp 4.1.0 REQUIRED)
 include_directories(${ASSIMP_INCLUDE_DIR})
 
-list(APPEND APP_LIBS ${GLFW_LIBRARY} ${VULKAN_LIBRARIES} ${STB_IMAGE_LIBRARIES} ${REMOTERY_LIBRARIES})
-list(APPEND CONV_LIBS ${GLFW_LIBRARY} ${REMOTERY_LIBRARIES} ${ASSIMP_LIBRARIES})
-list(APPEND PROTO_LIBS ${GLFW_LIBRARY} ${VULKAN_LIBRARIES} ${STB_IMAGE_LIBRARIES} ${REMOTERY_LIBRARIES})
+# Draco
+find_package(Draco 1.3.5 REQUIRED)
+include_directories(${DRACO_INCLUDE_DIR})
+
+# TinyglTF
+find_package(TinyglTF 2.2.0 REQUIRED)
+include_directories(${TINYGLTF_INCLUDE_DIR})
+
+list(APPEND APP_LIBS ${GLFW_LIBRARY} ${VULKAN_LIBRARIES} ${STB_IMAGE_LIBRARIES} ${DRACO_LIBRARIES} ${REMOTERY_LIBRARIES})
+list(APPEND CONV_LIBS ${GLFW_LIBRARY} ${DRACO_LIBRARIES} ${REMOTERY_LIBRARIES} ${ASSIMP_LIBRARIES})
+list(APPEND PROTO_LIBS ${GLFW_LIBRARY} ${VULKAN_LIBRARIES} ${STB_IMAGE_LIBRARIES} ${DRACO_LIBRARIES} ${REMOTERY_LIBRARIES})
 
 # executables
 add_executable(app ${APP_SOURCES})

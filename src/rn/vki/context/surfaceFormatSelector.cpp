@@ -5,19 +5,30 @@
 #include <variant>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "../../../ngn/config.hpp"
+#include "../../../ngn/log.hpp"
 #include "../../../util/contains.hpp"
+// #include "../../../util/format.hpp"
+#include "../../../util/join.hpp"
+#include "../../../util/map.hpp"
+#include "../id.hpp"
 #include "../mapping.hpp"
 #include "../trace.hpp"
 
 namespace rn::vki::context {
 
-vk::SurfaceFormatKHR SurfaceFormatSelector::select(rn::vki::HandleSurfaceKHR &&surface, rn::vki::HandlePhysicalDevice &&physicalDevice, ngn::config::Config &config) {
+vk::SurfaceFormatKHR SurfaceFormatSelector::select(rn::vki::HandlePhysicalDevice &&physicalDevice, rn::vki::HandleSurfaceKHR &&surface, ngn::config::Config &config) {
 	std::vector<vk::SurfaceFormatKHR> surfaceFormats = RN_VKI_TRACE(physicalDevice->getSurfaceFormatsKHR(surface.get(), physicalDevice.table()));
 
 	if (surfaceFormats.empty()) {
 		throw std::runtime_error{"Vulkan surface formats not available"};
 	}
+
+	ngn::log::debug("rn::vki::context::SurfaceFormatSelector::select({:#x}, {:#x}) => available surface formats: [{}]", rn::vki::id(surface.get()), rn::vki::id(physicalDevice.get()), util::join(util::map(surfaceFormats, [] (const auto &surfaceFormat) {
+		return fmt::format("format={} ({}) colorSpace={} ({})", vk::to_string(surfaceFormat.format), static_cast<uint32_t>(surfaceFormat.format), vk::to_string(surfaceFormat.colorSpace), static_cast<uint32_t>(surfaceFormat.colorSpace));
+	})));
 
 	vk::Format desiredFormat = vk::Format::eUndefined;
 	if (auto value = std::get_if<rn::PixelFormat>(&config.core.window.surfaceFormat)) {
@@ -53,27 +64,30 @@ vk::SurfaceFormatKHR SurfaceFormatSelector::select(rn::vki::HandleSurfaceKHR &&s
 		} else if (*value == rn::ColorSpace::HDR) {
 			const auto foundFormatHDR = std::find_if(std::begin(surfaceFormats), std::end(surfaceFormats), [=] (const auto &surfaceFormat) {
 				if (surfaceFormat.format == desiredFormat) {
-					switch (surfaceFormat.colorSpace) {
-						case vk::ColorSpaceKHR::eDisplayP3NonlinearEXT: [[fallthrough]];
-						case vk::ColorSpaceKHR::eExtendedSrgbLinearEXT: [[fallthrough]];
-						case vk::ColorSpaceKHR::eDciP3LinearEXT: [[fallthrough]];
-						case vk::ColorSpaceKHR::eDciP3NonlinearEXT: [[fallthrough]];
-						case vk::ColorSpaceKHR::eBt709LinearEXT: [[fallthrough]];
-						case vk::ColorSpaceKHR::eBt709NonlinearEXT: [[fallthrough]];
-						case vk::ColorSpaceKHR::eBt2020LinearEXT: [[fallthrough]];
-						case vk::ColorSpaceKHR::eHdr10St2084EXT: [[fallthrough]];
-						case vk::ColorSpaceKHR::eDolbyvisionEXT: [[fallthrough]];
-						case vk::ColorSpaceKHR::eHdr10HlgEXT: [[fallthrough]];
-						case vk::ColorSpaceKHR::eAdobergbLinearEXT: [[fallthrough]];
-						case vk::ColorSpaceKHR::eAdobergbNonlinearEXT: [[fallthrough]];
-						case vk::ColorSpaceKHR::ePassThroughEXT: [[fallthrough]];
-						case vk::ColorSpaceKHR::eExtendedSrgbNonlinearEXT: {
-							return true;
-						}
-						default: {
-							return false;
-						}
-					}
+					// switch (surfaceFormat.colorSpace) {
+					// 	case vk::ColorSpaceKHR::eDisplayP3NonlinearEXT: [[fallthrough]];
+					// 	case vk::ColorSpaceKHR::eExtendedSrgbLinearEXT: [[fallthrough]];
+					// 	case vk::ColorSpaceKHR::eDciP3LinearEXT: [[fallthrough]];
+					// 	case vk::ColorSpaceKHR::eDciP3NonlinearEXT: [[fallthrough]];
+					// 	case vk::ColorSpaceKHR::eBt709LinearEXT: [[fallthrough]];
+					// 	case vk::ColorSpaceKHR::eBt709NonlinearEXT: [[fallthrough]];
+					// 	case vk::ColorSpaceKHR::eBt2020LinearEXT: [[fallthrough]];
+					// 	case vk::ColorSpaceKHR::eHdr10St2084EXT: [[fallthrough]];
+					// 	case vk::ColorSpaceKHR::eDolbyvisionEXT: [[fallthrough]];
+					// 	case vk::ColorSpaceKHR::eHdr10HlgEXT: [[fallthrough]];
+					// 	case vk::ColorSpaceKHR::eAdobergbLinearEXT: [[fallthrough]];
+					// 	case vk::ColorSpaceKHR::eAdobergbNonlinearEXT: [[fallthrough]];
+					// 	case vk::ColorSpaceKHR::ePassThroughEXT: [[fallthrough]];
+					// 	case vk::ColorSpaceKHR::eExtendedSrgbNonlinearEXT: [[fallthrough]];
+					// 	case vk::ColorSpaceKHR::eDisplayNativeAMD: {
+					// 		return true;
+					// 	}
+					// 	default: {
+					// 		return false;
+					// 	}
+					// }
+
+					return surfaceFormat.colorSpace != vk::ColorSpaceKHR::eSrgbNonlinear;
 				}
 
 				return false;

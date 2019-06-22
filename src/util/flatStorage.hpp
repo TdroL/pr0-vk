@@ -1,7 +1,9 @@
 #pragma once
 
-#include <vector>
+#include <algorithm>
+#include <functional>
 #include <optional>
+#include <vector>
 
 namespace util {
 
@@ -41,18 +43,29 @@ public:
 		}
 	}
 
-	FoundResult findOrAssign(K &&key, V &&value = V{}) {
+	template<typename K2>
+	std::optional<FoundResult> find(const K2 &key) {
 		const auto it = std::find_if(std::begin(entries), std::end(entries), [&] (const auto &entry) {
 			return entry.first == key;
 		});
 
 		if (it == std::end(entries)) {
+			return std::nullopt;
+		} else {
+			return { FoundResult{ static_cast<Handle>(it - std::begin(entries)), it->first, it->second } };
+		}
+	}
+
+	FoundResult findOrAssign(K &&key, V &&value = V{}) {
+		auto foundOpt = find(key);
+
+		if (foundOpt.has_value()) {
+			return *foundOpt;
+		} else {
 			size_t index = entries.size();
 			entries.emplace_back(std::move(key), std::move(value));
 
 			return { static_cast<Handle>(index), entries[index].first, entries[index].second };
-		} else {
-			return { static_cast<Handle>(it - std::begin(entries)), it->first, it->second };
 		}
 	}
 

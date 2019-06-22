@@ -14,7 +14,7 @@ namespace rn::vki::context {
 
 class SurfaceExtentSelector {
 public:
-	vk::Extent2D select(rn::vki::HandleSurfaceKHR &&surface, rn::vki::HandlePhysicalDevice &&physicalDevice, ngn::config::Config &config);
+	vk::Extent2D select(rn::vki::HandlePhysicalDevice &&physicalDevice, rn::vki::HandleSurfaceKHR &&surface, ngn::config::Config &config);
 };
 
 } // rn::vki::context

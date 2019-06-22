@@ -30,10 +30,31 @@ struct Core {
 		} version{};
 	} engine{};
 
-	struct PhysicalDevice {
-		uint32_t deviceId{0};
-		uint32_t vendorId{0};
-	} physicalDevice{};
+	struct Threading {
+		int32_t forcePoolSize{-1};
+	} threading;
+
+	// struct PhysicalDevice {
+	// 	uint32_t deviceId{0};
+	// 	uint32_t vendorId{0};
+	// } physicalDevice{};
+
+	struct Context {
+		struct Vki {
+			uint32_t physicalDeviceId{0};
+			uint32_t physicalDeviceVendorId{0};
+
+			struct FamilyIndex {
+				int32_t family{-1};
+				int32_t index{-1};
+			};
+
+			FamilyIndex forceGraphicQueue{};
+			FamilyIndex forceComputeQueue{};
+			FamilyIndex forceTransferQueue{};
+			FamilyIndex forcePresentQueue{};
+		} vki{};
+	} context{};
 
 	struct Window {
 		uint32_t width{1600};
@@ -58,6 +79,8 @@ struct Core {
 	static std::optional<std::string> store(const Core &core, std::string_view filePath = "core.json");
 };
 
+bool operator==(const Core::Context::Vki &rhs, const Core::Context::Vki &lhs);
+bool operator!=(const Core::Context::Vki &rhs, const Core::Context::Vki &lhs);
 bool operator==(const Core::Debug::Vki &rhs, const Core::Debug::Vki &lhs);
 bool operator!=(const Core::Debug::Vki &rhs, const Core::Debug::Vki &lhs);
 bool operator==(const Core::Engine::Version &rhs, const Core::Engine::Version &lhs);
@@ -68,8 +91,10 @@ bool operator==(const Core::Debug &rhs, const Core::Debug &lhs);
 bool operator!=(const Core::Debug &rhs, const Core::Debug &lhs);
 bool operator==(const Core::Window &rhs, const Core::Window &lhs);
 bool operator!=(const Core::Window &rhs, const Core::Window &lhs);
-bool operator==(const Core::PhysicalDevice &rhs, const Core::PhysicalDevice &lhs);
-bool operator!=(const Core::PhysicalDevice &rhs, const Core::PhysicalDevice &lhs);
+// bool operator==(const Core::PhysicalDevice &rhs, const Core::PhysicalDevice &lhs);
+// bool operator!=(const Core::PhysicalDevice &rhs, const Core::PhysicalDevice &lhs);
+bool operator==(const Core::Context &rhs, const Core::Context &lhs);
+bool operator!=(const Core::Context &rhs, const Core::Context &lhs);
 bool operator==(const Core::Engine &rhs, const Core::Engine &lhs);
 bool operator!=(const Core::Engine &rhs, const Core::Engine &lhs);
 bool operator==(const Core::Application &rhs, const Core::Application &lhs);

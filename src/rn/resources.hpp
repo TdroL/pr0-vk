@@ -1,20 +1,26 @@
 #pragma once
 
+#include <cmath>
 #include <functional>
 #include <map>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <vector>
 
+#include "../ngn/log.hpp"
+#include "commands.hpp"
 #include "types.hpp"
 
 namespace rn {
 
+
+
 template<class T>
 class TextureResources {
 public:
-	T &internal;
+	T *context{nullptr};
 
 	struct TextureSlot {
 		rn::TextureHandle handle;
@@ -26,33 +32,48 @@ public:
 		rn::TextureHandle handle;
 		rn::TextureDescription description;
 		std::string name;
-		uint64_t tick;
+		rn::FenceStamp fenceStamp;
 	};
 
+	rn::FenceStamp pendingFenceStamp{};
+
 	std::vector<TextureSlot> textureSlots{};
-	std::map<std::string_view, rn::TextureHandle> textureSlotHandleIndices{};
+	// std::map<std::string_view, rn::TextureHandle> textureSlotHandleIndices{};
 
 	std::vector<TextureRetire> textureRetires{};
-	std::map<std::string_view, rn::TextureHandle> textureRetireHandleIndices{};
+	// std::map<std::string_view, rn::TextureHandle> textureRetireHandleIndices{};
+
+	TextureResources() = default;
+	explicit TextureResources(T &context) noexcept :
+		context{&context}
+	{}
+	TextureResources(const TextureResources<T> &other) = delete;
+	TextureResources(TextureResources<T> &&other) = delete;
+	TextureResources & operator=(const TextureResources<T> &other) = delete;
+	TextureResources & operator=(TextureResources<T> &&other) = delete;
 
 	std::optional<rn::TextureHandle> find(std::string_view name) {
-		const auto mappingIt = textureSlotHandleIndices.find(name);
+		const auto slotIt = std::find_if(std::begin(textureSlots), std::end(textureSlots), [&] (const auto &entry) {
+			return entry.name == name;
+		});
 
-		if (mappingIt == std::end(textureSlotHandleIndices)) {
+		if (slotIt == std::end(textureSlots)) {
 			return std::nullopt;
 		}
 
-		return mappingIt->second;
+		return slotIt->handle;
 	}
 
 	std::optional<rn::TextureHandle> findRetired(std::string_view name) {
-		const auto mappingIt = textureRetireHandleIndices.find(name);
+		const auto retireIt = std::find_if(std::begin(textureRetires), std::end(textureRetires), [&] (const auto &entry) {
+			return entry.name == name;
+		});
 
-		if (mappingIt == std::end(textureRetireHandleIndices)) {
+		if (retireIt == std::end(textureRetires)) {
 			return std::nullopt;
 		}
 
-		return mappingIt->second;
+		return retireIt->handle;
 	}
 
 	rn::TextureHandle create(std::string_view name, const rn::TextureDescription &description) {
@@ -62,7 +83,7 @@ public:
 			retire(*handleO);
 		}
 
-		const auto handle = internal.createTexture(description);
+		const auto handle = context->createTexture(description);
 
 		size_t index = handle.index;
 
@@ -80,7 +101,7 @@ public:
 			description,
 			std::string{name}
 		});
-		textureSlotHandleIndices.insert_or_assign(textureSlots[index].name, handle);
+		// textureSlotHandleIndices.insert_or_assign(textureSlots[index].name, handle);
 
 		return handle;
 	}
@@ -96,20 +117,29 @@ public:
 			textureRetires.resize(std::max(index, textureSlots.size()));
 		}
 
-		uint64_t tick = 0;
 		textureRetires[index] = {
 			std::move(textureSlots[index].handle),
 			std::move(textureSlots[index].description),
 			std::move(textureSlots[index].name),
-			tick,
+			pendingFenceStamp,
 		};
-		textureRetireHandleIndices.insert_or_assign(textureRetires[index].name, handle);
+		// textureRetireHandleIndices.insert_or_assign(textureRetires[index].name, handle);
 
 		// textureSlots[index] = {};
 		textureSlots.insert(std::begin(textureSlots) + index, {});
-		textureSlotHandleIndices.erase(textureRetires[index].name);
+		// textureSlotHandleIndices.erase(textureRetires[index].name);
 
 		return true;
+	}
+
+	bool retire(std::string_view name) {
+		const auto handleO = find(name);
+
+		if (handleO) {
+			return retire(*handleO);
+		}
+
+		return false;
 	}
 
 	bool restore(rn::TextureHandle handle) {
@@ -128,45 +158,25 @@ public:
 			std::move(textureRetires[index].description),
 			std::move(textureRetires[index].name),
 		};
-		textureSlotHandleIndices.insert_or_assign(textureSlots[index].name, handle);
+		// textureSlotHandleIndices.insert_or_assign(textureSlots[index].name, handle);
 
 		textureRetires[index] = {};
-		textureRetireHandleIndices.erase(textureSlots[index].name);
+		// textureRetireHandleIndices.erase(textureSlots[index].name);
 
 		return true;
 	}
 
-	std::optional<std::reference_wrapper<rn::TextureDescription>> describe(rn::TextureHandle handle) {
+	std::optional<std::reference_wrapper<TextureSlot>> describe(rn::TextureHandle handle) {
 		size_t index = handle.index;
 
 		if (index >= textureSlots.size() || textureSlots[index].handle == rn::end<rn::TextureHandle>()) {
 			return std::nullopt;
 		}
 
-		return textureSlots[index].description;
+		return std::ref(textureSlots[index]);
 	}
 
-	std::optional<std::reference_wrapper<rn::TextureDescription>> describeRetired(rn::TextureHandle handle) {
-		size_t index = handle.index;
-
-		if (index >= textureRetires.size() || textureRetires[index].handle == rn::end<rn::TextureHandle>()) {
-			return std::nullopt;
-		}
-
-		return textureRetires[index].description;
-	}
-
-	bool retire(std::string_view name) {
-		const auto handleO = find(name);
-
-		if (handleO) {
-			return retire(*handleO);
-		}
-
-		return false;
-	}
-
-	std::optional<std::reference_wrapper<rn::TextureDescription>> describe(std::string_view name) {
+	std::optional<std::reference_wrapper<TextureSlot>> describe(std::string_view name) {
 		const auto handleO = find(name);
 
 		if (handleO) {
@@ -174,6 +184,16 @@ public:
 		} else {
 			return std::nullopt;
 		}
+	}
+
+	std::optional<std::reference_wrapper<TextureSlot>> describeRetired(rn::TextureHandle handle) {
+		size_t index = handle.index;
+
+		if (index >= textureRetires.size() || textureRetires[index].handle == rn::end<rn::TextureHandle>()) {
+			return std::nullopt;
+		}
+
+		return std::ref(textureRetires[index]);
 	}
 
 	rn::TextureHandle findOrCreate(std::string_view name, const rn::TextureDescription &description) {
@@ -200,12 +220,24 @@ public:
 
 		return create(name, description);
 	}
+
+	void flushRetired() {
+		rn::FenceStamp resolvedFenceStamp = context->resolvedFenceStamp(rn::QueueType::Transfer);
+
+		textureRetires.erase(std::remove_if(std::begin(textureRetires), std::end(textureRetires), [=] (const auto &entry) {
+			return entry.fenceStamp < resolvedFenceStamp;
+		}), std::end(textureRetires));
+	}
+
+	void advance() {
+		pendingFenceStamp = context->pendingFenceStamp(rn::QueueType::Transfer);
+	}
 };
 
 template<class T>
 class BufferResources {
 public:
-	T &internal;
+	T *context{nullptr};
 
 	struct BufferSlot {
 		rn::BufferHandle handle;
@@ -217,33 +249,48 @@ public:
 		rn::BufferHandle handle;
 		rn::BufferDescription description;
 		std::string name;
-		uint64_t tick;
+		rn::FenceStamp fenceStamp;
 	};
 
+	rn::FenceStamp pendingFenceStamp{};
+
 	std::vector<BufferSlot> bufferSlots{};
-	std::map<std::string_view, rn::BufferHandle> bufferSlotHandleIndices{};
+	// std::map<std::string_view, rn::BufferHandle> bufferSlotHandleIndices{};
 
 	std::vector<BufferRetire> bufferRetires{};
-	std::map<std::string_view, rn::BufferHandle> bufferRetireHandleIndices{};
+	// std::map<std::string_view, rn::BufferHandle> bufferRetireHandleIndices{};
+
+	BufferResources() = default;
+	explicit BufferResources(T &context) noexcept :
+		context{&context}
+	{}
+	BufferResources(const BufferResources<T> &other) = delete;
+	BufferResources(BufferResources<T> &&other) = delete;
+	BufferResources & operator=(const BufferResources<T> &other) = delete;
+	BufferResources & operator=(BufferResources<T> &&other) = delete;
 
 	std::optional<rn::BufferHandle> find(std::string_view name) {
-		const auto mappingIt = bufferSlotHandleIndices.find(name);
+		const auto slotIt = std::find_if(std::begin(bufferSlots), std::end(bufferSlots), [&] (const auto &entry) {
+			return entry.name == name;
+		});
 
-		if (mappingIt == std::end(bufferSlotHandleIndices)) {
+		if (slotIt == std::end(bufferSlots)) {
 			return std::nullopt;
 		}
 
-		return mappingIt->second;
+		return slotIt->handle;
 	}
 
 	std::optional<rn::BufferHandle> findRetired(std::string_view name) {
-		const auto mappingIt = bufferRetireHandleIndices.find(name);
+		const auto retireIt = std::find_if(std::begin(bufferRetires), std::end(bufferRetires), [&] (const auto &entry) {
+			return entry.name == name;
+		});
 
-		if (mappingIt == std::end(bufferRetireHandleIndices)) {
+		if (retireIt == std::end(bufferRetires)) {
 			return std::nullopt;
 		}
 
-		return mappingIt->second;
+		return retireIt->handle;
 	}
 
 	rn::BufferHandle create(std::string_view name, const rn::BufferDescription &description) {
@@ -253,7 +300,7 @@ public:
 			retire(*handleO);
 		}
 
-		const auto handle = internal.createBuffer(description);
+		const auto handle = context->createBuffer(description);
 
 		size_t index = handle.index;
 
@@ -271,7 +318,7 @@ public:
 			description,
 			std::string{name}
 		});
-		bufferSlotHandleIndices.insert_or_assign(bufferSlots[index].name, handle);
+		// bufferSlotHandleIndices.insert_or_assign(bufferSlots[index].name, handle);
 
 		return handle;
 	}
@@ -287,7 +334,6 @@ public:
 			bufferRetires.resize(std::max(index + 1, bufferSlots.size()));
 		}
 
-		uint64_t tick = 0;
 		// bufferRetires[index] = {
 		// 	std::move(bufferSlots[index].handle),
 		// 	std::move(bufferSlots[index].description),
@@ -298,15 +344,25 @@ public:
 			std::move(bufferSlots[index].handle),
 			std::move(bufferSlots[index].description),
 			std::move(bufferSlots[index].name),
-			tick,
+			pendingFenceStamp,
 		});
-		bufferRetireHandleIndices.insert_or_assign(bufferRetires[index].name, handle);
+		// bufferRetireHandleIndices.insert_or_assign(bufferRetires[index].name, handle);
 
 		// bufferSlots[index] = {};
 		bufferSlots.insert(std::begin(bufferSlots) + index, {});
-		bufferSlotHandleIndices.erase(bufferRetires[index].name);
+		// bufferSlotHandleIndices.erase(bufferRetires[index].name);
 
 		return true;
+	}
+
+	bool retire(std::string_view name) {
+		const auto handleO = find(name);
+
+		if (handleO) {
+			return retire(*handleO);
+		}
+
+		return false;
 	}
 
 	bool restore(rn::BufferHandle handle) {
@@ -330,46 +386,26 @@ public:
 			std::move(bufferRetires[index].description),
 			std::move(bufferRetires[index].name),
 		});
-		bufferSlotHandleIndices.insert_or_assign(bufferSlots[index].name, handle);
+		// bufferSlotHandleIndices.insert_or_assign(bufferSlots[index].name, handle);
 
 		// bufferRetires[index] = {};
 		bufferRetires.insert(std::begin(bufferRetires) + index, {});
-		bufferRetireHandleIndices.erase(bufferSlots[index].name);
+		// bufferRetireHandleIndices.erase(bufferSlots[index].name);
 
 		return true;
 	}
 
-	std::optional<std::reference_wrapper<rn::BufferDescription>> describe(rn::BufferHandle handle) {
+	std::optional<std::reference_wrapper<BufferSlot>> describe(rn::BufferHandle handle) {
 		size_t index = handle.index;
 
 		if (index >= bufferSlots.size() || bufferSlots[index].handle == rn::end<rn::BufferHandle>()) {
 			return std::nullopt;
 		}
 
-		return bufferSlots[index].description;
+		return std::ref(bufferSlots[index]);
 	}
 
-	std::optional<std::reference_wrapper<rn::BufferDescription>> describeRetired(rn::BufferHandle handle) {
-		size_t index = handle.index;
-
-		if (index >= bufferRetires.size() || bufferRetires[index].handle == rn::end<rn::BufferHandle>()) {
-			return std::nullopt;
-		}
-
-		return bufferRetires[index].description;
-	}
-
-	bool retire(std::string_view name) {
-		const auto handleO = find(name);
-
-		if (handleO) {
-			return retire(*handleO);
-		}
-
-		return false;
-	}
-
-	std::optional<std::reference_wrapper<rn::BufferDescription>> describe(std::string_view name) {
+	std::optional<std::reference_wrapper<BufferSlot>> describe(std::string_view name) {
 		const auto handleO = find(name);
 
 		if (handleO) {
@@ -377,6 +413,16 @@ public:
 		} else {
 			return std::nullopt;
 		}
+	}
+
+	std::optional<std::reference_wrapper<BufferSlot>> describeRetired(rn::BufferHandle handle) {
+		size_t index = handle.index;
+
+		if (index >= bufferRetires.size() || bufferRetires[index].handle == rn::end<rn::BufferHandle>()) {
+			return std::nullopt;
+		}
+
+		return std::ref(bufferRetires[index]);
 	}
 
 	rn::BufferHandle findOrCreate(std::string_view name, const rn::BufferDescription &description) {
@@ -403,22 +449,40 @@ public:
 
 		return create(name, description);
 	}
+
+	void flushRetired() {
+		rn::FenceStamp resolvedFenceStamp = context->resolvedFenceStamp(rn::QueueType::Transfer);
+
+		bufferRetires.erase(std::remove_if(std::begin(bufferRetires), std::end(bufferRetires), [=] (const auto &entry) {
+			return entry.fenceStamp < resolvedFenceStamp;
+		}), std::end(bufferRetires));
+	}
+
+	void advance() {
+		pendingFenceStamp = context->pendingFenceStamp(rn::QueueType::Transfer);
+	}
 };
 
 template<class T>
 class Resources {
 public:
-	T internal;
+	// std::reference_wrapper<T> context{};
+	T* context{nullptr};
+	TextureResources<T> texture{};
+	BufferResources<T> buffer{};
 
-	TextureResources<T> texture;
-	BufferResources<T> buffer;
+	rn::TransitionCommand acquireTransitionCommand{};
+	std::vector<rn::TransferCommandVariant> transferCommands{};
+	rn::TransitionCommand releaseTransitionCommand{};
+
+	rn::FenceStamp pendingFenceStamp{0};
 
 	Resources() = default;
 
-	Resources(T &&internal) :
-		internal{std::move(internal)},
-		texture{this->internal},
-		buffer{this->internal}
+	explicit Resources(T &context) :
+		context{&context},
+		texture{context},
+		buffer{context}
 	{}
 
 	Resources(const Resources &other) = delete;
@@ -426,6 +490,136 @@ public:
 
 	Resources & operator=(const Resources &other) = delete;
 	Resources & operator=(Resources &&other) = delete;
+
+	rn::FenceStamp enqueueTextureUpload(rn::TextureHandle handle, const rn::TextureDataAccessor &accessor) {
+		const auto textureSlotO = texture.describe(handle);
+		if ( ! textureSlotO) {
+			ngn::log::error("rn::Resources::enqueueTextureUpload(<{:x}>) => invalid texture handle", handle.index);
+			return rn::end<rn::FenceStamp>();
+		}
+
+		rn::TextureDescription description = textureSlotO->get().description;
+
+		util::TrivialVector<rn::BufferCopyRange, 1> ranges{};
+		ranges.reserve(description.levels * description.layers);
+
+		util::TrivialVector<rn::CopyBufferToTextureCommand::Region, 1> regions{};
+		regions.reserve(description.levels * description.layers);
+
+		size_t dataFormatSize = rn::sizeOf(accessor.format());
+		size_t bufferSize = 0;
+
+		// vulkan requires each buffer address of layer and level to be aligned to 4 bytes
+		constexpr size_t alignment = 4;
+		for (uint32_t layer = 0; layer < description.layers; layer++) {
+			for (uint32_t level = 0; level < description.levels; level++) {
+				uint32_t layerWidth = std::max(1u, description.dimensions.width >> level);
+				uint32_t layerHeight = std::max(1u, description.dimensions.height >> level);
+				uint32_t layerDepth = std::max(1u, description.dimensions.depth >> level);
+
+				ranges.push_back({
+					/*.bufferOffset=*/ bufferSize,
+					/*.data=*/ accessor.data(layer, level),
+					/*.length=*/ accessor.size(level)
+				});
+
+				regions.push_back({
+					/*.sourceOffset=*/ bufferSize,
+					/*.sourceRowLength=*/ static_cast<uint32_t>(layerWidth * dataFormatSize),
+					/*.sourceRowCount=*/ layerHeight * layerDepth,
+					/*.mipLevel=*/ level,
+					/*.baseArrayLayer=*/ layer,
+					/*.layerCount=*/ 1,
+					/*.destinationOffset=*/ {
+						/*.x=*/ 0,
+						/*.y=*/ 0,
+						/*.z=*/ 0
+					},
+					/*.destinationExtent=*/ {
+						/*.width=*/ layerWidth,
+						/*.height=*/ layerHeight,
+						/*.depth=*/ layerDepth
+					},
+				});
+
+				bufferSize += ((accessor.size(level) + (alignment - 1u)) / alignment) * alignment;
+			}
+		}
+
+		rn::BufferDescription stagingBufferDescription{
+			/*.size=*/ bufferSize,
+			/*.usage=*/ rn::BufferUsage::TransferSource | rn::BufferUsage::Staging,
+			/*.paging=*/ rn::BufferPaging::Static,
+		};
+
+		std::string stagingBufferName = "TextureStagingBuffer:" + std::to_string(handle.index) + "#" + textureSlotO->get().name;
+		rn::BufferHandle stagingBufferHandle = buffer.create(stagingBufferName, stagingBufferDescription);
+
+		// upload texture to staging buffer
+		context->uploadBufferSync(stagingBufferHandle, std::move(ranges));
+
+		acquireTransitionCommand.textures.push_back(rn::TransitionCommand::Texture{
+			/*.handle=*/ handle,
+			/*.oldAccess=*/ rn::TextureAccess::None,
+			/*.newAccess=*/ rn::TextureAccess::TransferWrite,
+			/*.oldQueueType=*/ rn::QueueType::None,
+			/*.newQueueType=*/ rn::QueueType::Transfer,
+			/*.baseMipLevel=*/ 0,
+			/*.mipCount=*/ description.levels,
+			/*.baseArrayLayer=*/ 0,
+			/*.layerCount=*/ description.layers,
+		});
+
+		// enqueue transfer from staging buffer to the texture
+		transferCommands.push_back(rn::CopyBufferToTextureCommand{
+			/*.source=*/ stagingBufferHandle,
+			/*.destination=*/ handle,
+			/*.regions=*/ std::move(regions)
+		});
+
+		releaseTransitionCommand.textures.push_back(rn::TransitionCommand::Texture{
+			/*.handle=*/ handle,
+			/*.oldAccess=*/ rn::TextureAccess::TransferWrite,
+			/*.newAccess=*/ rn::TextureAccess::AnyShaderSampledRead,
+			/*.oldQueueType=*/ rn::QueueType::Transfer,
+			/*.newQueueType=*/ rn::QueueType::Graphic,
+			/*.baseMipLevel=*/ 0,
+			/*.mipCount=*/ description.levels,
+			/*.baseArrayLayer=*/ 0,
+			/*.layerCount=*/ description.layers,
+		});
+
+		buffer.retire(stagingBufferHandle);
+
+		return pendingFenceStamp;
+	}
+
+	rn::FenceStamp enqueueBufferUpload() {
+		// TODO
+		return rn::end<rn::FenceStamp>();
+	}
+
+	void advance() {
+		buffer.flushRetired();
+		texture.flushRetired();
+
+		pendingFenceStamp = context->pendingFenceStamp(rn::QueueType::Transfer);
+
+		buffer.advance();
+		texture.advance();
+	}
+
+	void commit() {
+		if ( ! transferCommands.empty()) {
+			context->enqueueCommands(std::vector<rn::TransferCommandVariant>{ std::move(acquireTransitionCommand) });
+			rn::FenceStamp fenceStamp = context->enqueueCommands(std::move(transferCommands));
+			context->deferCommands(fenceStamp, rn::QueueType::Transfer, std::vector<rn::GraphicCommandVariant>{ /*std::move(releaseTransitionCommand)*/ });
+
+			acquireTransitionCommand = {};
+			transferCommands = {};
+			releaseTransitionCommand = {};
+		}
+	}
 };
 
 } // rn

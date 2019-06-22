@@ -122,7 +122,7 @@ Handle Pool::alloc(const Usage usage, const vk::MemoryRequirements2 &requirement
 
 				BlockAllocationHandle allocation = block.alloc(requirements);
 				if (allocation.memory) {
-					ngn::log::debug("rn::vki::memory::Pool::alloc({} bytes) => allocated memory: {} bytes offset, {} leaf(s)", requirements.memoryRequirements.size, allocation.offset, 1u << (block.levels - block.levelFromIdx(allocation.leafIdx)));
+					ngn::log::debug("rn::vki::memory::Pool::alloc({} bytes) => allocated memory: {} bytes offset, {} leaf(s), block {}", requirements.memoryRequirements.size, allocation.offset, 1u << (block.levels - block.levelFromIdx(allocation.leafIdx)), blockIdx);
 					return Handle{
 						std::move(allocation.memory),
 						allocation.offset,
@@ -137,7 +137,7 @@ Handle Pool::alloc(const Usage usage, const vk::MemoryRequirements2 &requirement
 		}
 
 		try {
-			Block &block = appendBlock(memoryTypeIndex, memoryProperties.memoryProperties.memoryTypes[memoryTypeIndex].propertyFlags, requirements, dedicatedFor);
+			Block &block = createBlock(memoryTypeIndex, memoryProperties.memoryProperties.memoryTypes[memoryTypeIndex].propertyFlags, requirements, dedicatedFor);
 
 			BlockAllocationHandle allocation = block.alloc(requirements);
 			if (allocation.memory) {
@@ -188,14 +188,15 @@ void Pool::free(const Handle &handle) {
 	}
 
 	if (handle.blockIdx >= blocks.size()) {
-		ngn::log::error("rn::vki::memory::Pool::free({}, {}, {}) => unable to free memory handle, block index out-of-range: {} => {}", rn::vki::id(handle.memory.get()), handle.blockIdx, handle.leafIdx, handle.blockIdx, blocks.size());
+		ngn::log::error("rn::vki::memory::Pool::free({:#x}, {}, {}) => unable to free memory handle, block index out-of-range: {} => {}", rn::vki::id(handle.memory.get()), handle.blockIdx, handle.leafIdx, handle.blockIdx, blocks.size());
 	} else {
 		blocks[handle.blockIdx].free(handle.leafIdx);
 
-		ngn::log::debug("rn::vki::memory::Pool::free({}, {}, {}) => memory block freed", rn::vki::id(handle.memory.get()), handle.blockIdx, handle.leafIdx);
-
 		if (blocks[handle.blockIdx].isEmpty()) {
 			blocks[handle.blockIdx].reset();
+			ngn::log::debug("rn::vki::memory::Pool::free({:#x}, {}, {}) => memory block reset", rn::vki::id(handle.memory.get()), handle.blockIdx, handle.leafIdx);
+		} else {
+			ngn::log::debug("rn::vki::memory::Pool::free({:#x}, {}, {}) => memory block freed", rn::vki::id(handle.memory.get()), handle.blockIdx, handle.leafIdx);
 		}
 	}
 }
@@ -246,7 +247,7 @@ uint32_t Pool::findMemoryTypeIndex(vk::MemoryPropertyFlags flags, const vk::Memo
 	return std::numeric_limits<uint32_t>::max();
 }
 
-Block & Pool::appendBlock(uint32_t memoryTypeIndex, vk::MemoryPropertyFlags flags, const vk::MemoryRequirements2 &requirements, const std::variant<std::monostate, vk::Image, vk::Buffer> &dedicatedFor) {
+Block & Pool::createBlock(uint32_t memoryTypeIndex, vk::MemoryPropertyFlags flags, const vk::MemoryRequirements2 &requirements, const std::variant<std::monostate, vk::Image, vk::Buffer> &dedicatedFor) {
 	vk::DeviceSize size = 0;
 	vk::DeviceSize leafSize = 0;
 	rn::vki::UniqueDeviceMemory deviceMemory{};
@@ -260,9 +261,9 @@ Block & Pool::appendBlock(uint32_t memoryTypeIndex, vk::MemoryPropertyFlags flag
 		size = ((size + leafSize - 1u) / leafSize) * leafSize;
 
 		if (size > baseMemorySize) {
-			ngn::log::warn("rn::vki::memory::Pool::appendBlock({:#x}, {}, {} bytes) => created bigger block than expected: {} bytes > {} bytes, leaf {} bytes [{:#x}: {}]", memoryTypeIndex, vk::to_string(flags), requirements.memoryRequirements.size, size, baseMemorySize, leafSize);
+			ngn::log::warn("rn::vki::memory::Pool::createBlock({:#x}, {}, {} bytes) => created bigger block than expected: {} bytes > {} bytes, leaf {} bytes [{:#x}: {}]", memoryTypeIndex, vk::to_string(flags), requirements.memoryRequirements.size, size, baseMemorySize, leafSize);
 		} else {
-			ngn::log::debug("rn::vki::memory::Pool::appendBlock({:#x}, {}, {} bytes) => created new block: {} bytes, leaf {} bytes", memoryTypeIndex, vk::to_string(flags), requirements.memoryRequirements.size, size, leafSize);
+			ngn::log::debug("rn::vki::memory::Pool::createBlock({:#x}, {}, {} bytes) => created new block: {} bytes, leaf {} bytes", memoryTypeIndex, vk::to_string(flags), requirements.memoryRequirements.size, size, leafSize);
 		}
 
 		deviceMemory = rn::vki::UniqueDeviceMemory{
@@ -273,7 +274,7 @@ Block & Pool::appendBlock(uint32_t memoryTypeIndex, vk::MemoryPropertyFlags flag
 		size = requirements.memoryRequirements.size;
 		leafSize = requirements.memoryRequirements.size;
 
-		ngn::log::debug("rn::vki::memory::Pool::appendBlock({:#x}, {}, {} bytes) => created new dedicated block: {} bytes", memoryTypeIndex, vk::to_string(flags), requirements.memoryRequirements.size, size);
+		ngn::log::debug("rn::vki::memory::Pool::createBlock({:#x}, {}, {} bytes) => created new dedicated block: {} bytes", memoryTypeIndex, vk::to_string(flags), requirements.memoryRequirements.size, size);
 
 		auto imageValue = std::get_if<vk::Image>(&dedicatedFor);
 		auto bufferValue = std::get_if<vk::Buffer>(&dedicatedFor);

@@ -99,15 +99,25 @@ bool operator!=(const TextureResourceHandleWithUsageWithStages<T, U> &a, const T
 	return a.texture != b.texture || a.usage != b.usage || a.stages != b.stages;
 }
 
-struct DescriptorSetResourceHandle {
+struct PipelineHandle {
 	using InternalType = uint32_t;
 
 	InternalType index{std::numeric_limits<InternalType>::max()};
 };
-static_assert(sizeof(rn::graph::DescriptorSetResourceHandle) == sizeof(uint32_t));
+static_assert(sizeof(rn::graph::PipelineHandle) == sizeof(uint32_t));
 
-bool operator==(DescriptorSetResourceHandle a, DescriptorSetResourceHandle b);
-bool operator!=(DescriptorSetResourceHandle a, DescriptorSetResourceHandle b);
+bool operator==(PipelineHandle a, PipelineHandle b);
+bool operator!=(PipelineHandle a, PipelineHandle b);
+
+// struct DescriptorSetResourceHandle {
+// 	using InternalType = uint32_t;
+
+// 	InternalType index{std::numeric_limits<InternalType>::max()};
+// };
+// static_assert(sizeof(rn::graph::DescriptorSetResourceHandle) == sizeof(uint32_t));
+
+// bool operator==(DescriptorSetResourceHandle a, DescriptorSetResourceHandle b);
+// bool operator!=(DescriptorSetResourceHandle a, DescriptorSetResourceHandle b);
 
 struct SubpassResourceHandle {
 	using InternalType = uint32_t;
@@ -128,52 +138,6 @@ static_assert(sizeof(rn::graph::PipelineResourceHandle) == sizeof(uint32_t));
 
 bool operator==(PipelineResourceHandle a, PipelineResourceHandle b);
 bool operator!=(PipelineResourceHandle a, PipelineResourceHandle b);
-
-constexpr size_t numberOfComponents(rn::DataFormat format) {
-	switch (format) {
-		default:
-		case rn::DataFormat::Undefined: return 0;
-		case rn::DataFormat::R8SInt: return 1;
-		case rn::DataFormat::R8SNorm: return 1;
-		case rn::DataFormat::R8UInt: return 1;
-		case rn::DataFormat::R8UNorm: return 1;
-		case rn::DataFormat::R8G8SInt: return 2;
-		case rn::DataFormat::R8G8SNorm: return 2;
-		case rn::DataFormat::R8G8UInt: return 2;
-		case rn::DataFormat::R8G8UNorm: return 2;
-		case rn::DataFormat::R8G8B8A8SInt: return 4;
-		case rn::DataFormat::R8G8B8A8SNorm: return 4;
-		case rn::DataFormat::R8G8B8A8UInt: return 4;
-		case rn::DataFormat::R8G8B8A8UNorm: return 4;
-		case rn::DataFormat::R16Float: return 1;
-		case rn::DataFormat::R16SInt: return 1;
-		case rn::DataFormat::R16SNorm: return 1;
-		case rn::DataFormat::R16UInt: return 1;
-		case rn::DataFormat::R16UNorm: return 1;
-		case rn::DataFormat::R16G16Float: return 2;
-		case rn::DataFormat::R16G16SInt: return 2;
-		case rn::DataFormat::R16G16SNorm: return 2;
-		case rn::DataFormat::R16G16UInt: return 2;
-		case rn::DataFormat::R16G16UNorm: return 2;
-		case rn::DataFormat::R16G16B16A16Float: return 4;
-		case rn::DataFormat::R16G16B16A16SInt: return 4;
-		case rn::DataFormat::R16G16B16A16SNorm: return 4;
-		case rn::DataFormat::R16G16B16A16UInt: return 4;
-		case rn::DataFormat::R16G16B16A16UNorm: return 4;
-		case rn::DataFormat::R32Float: return 1;
-		case rn::DataFormat::R32SInt: return 1;
-		case rn::DataFormat::R32UInt: return 1;
-		case rn::DataFormat::R32G32Float: return 2;
-		case rn::DataFormat::R32G32SInt: return 2;
-		case rn::DataFormat::R32G32UInt: return 2;
-		case rn::DataFormat::R32G32B32Float: return 3;
-		case rn::DataFormat::R32G32B32SInt: return 3;
-		case rn::DataFormat::R32G32B32UInt: return 3;
-		case rn::DataFormat::R32G32B32A32Float: return 4;
-		case rn::DataFormat::R32G32B32A32SInt: return 4;
-		case rn::DataFormat::R32G32B32A32UInt: return 4;
-	}
-}
 
 enum class DepthStencilTextureUsage : uint32_t {
 	None = 0x00000000,
@@ -285,7 +249,7 @@ constexpr rn::graph::TransferBufferUsage operator&(rn::graph::TransferBufferUsag
 struct BufferCreate {
 	size_t size;
 	rn::BufferUsage usage{rn::BufferUsage::None};
-	rn::BufferPaging paging{rn::BufferPaging::SwapchainSize};
+	rn::BufferPaging paging{rn::BufferPaging::SwapchainRelative};
 };
 
 struct BufferModify {
@@ -306,9 +270,14 @@ constexpr rn::graph::TextureResourceHandle end() {
 	return { std::numeric_limits<rn::graph::TextureResourceHandle::InternalType>::max() };
 }
 
+// template<>
+// constexpr rn::graph::DescriptorSetResourceHandle end() {
+// 	return { std::numeric_limits<rn::graph::DescriptorSetResourceHandle::InternalType>::max() };
+// }
+
 template<>
-constexpr rn::graph::DescriptorSetResourceHandle end() {
-	return { std::numeric_limits<rn::graph::DescriptorSetResourceHandle::InternalType>::max() };
+constexpr rn::graph::PipelineHandle end() {
+	return { std::numeric_limits<rn::graph::PipelineHandle::InternalType>::max() };
 }
 
 template<>

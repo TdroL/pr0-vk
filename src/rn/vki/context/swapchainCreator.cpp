@@ -29,12 +29,12 @@ vk::PresentModeKHR choosePresentMode(const std::vector<vk::PresentModeKHR> &pres
 	}
 }
 
-rn::vki::UniqueSwapchainKHR SwapchainCreator::create(rn::vki::context::SurfaceDescription &surfaceDescription, rn::vki::context::Family &family, rn::vki::HandleSurfaceKHR &&surface, rn::vki::HandleDevice &&device, rn::vki::HandlePhysicalDevice &&physicalDevice, ngn::config::Config &config) {
+rn::vki::UniqueSwapchainKHR SwapchainCreator::create(rn::vki::context::SurfaceDescription &surfaceDescription, rn::vki::HandleDevice &&device, rn::vki::HandlePhysicalDevice &&physicalDevice, rn::vki::context::QueueFamilyIndex &queueFamilyIndex, rn::vki::HandleSurfaceKHR &&surface, ngn::config::Config &config) {
 	vk::SurfaceFormatKHR surfaceFormat = surfaceDescription.format;
 	vk::Extent2D surfaceExtent = surfaceDescription.extent;
 
-	uint32_t presentationFamily = family.presentation;
-	uint32_t graphicFamily = family.graphic;
+	uint32_t presentationFamily = queueFamilyIndex.presentation.family;
+	uint32_t graphicFamily = queueFamilyIndex.graphic.family;
 
 	vk::SurfaceCapabilitiesKHR surfaceCapabilities = RN_VKI_TRACE(physicalDevice->getSurfaceCapabilitiesKHR(surface.get(), physicalDevice.table()));
 	std::vector<vk::PresentModeKHR> presentModes = RN_VKI_TRACE(physicalDevice->getSurfacePresentModesKHR(surface.get(), physicalDevice.table()));

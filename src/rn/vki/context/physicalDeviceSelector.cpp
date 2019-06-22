@@ -1,20 +1,36 @@
 #include "physicalDeviceSelector.hpp"
 
 #include "../../../ngn/config.hpp"
+#include "../../../ngn/log.hpp"
 #include "../../../util/map.hpp"
+#include "../id.hpp"
 #include "../trace.hpp"
-#include "queuesPlanner.hpp"
 
 namespace rn::vki::context {
 
 bool hasReqiredPhysicalDeviceFeatures(const vk::PhysicalDeviceFeatures2 &requiredFeatures, rn::vki::HandlePhysicalDevice &&physicalDevice) {
-	const vk::PhysicalDeviceProperties2 properties = RN_VKI_TRACE(physicalDevice->getProperties2(physicalDevice.table()));
+	// check if device supports Vulkan 1.1 and above
+	const vk::PhysicalDeviceProperties properties = RN_VKI_TRACE(physicalDevice->getProperties(physicalDevice.table()));
 
-	uint32_t major = VK_VERSION_MAJOR(properties.properties.apiVersion);
-	uint32_t minor = VK_VERSION_MINOR(properties.properties.apiVersion);
+	{
+		uint32_t major = VK_VERSION_MAJOR(properties.apiVersion);
+		uint32_t minor = VK_VERSION_MINOR(properties.apiVersion);
 
-	if (major <= 1 && minor < 1) {
-		return false;
+		if (major <= 1 && minor < 1) {
+			return false;
+		}
+	}
+
+	// vkGetPhysicalDeviceProperties2 available on devices that support Vulkan 1.1 and above
+	const vk::PhysicalDeviceProperties2 properties2 = RN_VKI_TRACE(physicalDevice->getProperties2(physicalDevice.table()));
+
+	{
+		uint32_t major = VK_VERSION_MAJOR(properties2.properties.apiVersion);
+		uint32_t minor = VK_VERSION_MINOR(properties2.properties.apiVersion);
+
+		if (major <= 1 && minor < 1) {
+			return false;
+		}
 	}
 
 	const vk::PhysicalDeviceFeatures2 features = RN_VKI_TRACE(physicalDevice->getFeatures2(physicalDevice.table()));
@@ -96,13 +112,22 @@ std::vector<rn::vki::HandlePhysicalDevice> rejectUnsuitablePhysicalDevices(const
 
 	result.erase(std::remove_if(std::begin(result), std::end(result), [&] (auto &physicalDevice) {
 		bool hasFeatures = hasReqiredPhysicalDeviceFeatures(requiredFeatures, physicalDevice.handle());
+		if ( ! hasFeatures) {
+			return true;
+		}
 
 		std::vector<vk::QueueFamilyProperties2> familyProperties = RN_VKI_TRACE(physicalDevice->getQueueFamilyProperties2(physicalDevice.table()));
 
 		bool supportsPresentation = hasPresentationSupport(familyProperties.size(), surface.handle(), physicalDevice.handle());
-		bool hasRequiredQueues = QueuesPlanner{surface.handle(), physicalDevice.handle(), std::move(familyProperties)}.selectQueueIndices();
+		if ( ! supportsPresentation) {
+			return true;
+		}
 
-		return ! ( hasFeatures && supportsPresentation && hasRequiredQueues);
+		auto graphicQueueIt = std::find_if(std::begin(familyProperties), std::end(familyProperties), [] (const vk::QueueFamilyProperties2 &properties) {
+			return (properties.queueFamilyProperties.queueFlags & vk::QueueFlagBits::eGraphics) == vk::QueueFlagBits::eGraphics;
+		});
+
+		return graphicQueueIt == std::end(familyProperties);
 	}), std::end(result));
 
 	return result;
@@ -120,7 +145,7 @@ rn::vki::HandlePhysicalDevice findPhysicalDevice(uint32_t vendorID, uint32_t dev
 	return rn::vki::HandlePhysicalDevice{};
 }
 
-std::tuple<rn::vki::HandlePhysicalDevice, rn::vki::context::PhysicalDeviceDescription> PhysicalDeviceSelector::select(rn::vki::HandleInstance &&instance, rn::vki::HandleSurfaceKHR &&surface, ngn::config::Config &config) {
+std::tuple<rn::vki::HandlePhysicalDevice, rn::vki::context::PhysicalDeviceDescription> PhysicalDeviceSelector::select(rn::vki::HandleSurfaceKHR &&surface, rn::vki::HandleInstance &&instance, ngn::config::Config &config) {
 	std::vector<rn::vki::HandlePhysicalDevice> physicalDevices = util::map(RN_VKI_TRACE(instance->enumeratePhysicalDevices(instance.table())), [&] (auto physicalDevice) {
 		return rn::vki::HandlePhysicalDevice{ physicalDevice, instance.table() };
 	});
@@ -131,8 +156,8 @@ std::tuple<rn::vki::HandlePhysicalDevice, rn::vki::context::PhysicalDeviceDescri
 		throw std::runtime_error{"No valid physical devices available"};
 	}
 
-	auto vendorIdValue = config.core.physicalDevice.vendorId;
-	auto deviceIdValue = config.core.physicalDevice.deviceId;
+	auto vendorIdValue = config.core.context.vki.physicalDeviceVendorId;
+	auto deviceIdValue = config.core.context.vki.physicalDeviceId;
 
 	rn::vki::HandlePhysicalDevice physicalDevice = findPhysicalDevice(vendorIdValue, deviceIdValue, physicalDevices);
 
@@ -140,20 +165,22 @@ std::tuple<rn::vki::HandlePhysicalDevice, rn::vki::context::PhysicalDeviceDescri
 		physicalDevice = physicalDevices[0]; // select first-fit
 		vk::PhysicalDeviceProperties2 properties = RN_VKI_TRACE(physicalDevice->getProperties2(physicalDevice.table()));
 
-		config.core.physicalDevice.vendorId = properties.properties.vendorID;
-		config.core.physicalDevice.deviceId = properties.properties.deviceID;
+		config.core.context.vki.physicalDeviceVendorId = properties.properties.vendorID;
+		config.core.context.vki.physicalDeviceId = properties.properties.deviceID;
 		config.core.dirty = true;
 	}
 
 	vk::PhysicalDeviceProperties2 properties = RN_VKI_TRACE(physicalDevice->getProperties2(physicalDevice.table()));
 	vk::PhysicalDeviceMemoryProperties2 memoryProperties = RN_VKI_TRACE(physicalDevice->getMemoryProperties2(physicalDevice.table()));
 	vk::PhysicalDeviceFeatures2 features = RN_VKI_TRACE(physicalDevice->getFeatures2(physicalDevice.table()));
+	std::vector<vk::QueueFamilyProperties2> familyProperties = RN_VKI_TRACE(physicalDevice->getQueueFamilyProperties2(physicalDevice.table()));
 
 	return std::make_tuple(std::move(physicalDevice), rn::vki::context::PhysicalDeviceDescription{
 		properties,
 		memoryProperties,
 		features,
-		requiredFeatures
+		requiredFeatures,
+		familyProperties
 	});
 }
 

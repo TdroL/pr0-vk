@@ -33,6 +33,7 @@ X(ImageView)
 X(IndirectCommandsLayoutNVX)
 X(Instance)
 X(ObjectTableNVX)
+X(PhysicalDevice)
 X(Pipeline)
 X(PipelineCache)
 X(PipelineLayout)
@@ -42,6 +43,7 @@ X(Sampler)
 X(SamplerYcbcrConversionKHR)
 X(Semaphore)
 X(ShaderModule)
+X(SurfaceKHR)
 
 #undef X
 

@@ -1,9 +1,12 @@
 #include "surfaceImageViewsCreator.hpp"
 
 #include <cassert>
+#include <cstdlib>
+#include <string>
 #include <variant>
 
 #include "../../../ngn/config.hpp"
+#include "../../../ngn/log.hpp"
 #include "../mapping.hpp"
 #include "../trace.hpp"
 #include "types.hpp"
@@ -18,7 +21,9 @@ std::vector<rn::vki::UniqueImageView> SurfaceImageViewsCreator::create(rn::vki::
 		static_assert(sizeof(vk::Format) == sizeof(*value));
 		imageFormat = static_cast<vk::Format>(*value);
 	} else {
-		assert("config.core.window.surfaceFormat holds unknown alternative");
+		ngn::log::error("rn::vki::context::SurfaceImageViewsCreator::create() => undefined surface format (variant index: {})", config.core.window.surfaceFormat.valueless_by_exception() ? std::string{"valueless"} : std::to_string(config.core.window.surfaceFormat.index()));
+		std::exit(EXIT_FAILURE);
+		// TODO: fallback to some default format?
 	}
 
 	std::vector<rn::vki::UniqueImageView> surfaceImageViews{};

@@ -1,5 +1,6 @@
 #include "fs.hpp"
 
+#include <filesystem>
 #include <iterator>
 #include <stdexcept>
 #include <type_traits>
@@ -10,8 +11,8 @@
 namespace ngn::fs {
 
 std::vector<std::string> searchDirectories{
-	"./",
-	"../",
+	std::filesystem::path{"."}.string(),
+	std::filesystem::path{".."}.string(),
 	// "../assets/",
 	// "../assets/meshes/",
 	// "../assets/models/",
@@ -20,7 +21,7 @@ std::vector<std::string> searchDirectories{
 	// "../assets/textures/",
 };
 
-uint32_t normalize(uint32_t alignment) {
+uint32_t alignToPowerOfTwo(uint32_t alignment) {
 	if (alignment == 0) {
 		alignment = 1;
 	}
@@ -35,7 +36,7 @@ uint32_t normalize(uint32_t alignment) {
 // http://insanecoding.blogspot.com/2011/11/how-to-read-in-file-in-c.html
 std::optional<std::vector<std::byte>> read(std::string_view fileName, uint32_t alignment) {
 	std::optional<std::string> filePathO = find(fileName);
-	if (!filePathO) {
+	if ( ! filePathO) {
 		ngn::log::debug("ngn::fs::read({}) => file missing", fileName.data());
 
 		return std::nullopt;
@@ -48,7 +49,7 @@ std::optional<std::vector<std::byte>> read(std::string_view fileName, uint32_t a
 		uint64_t fileSize = size(in);
 
 		if (fileSize > 0) {
-			alignment = normalize(alignment);
+			alignment = alignToPowerOfTwo(alignment);
 			uint64_t alignedSize = ((fileSize + alignment - 1) / alignment) * alignment;
 
 			contentsStorage.resize(alignedSize);
@@ -68,7 +69,7 @@ std::optional<std::vector<std::byte>> read(std::string_view fileName, uint32_t a
 
 std::optional<std::string> contents(std::string_view fileName) {
 	std::optional<std::string> filePathO = find(fileName);
-	if (!filePathO) {
+	if ( ! filePathO) {
 		ngn::log::debug("ngn::fs::contents({}) => file missing", fileName.data());
 
 		return std::nullopt;
@@ -98,7 +99,7 @@ std::optional<std::string> contents(std::string_view fileName) {
 
 std::optional<std::string> write(std::string_view fileName, const std::byte *contents, size_t size) {
 	std::optional<std::string> filePathO = find(fileName);
-	if (!filePathO) {
+	if ( ! filePathO) {
 		filePathO = fileName;
 	}
 
@@ -126,40 +127,46 @@ std::optional<std::string> write(std::string_view fileName, std::string_view con
 }
 
 std::optional<std::string> find(std::string_view fileName) {
-	const std::string fileNameStr{fileName};
+	// const std::string fileNameStr{fileName};
 
 	for (const auto &directory : searchDirectories) {
-		std::string filePath = directory + fileNameStr;
+		auto filePath = std::filesystem::path(directory) / fileName;
 
-		if (std::ifstream{filePath}.is_open()) {
-			return {filePath};
+		if (std::filesystem::exists(filePath)) {
+			return filePath.string();
 		}
 	}
 
 	return std::nullopt;
 }
 
+std::string base(std::string_view filePath) {
+	return std::filesystem::path{filePath}.parent_path().string();
+}
+
 std::string ext(std::string_view fileName) {
-	size_t pos = fileName.find_last_of('.');
+	return std::filesystem::path{fileName}.extension().string();
+	// size_t pos = fileName.find_last_of('.');
 
-	if (pos != std::string::npos && (pos + 1) < fileName.size()) {
-		return std::string{fileName.substr(pos + 1)};
-	}
+	// if (pos != std::string::npos && (pos + 1u) < fileName.size()) {
+	// 	return std::string{fileName.substr(pos + 1u)};
+	// }
 
-	return "";
+	// return "";
 }
 
 std::optional<uint64_t> size(std::string_view fileName) {
 	std::optional<std::string> filePathO = find(fileName);
-	if (!filePathO) {
+	if ( ! filePathO) {
 		ngn::log::debug("ngn::fs::size({}) => file missing", fileName.data());
 
 		return std::nullopt;
 	}
 
-	std::ifstream in(filePathO.value(), std::ios::ate | std::ios::binary);
+	return static_cast<uint64_t>(std::filesystem::file_size(filePathO.value()));
+	// std::ifstream in(filePathO.value(), std::ios::ate | std::ios::binary);
 
-	return {static_cast<uint64_t>(in.tellg())};
+	// return {static_cast<uint64_t>(in.tellg())};
 }
 
 uint64_t size(std::ifstream &in) {
@@ -175,8 +182,9 @@ uint64_t size(std::ifstream &in) {
 }
 
 bool fileExist(std::string_view fileName) {
-	std::ifstream file(fileName.data());
-	return file.good();
+	return std::filesystem::exists(fileName);
+	// std::ifstream file(fileName.data());
+	// return file.good();
 }
 
 } // ngn::fs

@@ -48,7 +48,7 @@ public:
 	vk::MemoryPropertyFlags getRequiredPropertyFlags(const Usage usage) const;
 
 	uint32_t findMemoryTypeIndex(vk::MemoryPropertyFlags flags, const vk::MemoryRequirements2 &requirements, uint32_t start = 0) const;
-	Block & appendBlock(uint32_t memoryTypeIndex, vk::MemoryPropertyFlags flags, const vk::MemoryRequirements2 &requirements, const std::variant<std::monostate, vk::Image, vk::Buffer> &dedicatedFor);
+	Block & createBlock(uint32_t memoryTypeIndex, vk::MemoryPropertyFlags flags, const vk::MemoryRequirements2 &requirements, const std::variant<std::monostate, vk::Image, vk::Buffer> &dedicatedFor);
 };
 
 } // rn::vki::memory

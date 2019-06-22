@@ -82,13 +82,21 @@ bool operator!=(rn::graph::TextureResourceHandle a, rn::graph::TextureResourceHa
 	return a.index != b.index;
 }
 
-bool operator==(rn::graph::DescriptorSetResourceHandle a, rn::graph::DescriptorSetResourceHandle b) {
+bool operator==(rn::graph::PipelineHandle a, rn::graph::PipelineHandle b) {
 	return a.index == b.index;
 }
 
-bool operator!=(rn::graph::DescriptorSetResourceHandle a, rn::graph::DescriptorSetResourceHandle b) {
+bool operator!=(rn::graph::PipelineHandle a, rn::graph::PipelineHandle b) {
 	return a.index != b.index;
 }
+
+// bool operator==(rn::graph::DescriptorSetResourceHandle a, rn::graph::DescriptorSetResourceHandle b) {
+// 	return a.index == b.index;
+// }
+
+// bool operator!=(rn::graph::DescriptorSetResourceHandle a, rn::graph::DescriptorSetResourceHandle b) {
+// 	return a.index != b.index;
+// }
 
 bool operator==(rn::graph::SubpassResourceHandle a, rn::graph::SubpassResourceHandle b) {
 	return a.index == b.index;

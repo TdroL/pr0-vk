@@ -6,6 +6,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include "../dispatch.hpp"
+#include "types.hpp"
 
 namespace rn::vki::context {
 
@@ -71,11 +72,7 @@ public:
 		/*.inheritedQueries=*/ false,
 	}};
 
-	rn::vki::UniqueTableDevice create(rn::vki::HandleInstance &&instance, rn::vki::HandleSurfaceKHR &&surface, rn::vki::HandlePhysicalDevice &&physicalDevice, rn::vki::context::PhysicalDeviceDescription &physicalDeviceDescription);
-
-	// [[nodiscard]] std::tuple<std::vector<float>, std::vector<vk::DeviceQueueCreateInfo>> buildDeviceQueueCreateInfos(rn::vki::HandleSurfaceKHR &&surface, rn::vki::HandlePhysicalDevice &&physicalDevice);
-
-	// vk::PhysicalDeviceFeatures2 buildDeviceFeatures(const vk::PhysicalDeviceFeatures2 &requiredFeatures, const vk::PhysicalDeviceFeatures2 &availableFeatures);
+	rn::vki::UniqueTableDevice create(rn::vki::HandlePhysicalDevice &&physicalDevice, const rn::vki::context::PhysicalDeviceDescription &physicalDeviceDescription, const rn::vki::context::QueueFamilyIndex &queueFamilyIndex, rn::vki::HandleInstance &&instance);
 };
 
 } // rn::vki::context

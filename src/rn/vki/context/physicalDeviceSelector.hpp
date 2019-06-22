@@ -76,7 +76,7 @@ public:
 		/*.inheritedQueries=*/ false,
 	}};
 
-	std::tuple<rn::vki::HandlePhysicalDevice, rn::vki::context::PhysicalDeviceDescription> select(rn::vki::HandleInstance &&instance, rn::vki::HandleSurfaceKHR &&surface, ngn::config::Config &config);
+	std::tuple<rn::vki::HandlePhysicalDevice, rn::vki::context::PhysicalDeviceDescription> select(rn::vki::HandleSurfaceKHR &&surface, rn::vki::HandleInstance &&instance, ngn::config::Config &config);
 };
 
 } // rn::vki::context

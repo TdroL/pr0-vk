@@ -1,15 +1,103 @@
 #include "renderer.hpp"
 
+#include <glm/glm.hpp>
+
 #include <ngn/prof.hpp>
 
 namespace app {
 
+struct UniformBufferDraw {
+	alignas(16) glm::mat4 M;
+	alignas(16) uint32_t texIdxOffset;
+	// alignas(16) glm::ivec4 texIdx; // normal, diffuse, specular, metalness
+};
+
+struct UniformBufferModel {
+};
+
+struct UniformBufferPipeline {
+	alignas(16) glm::mat4 V;
+};
+
+struct UniformBufferRenderpass {
+	alignas(16) glm::mat4 P;
+};
+
+struct UniformBufferGlobal {
+
+};
+
 rn::graph::CompileResult Renderer::compile() {
 	rn::graph::Passes passes{};
 
+	enum VertexAttribute : uint32_t {
+		Position = 0,
+		Normal = 1,
+		TexCoords = 2,
+	};
+
+	const rn::BufferLayout vertexBufferPositionLayout{
+		{ /*.name=*/ VertexAttribute::Position,  /*.format=*/ rn::DataFormat::Float3 },
+	};
+
+	const rn::BufferLayout vertexBufferNormalCoordsLayout{
+		{ /*.name=*/ VertexAttribute::Normal,    /*.format=*/ rn::DataFormat::Float3 },
+		{ /*.name=*/ VertexAttribute::TexCoords, /*.format=*/ rn::DataFormat::Float2 },
+	};
+
+	// VK_SHADER_STAGE_VERTEX_BIT
+	// VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT
+	// VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT
+	// VK_SHADER_STAGE_GEOMETRY_BIT
+	// VK_SHADER_STAGE_FRAGMENT_BIT
+	// VK_SHADER_STAGE_COMPUTE_BIT
+
+	// const rn::DescriptorSetLayout descriptorSetLayout{
+		// // per draw
+		// {
+		// 	{
+		// 		/*.type=*/ rn::DescriptorType::UniformBuffer,
+		// 		// /*.count=*/ 3,
+		// 		/*.stages=*/ rn::ShaderStage::Vertex | rn::ShaderStage::Fragment,
+		// 	}
+		// },
+		// // per vertex/index buffer
+		// {
+		// 	{
+		// 		/*.type=*/ rn::DescriptorType::SampledTexture,
+		// 		/*.count=*/ 1,
+		// 		/*.stages=*/ rn::ShaderStage::Fragment,
+		// 	}
+		// },
+		// // per pipeline
+		// {
+
+		// },
+		// // per renderpass
+		// {
+		// 	{
+		// 		/*.type=*/ rn::DescriptorType::Sampler,
+		// 		/*.count=*/ 1,
+		// 		/*.stages=*/ rn::ShaderStage::Fragment,
+		// 	}
+		// }
+		// "uniform",
+		// "dynamic-uniform",
+		// "storage",
+		// "dynamic-storage",
+		// "sampler",
+		// "texture",
+	// };
+
+	// rn::GraphicPipelineState baseGraphicPipelineState = rn::GraphicPipelineState{}
+	// 	| rn::ViewportScissorState{
+	// 		/*.width=*/ window.currentProperties.width,
+	// 		/*.height=*/ window.currentProperties.height
+	// 	};
+
 	const rn::Extent3D windowExtents{ window.currentProperties.width, window.currentProperties.height };
 
-	passes.push_back(rn::graph::GraphicPass{"z-prepass", { windowExtents }, [] () {
+	passes.push_back(rn::graph::GraphicPass{"z-prepass", { windowExtents }, [&] () {
 		rn::graph::ResourceDescriptors resources{};
 
 		const auto depthTex = resources.texture.create("app/rn:depth", {
@@ -18,7 +106,7 @@ rn::graph::CompileResult Renderer::compile() {
 
 		rn::graph::GraphicSubpasses subpasses{};
 
-		const auto depthSubpass = subpasses.add("depth", {}, rn::graph::GraphicSubpassDesc{
+		const auto depthSubpass = subpasses.add("depth", {}, /*rn::graph::GraphicSubpassDesc*/{
 			/*.depthStencil=*/ {
 				/*.texture=*/ depthTex,
 				/*.usage=*/ rn::graph::DepthStencilTextureUsage::Modify,
@@ -29,15 +117,37 @@ rn::graph::CompileResult Renderer::compile() {
 			/*.buffers=*/ {}
 		});
 
+		rn::graph::GraphicPipelines pipelines{};
+
+		const auto depthPipeline = pipelines.add("depth", rn::GraphicPipelineState{}
+			| rn::GraphicSubpassState{
+				/*.subpass=*/ depthSubpass.index,
+			}
+			| rn::GraphicShadersState{
+				/*.vertex=*/ "shaders/zpass.vert"
+			}
+			| rn::InputLayoutState{
+				/*.attributes=*/ {
+					VertexAttribute::Position
+				},
+				/*.buffers=*/ {
+					/*[0]=*/ vertexBufferPositionLayout.handle()
+				}
+			}
+		);
+
 		rn::graph::GraphicSubpassRecorders recorders{
 			std::make_tuple(depthSubpass, [=] () {
+				ngn::log::debug("zpass:depthTex={}", depthTex.index);
+				ngn::log::debug("zpass:depthSubpass={}", depthSubpass.index);
+				ngn::log::debug("zpass:depthPipeline={}", depthPipeline.index);
 				return rn::graph::GraphicCommandList{};
 			}),
 		};
 
-		return rn::graph::GraphicSetupResult{ std::move(resources), std::move(subpasses), std::move(recorders) };
+		return rn::graph::GraphicSetupResult{ std::move(resources), std::move(subpasses), std::move(pipelines), std::move(recorders) };
 	}});
-
+#if 0
 	passes.push_back(rn::graph::GraphicPass{"cascade-shadowmap", { 2048, 2048 }, [] () {
 		rn::graph::ResourceDescriptors resources{};
 
@@ -424,7 +534,7 @@ rn::graph::CompileResult Renderer::compile() {
 
 		return rn::graph::GraphicSetupResult{ std::move(resources), std::move(subpasses), std::move(recorders) };
 	}});
-
+#endif
 	rn::graph::CompileResult compileResultE = rn::graph::compile(std::move(passes), "lighting");
 
 	if (compileResultE.isRight()) {

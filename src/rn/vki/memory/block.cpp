@@ -4,6 +4,8 @@
 
 #include "../../../ngn/log.hpp"
 #include "../../../util/leadingZeroes.hpp"
+#include "../../../util/map.hpp"
+#include "../../../util/join.hpp"
 #include "../id.hpp"
 
 namespace rn::vki::memory {
@@ -108,13 +110,15 @@ void Block::free(uint32_t leafIdx) {
 }
 
 bool Block::isEmpty() {
-	return leafs.size() == 0 || leafs[0];
+	return leafs.size() == 0 || ! leafs[0];
 }
 
 void Block::reset() {
 	if (deviceMemory) {
 		if ( ! isEmpty()) {
-			ngn::log::error("rn::vki::memory::Block::reset() <{:#x}> => some allocations were not freed before block destruction", rn::vki::id(deviceMemory.get()));
+			ngn::log::error("rn::vki::memory::Block::reset() <{:#x}> => some allocations were not freed before block destruction [{}]", rn::vki::id(deviceMemory.get()), util::join(util::map(leafs, [] (bool leaf) {
+				return std::string_view{leaf ? "1" : "0"};
+			}), ""));
 		}
 
 		mapping.reset();

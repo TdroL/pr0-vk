@@ -19,7 +19,11 @@
 
 namespace rn::vki::context {
 
+namespace {
+
 const auto initialize = ngn::external::initialize<ngn::external::GLFW>();
+
+}
 
 rn::vki::UniqueTableInstance InstanceCreator::create(ngn::config::Config &config) {
 	if (glfwVulkanSupported() != GLFW_TRUE) {
@@ -27,7 +31,7 @@ rn::vki::UniqueTableInstance InstanceCreator::create(ngn::config::Config &config
 	}
 
 	// check if vkEnumerateInstanceVersion is available
-	if (vk::DispatchLoaderStatic{}.vkGetInstanceProcAddr(nullptr, "vkEnumerateInstanceVersion") == nullptr) {
+	if (vk::DispatchLoaderStatic{}.vkGetInstanceProcAddr(nullptr, "vkEnumerateInstanceVersion") != nullptr) {
 		uint32_t version = RN_VKI_TRACE(vk::enumerateInstanceVersion());
 
 		uint32_t major = VK_VERSION_MAJOR(version);
@@ -36,6 +40,8 @@ rn::vki::UniqueTableInstance InstanceCreator::create(ngn::config::Config &config
 		if (major <= 1 && minor < 1) {
 			throw std::runtime_error{"Vulkan 1.0 is not supported"};
 		}
+	} else {
+		throw std::runtime_error{"Vulkan 1.0 is not supported"};
 	}
 
 	// load available instance layers

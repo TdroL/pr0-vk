@@ -38,7 +38,7 @@ void Mapping::reset() {
 		}
 
 		if ( ! memory) {
-			ngn::log::error("rn::vki::memory::Mapping::reset() <{}, {}> => unable to unmap pointer, device memory is missing", pointer, rn::vki::id(memory.get()));
+			ngn::log::error("rn::vki::memory::Mapping::reset() <{}, {:#x}> => unable to unmap pointer, device memory is missing", pointer, rn::vki::id(memory.get()));
 			return;
 		}
 

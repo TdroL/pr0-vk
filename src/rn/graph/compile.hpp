@@ -22,11 +22,11 @@ public:
 		message{std::move(message)}
 	{}
 
-	CompileError & operator=(CompileError &&other) {
-		message = std::move(other.message);
+	// CompileError & operator=(CompileError &&other) {
+	// 	message = std::move(other.message);
 
-		return *this;
-	}
+	// 	return *this;
+	// }
 };
 
 using SetupResult = std::variant<rn::graph::GraphicSetupResult, rn::graph::ComputeSetupResult, rn::graph::TransferSetupResult>;

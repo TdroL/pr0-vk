@@ -448,7 +448,7 @@ public:
 	}
 };
 
-using CompileResult = util::EitherVariant<GraphCompileError, std::vector<std::string>>;
+using CompileResult = util::EitherOption<GraphCompileError, std::vector<std::string>>;
 
 // using BufferResourceMapping = ResourceMapping<BufferCreate>;
 // using TextureResourceMapping = ResourceMapping<TextureCreate>;

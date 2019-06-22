@@ -7,7 +7,11 @@
 
 namespace rn {
 
+namespace {
+
 const auto initialize = ngn::external::initialize<ngn::external::GLFW>();
+
+}
 
 void Window::destroy(Window::Handle *handle) {
 	if (handle != nullptr) {

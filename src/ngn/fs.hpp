@@ -19,6 +19,7 @@ std::optional<std::string> write(std::string_view fileName, std::string_view con
 
 std::optional<std::string> find(std::string_view fileName);
 
+std::string base(std::string_view filePath);
 std::string ext(std::string_view fileName);
 
 std::optional<uint64_t> size(std::string_view fileName);

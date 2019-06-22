@@ -7,6 +7,7 @@
 #include <variant>
 
 #include "../../util/flatStorage.hpp"
+#include "../pipeline.hpp"
 #include "commands.hpp"
 #include "types.hpp"
 
@@ -63,6 +64,40 @@ struct ResourceDescriptors {
 		return rn::graph::swapchainResourceHandle();
 	}
 };
+
+template<typename T>
+class Pipelines {
+public:
+	util::FlatStorage<std::string, T> storage{};
+
+	void reserve(size_t size) {
+		storage.reserve(size);
+	}
+
+	rn::graph::PipelineHandle add(std::string &&name, T &&state) {
+		auto index = storage.assign(std::move(name), std::move(state));
+		return rn::graph::PipelineHandle{ static_cast<rn::graph::PipelineHandle::InternalType>(index) };
+	}
+
+	typename decltype(storage)::Iterator begin() {
+		return storage.begin();
+	}
+
+	typename decltype(storage)::ConstIterator begin() const {
+		return storage.begin();
+	}
+
+	typename decltype(storage)::Iterator end() {
+		return storage.end();
+	}
+
+	typename decltype(storage)::ConstIterator end() const {
+		return storage.end();
+	}
+};
+
+using GraphicPipelines = rn::graph::Pipelines<rn::GraphicPipelineState>;
+// using ComputePipelines = rn::graph::Pipelines<rn::ComputePipelineState>;
 
 template<class T>
 class Subpasses {
@@ -131,12 +166,14 @@ using ComputeSubpassRecorders = std::vector<std::tuple<rn::graph::SubpassResourc
 struct GraphicSetupResult {
 	rn::graph::ResourceDescriptors resourceDescriptors;
 	rn::graph::GraphicSubpasses subpasses;
+	rn::graph::GraphicPipelines pipelines;
 	rn::graph::GraphicSubpassRecorders recorder;
 };
 
 struct ComputeSetupResult {
 	rn::graph::ResourceDescriptors resourceDescriptors;
 	rn::graph::ComputeSubpasses subpasses;
+	// rn::graph::ComputePipelines pipelines;
 	rn::graph::ComputeSubpassRecorders recorder;
 };
 

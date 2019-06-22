@@ -8,8 +8,9 @@
 #include <optional>
 
 #include "../../util/nonNull.hpp"
-#include "../context.hpp"
+// #include "../context.hpp"
 #include "../types.hpp"
+#include "context.hpp"
 #include "dispatch.hpp"
 #include "memory/handle.hpp"
 
@@ -47,7 +48,7 @@ public:
 	rn::BufferHandle createBuffer(const rn::BufferDescription &description);
 	bool destroyBuffer(rn::BufferHandle handle);
 
-	static Resources create(rn::Context<rn::vki::Context> &context);
+	static Resources create(rn::vki::Context &context);
 };
 
 } // rn::vki

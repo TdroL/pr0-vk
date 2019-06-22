@@ -5,7 +5,7 @@
 
 namespace rn::vki::context {
 
-vk::Extent2D SurfaceExtentSelector::select(rn::vki::HandleSurfaceKHR &&surface, rn::vki::HandlePhysicalDevice &&physicalDevice, ngn::config::Config &config) {
+vk::Extent2D SurfaceExtentSelector::select(rn::vki::HandlePhysicalDevice &&physicalDevice, rn::vki::HandleSurfaceKHR &&surface, ngn::config::Config &config) {
 	vk::SurfaceCapabilitiesKHR surfaceCapabilities = RN_VKI_TRACE(physicalDevice->getSurfaceCapabilitiesKHR(surface.get(), physicalDevice.table()));
 
 	if (surfaceCapabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {

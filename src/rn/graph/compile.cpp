@@ -8,7 +8,7 @@
 
 #include "../../ngn/log.hpp"
 #include "../../util/contains.hpp"
-#include "../../util/format.hpp"
+// #include "../../util/format.hpp"
 #include "../../util/join.hpp"
 #include "../../util/map.hpp"
 
@@ -169,9 +169,11 @@ rn::graph::DependenciesResult findDependencies(rn::graph::MappingMap &mapping, s
 			return rn::graph::CompileError{"Source buffer \"" + std::string{sourceName} + "\" not found [pass: \"" + std::string{passName} + "\"]"};
 		}
 
-		for (auto &&subpassName : sourceIt->second.readers) {
-			dependencies.push_back(subpassName);
-		}
+		// for (auto &&subpassName : sourceIt->second.readers) {
+		// 	dependencies.push_back(subpassName);
+		// }
+		dependencies.reserve(dependencies.size() + sourceIt->second.readers.size());
+		std::copy(std::begin(sourceIt->second.readers), std::end(sourceIt->second.readers), std::back_inserter(dependencies));
 
 		if ( ! sourceIt->second.creator) {
 			return rn::graph::CompileError{"Buffer \"" + std::string{sourceName} + "\" has no creator [pass: \"" + std::string{passName} + "\"]"};
@@ -210,9 +212,11 @@ rn::graph::DependenciesResult findDependencies(rn::graph::MappingMap &mapping, s
 			return rn::graph::CompileError{"Source texture \"" + std::string{sourceName} + "\" not found [pass: \"" + std::string{passName} + "\"]"};
 		}
 
-		for (auto &&subpassName : sourceIt->second.readers) {
-			dependencies.push_back(subpassName);
-		}
+		// for (auto &&subpassName : sourceIt->second.readers) {
+		// 	dependencies.push_back(subpassName);
+		// }
+		dependencies.reserve(dependencies.size() + sourceIt->second.readers.size());
+		std::copy(std::begin(sourceIt->second.readers), std::end(sourceIt->second.readers), std::back_inserter(dependencies));
 
 		if ( ! sourceIt->second.creator) {
 			return rn::graph::CompileError{"Texture \"" + std::string{sourceName} + "\" has no creator [pass: \"" + std::string{passName} + "\"]"};

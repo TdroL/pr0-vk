@@ -1,0 +1,31 @@
+# Find FreeImage
+#
+# FREEIMAGE_INCLUDE_DIR
+# FREEIMAGE_LIBRARIES
+# FREEIMAGE_DEFINITIONS
+# FREEIMAGE_FOUND
+
+find_path(FREEIMAGE_INCLUDE_DIR NAMES FreeImage/FreeImagePlus.h FreeImage/FreeImage.h HINTS
+	"${CMAKE_SOURCE_DIR}/external/freeImage-${FreeImage_FIND_VERSION}/include")
+
+find_library(FREEIMAGE_LIBRARY NAMES FreeImage.lib HINTS
+	"${CMAKE_SOURCE_DIR}/external/freeImage-${FreeImage_FIND_VERSION}/lib")
+
+set(FREEIMAGE_DEFINITIONS "")
+if (FREEIMAGE_LIBRARY)
+	message("found FREEIMAGE_LIBRARY ${FREEIMAGE_LIBRARY}")
+	set(FREEIMAGE_DEFINITIONS "-DFREEIMAGE_LIB")
+else()
+	find_library(FREEIMAGE_LIBRARY NAMES FreeImage.lib FreeImage HINTS
+		"${CMAKE_SOURCE_DIR}/external/freeImage-${FreeImage_FIND_VERSION}/lib")
+endif ()
+
+find_library(FREEIMAGEPLUS_LIBRARY NAMES FreeImagePlus.lib FreeImagePlus HINTS
+	"${CMAKE_SOURCE_DIR}/external/freeImage-${FreeImage_FIND_VERSION}/lib")
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(FreeImage DEFAULT_MSG FREEIMAGE_LIBRARY FREEIMAGEPLUS_LIBRARY FREEIMAGE_INCLUDE_DIR)
+
+set(FREEIMAGE_LIBRARIES ${FREEIMAGE_LIBRARY} ${FREEIMAGEPLUS_LIBRARY})
+
+mark_as_advanced(FREEIMAGE_INCLUDE_DIR FREEIMAGE_LIBRARIES FREEIMAGE_DEFINITIONS)

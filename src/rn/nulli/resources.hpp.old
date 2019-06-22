@@ -1,0 +1,32 @@
+#pragma once
+
+#include "../../util/nonNull.hpp"
+#include "../types.hpp"
+#include "context.hpp"
+
+namespace rn::nulli {
+
+class Resources {
+public:
+	util::NonNull<rn::nulli::Context> context;
+	std::vector<bool> imageSlots{};
+	std::vector<bool> bufferSlots{};
+
+	explicit Resources(rn::nulli::Context &implementation);
+
+	Resources(const Resources &other) = delete;
+	Resources(Resources &&other);
+
+	Resources & operator=(const Resources &other) = delete;
+	Resources & operator=(Resources &&other);
+
+	rn::TextureHandle createTexture(const rn::TextureDescription &description);
+	bool destroyTexture(rn::TextureHandle handle);
+
+	rn::BufferHandle createBuffer(const rn::BufferDescription &description);
+	bool destroyBuffer(rn::BufferHandle handle);
+
+	static Resources create(rn::nulli::Context &context);
+};
+
+} // rn::nulli

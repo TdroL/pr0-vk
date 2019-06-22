@@ -7,7 +7,11 @@
 
 namespace ngn::prof {
 
+namespace {
+
 const auto initialize = ngn::external::initialize<ngn::external::GLFW, ngn::external::Remotery>();
+
+}
 
 // class RemoteryInstance {
 // public:

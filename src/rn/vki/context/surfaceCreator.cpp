@@ -17,7 +17,11 @@
 
 namespace rn::vki::context {
 
+namespace {
+
 const auto initialize = ngn::external::initialize<ngn::external::GLFW>();
+
+}
 
 rn::vki::UniqueSurfaceKHR SurfaceCreator::create(rn::vki::HandleInstance &&instance, rn::Window &window) {
 	if (window.handle == nullptr) {

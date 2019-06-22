@@ -11,6 +11,7 @@
 #include "../../../util/join.hpp"
 #include "../../../util/map.hpp"
 #include "../dispatch.hpp"
+#include "../id.hpp"
 #include "../trace.hpp"
 
 namespace rn::vki::context {
@@ -111,7 +112,7 @@ rn::vki::context::Debug DebugCreator::create(rn::vki::HandleInstance &&instance,
 	});
 
 	if (util::contains(availableExtensions, "VK_EXT_debug_utils")) {
-		ngn::log::debug("rn::vki::context::DebugCreator::create() => using VK_EXT_debug_utils");
+		ngn::log::debug("rn::vki::context::DebugCreator::create({:#x}) => using VK_EXT_debug_utils", rn::vki::id(instance.get()));
 
 		vk::DebugUtilsMessageSeverityFlagsEXT messageSeverity{};
 
@@ -150,7 +151,7 @@ rn::vki::context::Debug DebugCreator::create(rn::vki::HandleInstance &&instance,
 			},
 		};
 	} else if (util::contains(availableExtensions, "VK_EXT_debug_report")) {
-		ngn::log::debug("rn::vki::context::DebugCreator::create() => using VK_EXT_debug_report");
+		ngn::log::debug("rn::vki::context::DebugCreator::create({:#x}) => using VK_EXT_debug_report", rn::vki::id(instance.get()));
 
 		vk::DebugReportFlagsEXT flags{};
 
@@ -194,18 +195,23 @@ rn::vki::context::Debug DebugCreator::create(rn::vki::HandleInstance &&instance,
 }
 
 std::vector<std::string> DebugCreator::selectLayers(ngn::config::Config &config, std::vector<std::string> &availableLayers, std::vector<std::string> selectedLayers) {
-	if (util::contains(availableLayers, "VK_LAYER_LUNARG_standard_validation")) {
+	bool hasDebuggingLayer = false;
+	if (util::contains(availableLayers, "VK_LAYER_KHRONOS_validation")) {
+		selectedLayers.push_back("VK_LAYER_KHRONOS_validation");
+		hasDebuggingLayer = true;
+	} else if (util::contains(availableLayers, "VK_LAYER_LUNARG_standard_validation")) {
 		selectedLayers.push_back("VK_LAYER_LUNARG_standard_validation");
-
-		if (config.core.debug.vki.useRenderDoc) {
-			if (util::contains(availableLayers, "VK_LAYER_RENDERDOC_Capture")) {
-				selectedLayers.push_back("VK_LAYER_RENDERDOC_Capture");
-			} else {
-				ngn::log::warn("rn::vki::context::DebugCreator::selectLayers() => Vulkan debugging might be limited, missing \"{}\" layer", "VK_LAYER_RENDERDOC_Capture");
-			}
-		}
+		hasDebuggingLayer = true;
 	} else {
-		ngn::log::warn("rn::vki::context::DebugCreator::selectLayers() => Vulkan debugging disabled, missing \"{}\" layer", "VK_LAYER_LUNARG_standard_validation");
+		ngn::log::warn("rn::vki::context::DebugCreator::selectLayers() => Vulkan debugging disabled, missing both \"VK_LAYER_KHRONOS_validation\" and \"VK_LAYER_LUNARG_standard_validation\" layers");
+	}
+
+	if (hasDebuggingLayer && config.core.debug.vki.useRenderDoc) {
+		if (util::contains(availableLayers, "VK_LAYER_RENDERDOC_Capture")) {
+			selectedLayers.push_back("VK_LAYER_RENDERDOC_Capture");
+		} else {
+			ngn::log::warn("rn::vki::context::DebugCreator::selectLayers() => Vulkan debugging might be limited, missing pereferred \"VK_LAYER_RENDERDOC_Capture\" layer");
+		}
 	}
 
 	return selectedLayers;
@@ -217,7 +223,7 @@ std::vector<std::string> DebugCreator::selectExtensions([[maybe_unused]] ngn::co
 	} else if (util::contains(availableExtensions, "VK_EXT_debug_report")) {
 		selectedExtensions.push_back("VK_EXT_debug_report");
 	} else {
-		ngn::log::warn("rn::vki::context::DebugCreator::selectExtensions() => Vulkan debugging disabled, missing \"{}\" extension", "VK_EXT_debug_report");
+		ngn::log::warn("rn::vki::context::DebugCreator::selectExtensions() => Vulkan debugging disabled, missing both \"VK_EXT_debug_utils\" and \"VK_EXT_debug_report\" extensions");
 	}
 
 	return selectedExtensions;

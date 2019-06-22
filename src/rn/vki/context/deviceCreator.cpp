@@ -5,19 +5,25 @@
 #include <stdexcept>
 
 #include "../trace.hpp"
-#include "queuesPlanner.hpp"
-#include "types.hpp"
 
 namespace rn::vki::context {
 
+std::tuple<std::vector<float>, std::vector<vk::DeviceQueueCreateInfo>> buildDeviceQueueCreateInfos(const rn::vki::context::QueueFamilyIndex &queueFamilyIndex) {
+	std::map<uint32_t, uint32_t> queueFamilyCount{};
+	queueFamilyCount.insert_or_assign(queueFamilyIndex.presentation.family, 1);
+	queueFamilyCount.insert_or_assign(queueFamilyIndex.graphic.family, 1);
+	queueFamilyCount.insert_or_assign(queueFamilyIndex.compute.family, 1);
+	queueFamilyCount.insert_or_assign(queueFamilyIndex.transfer.family, 1);
 
-std::tuple<std::vector<float>, std::vector<vk::DeviceQueueCreateInfo>> buildDeviceQueueCreateInfos(rn::vki::HandleSurfaceKHR &&surface, rn::vki::HandlePhysicalDevice &&physicalDevice) {
-	std::map<uint32_t, uint32_t> usageCount = QueuesPlanner{std::move(surface), std::move(physicalDevice), RN_VKI_TRACE(physicalDevice->getQueueFamilyProperties2(physicalDevice.table()))}.countQueueFamilyUsage();
+	queueFamilyCount[queueFamilyIndex.presentation.family] = std::max(queueFamilyCount[queueFamilyIndex.presentation.family], queueFamilyIndex.presentation.index + 1);
+	queueFamilyCount[queueFamilyIndex.graphic.family] = std::max(queueFamilyCount[queueFamilyIndex.graphic.family], queueFamilyIndex.graphic.index + 1);
+	queueFamilyCount[queueFamilyIndex.compute.family] = std::max(queueFamilyCount[queueFamilyIndex.compute.family], queueFamilyIndex.compute.index + 1);
+	queueFamilyCount[queueFamilyIndex.transfer.family] = std::max(queueFamilyCount[queueFamilyIndex.transfer.family], queueFamilyIndex.transfer.index + 1);
 
 	std::vector<vk::DeviceQueueCreateInfo> createInfos{};
-	createInfos.reserve(usageCount.size());
+	createInfos.reserve(queueFamilyCount.size());
 
-	size_t prioritiesSize = std::accumulate(std::begin(usageCount), std::end(usageCount), 0, [] (size_t acc, const auto &item) {
+	size_t prioritiesSize = std::accumulate(std::begin(queueFamilyCount), std::end(queueFamilyCount), 0, [] (size_t acc, const auto &item) {
 		return acc + item.second;
 	});
 
@@ -25,16 +31,15 @@ std::tuple<std::vector<float>, std::vector<vk::DeviceQueueCreateInfo>> buildDevi
 	priorities.resize(prioritiesSize, 1.f);
 
 	ptrdiff_t offset = 0;
-	for (const auto &pair : usageCount) {
-		// for family [pair.first] request [pair.second] queues, all with equal priority (1.0)
+	for (auto [family, indexCount] : queueFamilyCount) {
 		createInfos.emplace_back(
 			vk::DeviceQueueCreateFlags{},
-			pair.first,
-			pair.second,
+			family,
+			indexCount,
 			&priorities[offset]
 		);
 
-		offset += pair.second;
+		offset += indexCount;
 	}
 
 	return std::make_tuple(std::move(priorities), std::move(createInfos));
@@ -104,11 +109,11 @@ vk::PhysicalDeviceFeatures2 buildDeviceFeatures(const vk::PhysicalDeviceFeatures
 	return features;
 }
 
-rn::vki::UniqueTableDevice DeviceCreator::create(rn::vki::HandleInstance &&instance, rn::vki::HandleSurfaceKHR &&surface, rn::vki::HandlePhysicalDevice &&physicalDevice, rn::vki::context::PhysicalDeviceDescription &physicalDeviceDescription) {
-	vk::PhysicalDeviceFeatures2 &availableFeatures = physicalDeviceDescription.availableFeatures;
-	vk::PhysicalDeviceFeatures2 &requiredFeatures = physicalDeviceDescription.requiredFeatures;
+rn::vki::UniqueTableDevice DeviceCreator::create(rn::vki::HandlePhysicalDevice &&physicalDevice, const rn::vki::context::PhysicalDeviceDescription &physicalDeviceDescription, const rn::vki::context::QueueFamilyIndex &queueFamilyIndex, rn::vki::HandleInstance &&instance) {
+	const vk::PhysicalDeviceFeatures2 &availableFeatures = physicalDeviceDescription.availableFeatures;
+	const vk::PhysicalDeviceFeatures2 &requiredFeatures = physicalDeviceDescription.requiredFeatures;
 
-	const auto prioritiesCreateInfosTuple = buildDeviceQueueCreateInfos(std::move(surface), std::move(physicalDevice));
+	const auto prioritiesCreateInfosTuple = buildDeviceQueueCreateInfos(queueFamilyIndex);
 	const std::vector<vk::DeviceQueueCreateInfo> &deviceQueueCreateInfos = std::get<1>(prioritiesCreateInfosTuple);
 
 	std::vector<const char *> deviceExtensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};

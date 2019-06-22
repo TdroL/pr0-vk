@@ -1,0 +1,102 @@
+#include "resources.hpp"
+
+// #include <algorithm>
+
+// #include "../../ngn/log.hpp"
+// #include "context.hpp"
+// #include "mapping.hpp"
+// #include "trace.hpp"
+
+namespace rn::nulli {
+
+Resources::Resources(rn::nulli::Context &implementation) :
+	context(implementation)
+{}
+
+Resources::Resources(Resources &&other) :
+	context{std::move(other.context)},
+	imageSlots{std::move(other.imageSlots)},
+	bufferSlots{std::move(other.bufferSlots)}
+{}
+
+Resources & Resources::operator=(Resources &&other) {
+	context = std::move(other.context);
+	imageSlots = std::move(other.imageSlots);
+	bufferSlots = std::move(other.bufferSlots);
+
+	return *this;
+}
+
+rn::TextureHandle Resources::createTexture([[maybe_unused]] const rn::TextureDescription &description) {
+	for (size_t i = 0; i < imageSlots.size(); i++) {
+		if ( ! imageSlots[i]) {
+			imageSlots[i] = true;
+
+			return rn::TextureHandle{ static_cast<rn::TextureHandle::InternalType>(i) };
+		}
+	}
+
+	size_t index = imageSlots.size();
+	imageSlots.push_back(true);
+
+	return rn::TextureHandle{ static_cast<rn::TextureHandle::InternalType>(index) };
+}
+
+bool Resources::destroyTexture(rn::TextureHandle handle) {
+	if (handle == rn::end<rn::TextureHandle>() || handle == rn::swapchainHandle()) {
+		return false;
+	}
+
+	size_t index = handle.index;
+	if (index >= imageSlots.size()) {
+		return false;
+	}
+
+	if ( ! imageSlots[index]) {
+		return false;
+	}
+
+	imageSlots[index] = false;
+
+	return true;
+}
+
+rn::BufferHandle Resources::createBuffer([[maybe_unused]] const rn::BufferDescription &description) {
+	for (size_t i = 0; i < bufferSlots.size(); i++) {
+		if ( ! bufferSlots[i]) {
+			bufferSlots[i] = true;
+
+			return rn::BufferHandle{ static_cast<rn::BufferHandle::InternalType>(i) };
+		}
+	}
+
+	size_t index = bufferSlots.size();
+	bufferSlots.push_back(true);
+
+	return rn::BufferHandle{ static_cast<rn::BufferHandle::InternalType>(index) };
+}
+
+bool Resources::destroyBuffer(rn::BufferHandle handle) {
+	if (handle == rn::end<rn::BufferHandle>()) {
+		return false;
+	}
+
+	size_t index = handle.index;
+	if (index >= bufferSlots.size()) {
+		return false;
+	}
+
+	if ( ! bufferSlots[index]) {
+		return false;
+	}
+
+	bufferSlots[index] = false;
+
+	return true;
+}
+
+rn::nulli::Resources Resources::create(rn::nulli::Context &context) {
+	return rn::nulli::Resources{context};
+}
+
+} // rn::nulli

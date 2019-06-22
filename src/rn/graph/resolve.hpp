@@ -10,7 +10,7 @@
 
 #include "../../ngn/log.hpp"
 #include "../../util/contains.hpp"
-#include "../context.hpp"
+// #include "../context.hpp"
 #include "../resources.hpp"
 #include "compile.hpp"
 #include "types.hpp"
@@ -18,7 +18,7 @@
 namespace rn::graph {
 
 template<class T, class U>
-bool resolve([[maybe_unused]] rn::Context<T> &context, [[maybe_unused]] rn::Resources<U> &resources, util::FlatStorage<std::string, rn::graph::SetupResult> &setupResults) {
+bool resolve([[maybe_unused]] T &context, [[maybe_unused]] rn::Resources<U> &resources, util::FlatStorage<std::string, rn::graph::SetupResult> &setupResults) {
 	util::FlatStorage<std::string_view, rn::BufferDescription> bufferDescriptions{};
 	util::FlatStorage<std::string_view, rn::TextureDescription> textureDescriptions{};
 
@@ -269,7 +269,7 @@ bool resolve([[maybe_unused]] rn::Context<T> &context, [[maybe_unused]] rn::Reso
 			usage +=  "Vertex | ";
 		}
 
-		ngn::log::debug("buffer: {} [{}; {}] {}", it.first, it.second.size, it.second.paging, usage.empty() ? std::string_view{usage} : std::string_view{usage}.substr(0, usage.size() - 3));
+		ngn::log::debug("buffer: {} [{}; {}] {}", it.first, it.second.size, it.second.paging == rn::BufferPaging::Static ? std::string_view{"static"} : std::string_view{"swapchain-relative"}, usage.empty() ? std::string_view{usage} : std::string_view{usage}.substr(0, usage.size() - 3));
 	}
 
 	for (auto &&it : textureDescriptions) {
