@@ -1,1 +1,8 @@
 build/
+.bench/
+.clang-format
+.stash/
+.vscode/
+*.cppcheck
+*.sublime-project
+*.sublime-workspace
