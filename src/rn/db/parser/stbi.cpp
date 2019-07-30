@@ -336,7 +336,7 @@ util::EitherOption<std::string, ParsedTextureResult> Stbi::parse(const std::byte
 				/*.type=*/ rn::ImageType::Tex2D,
 				/*.levels=*/ 1,
 				/*.layers=*/ 1,
-				/*.usage=*/ rn::TextureUsage::Sampled,
+				/*.usage=*/ rn::TextureUsage::Sampled | rn::TextureUsage::TransferDestination,
 			},
 		};
 	}

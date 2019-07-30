@@ -24,7 +24,15 @@ struct TransitionCommand {
 	};
 
 	struct Buffer {
+		rn::BufferHandle handle;
 
+		rn::BufferAccess oldAccess;
+		rn::BufferAccess newAccess;
+		rn::QueueType oldQueueType;
+		rn::QueueType newQueueType;
+
+		size_t offset;
+		size_t size;
 	};
 
 	util::TrivialVector<Texture, 1> textures;
@@ -65,7 +73,17 @@ struct CopyBufferToTextureCommand {
 struct CopyTextureToTextureCommand {
 	struct Region {
 		rn::Offset3D sourceOffset;
+
+		uint32_t sourceMipLevel;
+		uint32_t sourceBaseArrayLayer;
+		uint32_t sourceLayerCount;
+
 		rn::Offset3D destinationOffset;
+
+		uint32_t destinationMipLevel;
+		uint32_t destinationBaseArrayLayer;
+		uint32_t destinationLayerCount;
+
 		rn::Extent3D extent;
 	};
 
@@ -78,6 +96,10 @@ struct CopyTextureToBufferCommand {
 	struct Region {
 		rn::Offset3D sourceOffset;
 		rn::Extent3D sourceExtent;
+
+		uint32_t mipLevel;
+		uint32_t baseArrayLayer;
+		uint32_t layerCount;
 
 		uint64_t destinationOffset;
 		uint32_t destinationRowLength;
@@ -95,7 +117,8 @@ using TransferCommandVariant = std::variant<
 	// transfer
 	rn::CopyBufferToBufferCommand,
 	rn::CopyBufferToTextureCommand,
-	rn::CopyTextureToTextureCommand
+	rn::CopyTextureToTextureCommand,
+	rn::CopyTextureToBufferCommand
 >;
 
 struct DispatchCommand {
@@ -116,6 +139,7 @@ using ComputeCommandVariant = std::variant<
 	rn::CopyBufferToBufferCommand,
 	rn::CopyBufferToTextureCommand,
 	rn::CopyTextureToTextureCommand,
+	rn::CopyTextureToBufferCommand,
 	// compute
 	rn::DispatchCommand,
 	rn::DispatchIndirectCommand
@@ -176,6 +200,7 @@ using GraphicCommandVariant = std::variant<
 	rn::CopyBufferToBufferCommand,
 	rn::CopyBufferToTextureCommand,
 	rn::CopyTextureToTextureCommand,
+	rn::CopyTextureToBufferCommand,
 	// compute
 	rn::DispatchCommand,
 	rn::DispatchIndirectCommand,
@@ -188,5 +213,12 @@ using GraphicCommandVariant = std::variant<
 	// rn::BindPipelineCommand,
 	rn::BindVertexBuffersCommand
 >;
+
+// template<class T>
+// struct TransitionWrapCommands {
+// 	rn::TransitionCommand acquireTransitionCommand{};
+// 	std::vector<T> commands{};
+// 	rn::TransitionCommand releaseTransitionCommand{};
+// };
 
 } // rn

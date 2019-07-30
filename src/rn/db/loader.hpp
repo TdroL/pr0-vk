@@ -40,7 +40,7 @@ public:
 		resources{resources}
 	{}
 
-	util::EitherOption<LoadError, size_t> loadModel(std::string_view name) {
+	util::EitherOption<LoadError, rn::db::Model<T>> loadModel(std::string_view name) {
 		std::optional<std::string> filePathOpt = ngn::fs::find(name);
 
 		if ( ! filePathOpt) {
@@ -49,13 +49,17 @@ public:
 
 		auto &filePath = *filePathOpt;
 
-		std::string_view fileExt = ngn::fs::ext(filePath);
+		std::string fileExt = ngn::fs::ext(filePath);
 
 		if (fileExt == ".gltf" || fileExt == ".glb") {
-			gltf.loadModel(filePath, resources);
-			return size_t{0};
+			auto results = gltf.loadModel(filePath, resources);
+			if (results) {
+				return std::move(*results);
+			} else {
+				return LoadError{fmt::format("Failed to parse file \"{}\"", name)};
+			}
 		} else {
-			return LoadError{fmt::format("Unsupported file format \"{}\"", fileExt)};
+			return LoadError{fmt::format("Unsupported file format \"{}\" (\"{}\")", name, fileExt)};
 		}
 	}
 

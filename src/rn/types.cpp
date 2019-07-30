@@ -20,13 +20,13 @@ bool operator!=(const rn::Offset3D &a, const rn::Offset3D &b) {
 	return !(a == b);
 }
 
-bool operator==(rn::FenceHandle a, rn::FenceHandle b) {
-	return a.index == b.index;
-}
+// bool operator==(rn::FenceHandle a, rn::FenceHandle b) {
+// 	return a.index == b.index;
+// }
 
-bool operator!=(rn::FenceHandle a, rn::FenceHandle b) {
-	return a.index != b.index;
-}
+// bool operator!=(rn::FenceHandle a, rn::FenceHandle b) {
+// 	return a.index != b.index;
+// }
 
 bool operator==(rn::BufferHandle a, rn::BufferHandle b) {
 	return a.index == b.index;

@@ -30,16 +30,16 @@ std::tuple<std::vector<float>, std::vector<vk::DeviceQueueCreateInfo>> buildDevi
 	std::vector<float> priorities{};
 	priorities.resize(prioritiesSize, 1.f);
 
-	ptrdiff_t offset = 0;
+	ptrdiff_t cursor = 0;
 	for (auto [family, indexCount] : queueFamilyCount) {
 		createInfos.emplace_back(
 			vk::DeviceQueueCreateFlags{},
 			family,
 			indexCount,
-			&priorities[offset]
+			&priorities[cursor]
 		);
 
-		offset += indexCount;
+		cursor += indexCount;
 	}
 
 	return std::make_tuple(std::move(priorities), std::move(createInfos));

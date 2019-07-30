@@ -28,7 +28,7 @@ public:
 	TrivialVector(std::initializer_list<T> list) :
 		dataSize{list.size()}
 	{
-		if (dataSize > dataCapacity) {
+		if (dataSize > stackCapacity) {
 			storage.heap = new AlignedT[dataSize];
 
 			dataCapacity = dataSize;
@@ -129,19 +129,25 @@ public:
 	}
 
 	T * data() {
+		#pragma GCC diagnostic push
+		#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 		if (usesStack()) {
 			return reinterpret_cast<T *>(&storage.stack[0]);
 		} else {
 			return reinterpret_cast<T *>(storage.heap);
 		}
+		#pragma GCC diagnostic pop
 	}
 
 	const T * data() const {
+		#pragma GCC diagnostic push
+		#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 		if (usesStack()) {
 			return reinterpret_cast<const T *>(&storage.stack[0]);
 		} else {
 			return reinterpret_cast<const T *>(storage.heap);
 		}
+		#pragma GCC diagnostic pop
 	}
 
 	T * begin() {
@@ -201,7 +207,7 @@ public:
 
 		AlignedT *tmp = new AlignedT[newDataCapacity];
 
-		std::copy(std::begin(*this), std::end(*this), reinterpret_cast<T *>(tmp));
+		std::copy(begin(), end(), reinterpret_cast<T *>(tmp));
 
 		if ( ! usesStack()) {
 			delete[] storage.heap;

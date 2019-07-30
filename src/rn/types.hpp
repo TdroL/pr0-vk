@@ -1,7 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <limits>
+#include <string_view>
 
 namespace rn {
 
@@ -500,20 +502,20 @@ enum class WindowMode {
 };
 
 // fence
-struct FenceHandle {
-	using InternalType = uint32_t;
+// struct FenceHandle {
+// 	using InternalType = uint32_t;
 
-	InternalType index{std::numeric_limits<InternalType>::max()};
-};
-static_assert(sizeof(rn::FenceHandle) == sizeof(uint32_t));
+// 	InternalType index{std::numeric_limits<InternalType>::max()};
+// };
+// static_assert(sizeof(rn::FenceHandle) == sizeof(uint32_t));
 
-bool operator==(rn::FenceHandle a, rn::FenceHandle b);
-bool operator!=(rn::FenceHandle a, rn::FenceHandle b);
+// bool operator==(rn::FenceHandle a, rn::FenceHandle b);
+// bool operator!=(rn::FenceHandle a, rn::FenceHandle b);
 
-template<>
-constexpr rn::FenceHandle end() {
-	return { std::numeric_limits<rn::FenceHandle::InternalType>::max() };
-}
+// template<>
+// constexpr rn::FenceHandle end() {
+// 	return { std::numeric_limits<rn::FenceHandle::InternalType>::max() };
+// }
 
 using FenceStamp = size_t;
 
@@ -679,10 +681,10 @@ enum class TextureAccess : uint32_t {
 	HostPreinitialized = 19, // Data pre-filled by host before device access starts (THSVS_ACCESS_HOST_PREINITIALIZED)
 	HostWrite = 20, // Written on the host (THSVS_ACCESS_HOST_WRITE)
 	// read-write
-	DepthAttachmentWriteStencilRead, // Written as a depth aspect of a depth/stencil attachment during rendering, whilst the stencil aspect is read-only (THSVS_ACCESS_DEPTH_ATTACHMENT_WRITE_STENCIL_READ_ONLY)
-	StencilAttachmentWriteDepthRead, // Written as a stencil aspect of a depth/stencil attachment during rendering, whilst the depth aspect is read-only (THSVS_ACCESS_STENCIL_ATTACHMENT_WRITE_DEPTH_READ_ONLY)
-	ColorAttachmentWriteRead = 21, // Read or written as a color attachment during rendering (THSVS_ACCESS_COLOR_ATTACHMENT_READ_WRITE)
-	General = 22, // Covers any access - useful for debug, generally avoid for performance reasons (THSVS_ACCESS_GENERAL)
+	DepthAttachmentWriteStencilRead = 21, // Written as a depth aspect of a depth/stencil attachment during rendering, whilst the stencil aspect is read-only (THSVS_ACCESS_DEPTH_ATTACHMENT_WRITE_STENCIL_READ_ONLY)
+	StencilAttachmentWriteDepthRead = 22, // Written as a stencil aspect of a depth/stencil attachment during rendering, whilst the depth aspect is read-only (THSVS_ACCESS_STENCIL_ATTACHMENT_WRITE_DEPTH_READ_ONLY)
+	ColorAttachmentWriteRead = 23, // Read or written as a color attachment during rendering (THSVS_ACCESS_COLOR_ATTACHMENT_READ_WRITE)
+	General = 24, // Covers any access - useful for debug, generally avoid for performance reasons (THSVS_ACCESS_GENERAL)
 };
 
 enum class ShaderStage : uint32_t {
@@ -713,6 +715,12 @@ struct BufferCopyRange {
 	size_t bufferOffset;
 	std::byte *data;
 	size_t length;
+};
+
+struct BufferDataAccessor {
+	std::function<std::byte * ()> data;
+	std::function<size_t ()> size;
+	std::function<rn::DataFormat ()> format;
 };
 
 struct TextureDataAccessor {

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 namespace util {
 
 template<typename T>
@@ -56,5 +58,10 @@ public:
 		return dataPtr[index];
 	}
 };
+
+template<class T>
+auto makeSpan(T &container) -> Span<std::decay_t<decltype(*(container.data()))>> {
+	return { container.data(), container.size() };
+}
 
 }

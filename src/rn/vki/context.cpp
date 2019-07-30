@@ -1,6 +1,7 @@
 #include "context.hpp"
 
 #include <cstring>
+#include <random>
 
 #include "../../ngn/config.hpp"
 #include "../../ngn/log.hpp"
@@ -28,6 +29,9 @@
 #include "context/surfaceExtentSelector.hpp"
 #include "context/surfaceFormatSelector.hpp"
 #include "context/surfaceImagesSelector.hpp"
+
+std::random_device rd;
+std::uniform_int_distribution<uint8_t> dist(0, 255);
 
 namespace rn::vki {
 
@@ -83,7 +87,7 @@ rn::vki::Context Context::factory(ngn::config::Config &config, rn::Window &windo
 
 	context.allocator = creators.allocator.create(context.device.handle(), context.physicalDeviceDescription);
 
-	context.commandPoolGroups = creators.commandPoolGroups.create(context.surfaceDescription, context.device.handle(), context.queueFamilyIndex, config);
+	context.commandPoolGroups = creators.commandPoolGroups.create(context.surfaceDescription, config);
 
 	context.synchronization = creators.synchronization.create(context.surfaceDescription, context.device.handle());
 
@@ -99,8 +103,8 @@ Context & Context::operator=(Context &&other) {
 
 	// move values in reverse order
 	transferCommandLists = std::move(other.transferCommandLists);
-	computeCommandLists = std::move(other.computeCommandLists);
-	graphicCommandLists = std::move(other.graphicCommandLists);
+	// computeCommandLists = std::move(other.computeCommandLists);
+	// graphicCommandLists = std::move(other.graphicCommandLists);
 	pendingFenceStamps = std::move(other.pendingFenceStamps);
 	resolvedFenceStamps = std::move(other.resolvedFenceStamps);
 	bufferSlots = std::move(other.bufferSlots);
@@ -127,15 +131,68 @@ Context::~Context() {
 	reset();
 }
 
-util::Span<vk::CommandPool> Context::commandPools([[maybe_unused]] rn::QueueType queueType, [[maybe_unused]] uint32_t count) {
-	return {};
+util::Span<vk::CommandPool> Context::getCommandPools([[maybe_unused]] rn::QueueType queueType, [[maybe_unused]] uint32_t count) {
+	rn::vki::context::CommandPoolGroups::Group *group = nullptr;
+	uint32_t family = 0;
+
+	switch (queueType) {
+		case rn::QueueType::Transfer: {
+			size_t transferIndex = synchronization.resolvedIndex;
+			assert(transferIndex < commandPoolGroups.transferGroup.size());
+
+			group = &(commandPoolGroups.transferGroup[transferIndex]);
+			family = queueFamilyIndex.transfer.family;
+			break;
+		}
+		case rn::QueueType::Compute: {
+			size_t renderingIndex = synchronization.renderingIndex;
+			assert(renderingIndex < commandPoolGroups.computeGroup.size());
+
+			group = &(commandPoolGroups.computeGroup[renderingIndex]);
+			family = queueFamilyIndex.compute.family;
+			break;
+		}
+		case rn::QueueType::Graphic: [[fallthrough]];
+		default: {
+			size_t renderingIndex = synchronization.renderingIndex;
+			assert(renderingIndex < commandPoolGroups.graphicGroup.size());
+
+			group = &(commandPoolGroups.graphicGroup[renderingIndex]);
+			family = queueFamilyIndex.graphic.family;
+			break;
+		}
+	}
+
+	assert(group != nullptr);
+
+	uint32_t size = static_cast<uint32_t>(group->owners.size());
+	if (size < count) {
+		group->owners.resize(count);
+		group->handles.resize(count);
+
+		for (uint32_t i = size; i < count; i++) {
+			group->owners[i] = {
+				RN_VKI_TRACE(device->createCommandPoolUnique({
+					/*.flags=*/ vk::CommandPoolCreateFlagBits::eTransient,
+					/*.queueFamilyIndex=*/ family
+				}, nullptr, device.table())),
+				device.table()
+			};
+
+			group->handles[i] = group->owners[i].get();
+		}
+	}
+
+	assert(count <= group->handles.size());
+
+	return { group->handles.data(), count };
 }
 
 void Context::advance() {
 	size_t renderingIndex = synchronization.renderingIndex;
 
 	{
-		NGN_PROF_SCOPE("context advance: resolve rendering");
+		NGN_PROF_SCOPE("context advance: resolve rendering (graphic, compute)");
 
 		size_t renderingCount = synchronization.renderingResources.size();
 
@@ -174,11 +231,14 @@ void Context::advance() {
 		}
 
 		if ( ! resetFences.empty()) {
+			// ngn::log::debug("transfer: resetFences={} resolvedCounter={} transferCounter={}", resetFences.size(), synchronization.resolvedCounter, transferCounter);
 			RN_VKI_TRACE(device->resetFences(resetFences, device.table()));
 
 			synchronization.resolvedIndex = transferIndex;
 			synchronization.resolvedCounter = transferCounter;
 			resolvedFenceStamps[static_cast<uint32_t>(rn::QueueType::Transfer) - 1] = synchronization.resolvedCounter;
+		} else {
+			// ngn::log::debug("transfer: resetFences={}", resetFences.size());
 		}
 	}
 
@@ -204,7 +264,7 @@ void Context::commit(util::ThreadPool &threadPool) {
 		NGN_PROF_SCOPE("context commit: submit transfer commands");
 
 		if ( ! transferCommandLists.empty()) {
-			vk::CommandBuffer transferCommandBuffer = recorder.record(std::move(transferCommandLists));
+			rn::vki::HandleCommandBuffer transferCommandBuffer = recorder.record(std::move(transferCommandLists));
 			transferCommandLists = {};
 
 			size_t transferIndex = synchronization.pendingIndex;
@@ -229,7 +289,7 @@ void Context::commit(util::ThreadPool &threadPool) {
 					/*.pWaitSemaphores=*/ nullptr,
 					/*.pWaitDstStageMask=*/ nullptr,
 					/*.commandBufferCount=*/ 1,
-					/*.pCommandBuffers=*/ &transferCommandBuffer,
+					/*.pCommandBuffers=*/ &transferCommandBuffer.get(),
 					/*.signalSemaphoreCount=*/ 0,
 					/*.pSignalSemaphores=*/ nullptr,
 				}
@@ -245,8 +305,30 @@ void Context::commit(util::ThreadPool &threadPool) {
 	{
 		NGN_PROF_SCOPE("context commit: submit compute commands");
 
-		vk::CommandBuffer computeCommandBuffer = recorder.record(std::move(computeCommandLists));
-		computeCommandLists = {};
+		// vk::CommandBuffer computeCommandBuffer = recorder.record(std::move(computeCommandLists));
+		// computeCommandLists = {};
+
+		// DEV: do something so that validation is happy
+		rn::vki::HandleCommandBuffer computeCommandBufferHandle{};
+		{
+			vk::CommandPool commandPool = getCommandPools(rn::QueueType::Compute, 1)[0];
+
+			vk::CommandBufferAllocateInfo commandBufferAllocateInfo{
+				/*.commandPool=*/ commandPool,
+				/*.level=*/ vk::CommandBufferLevel::ePrimary,
+				/*.commandBufferCount=*/ 1,
+			};
+			vk::CommandBuffer commandBuffer{};
+			RN_VKI_TRACE(device->allocateCommandBuffers(&commandBufferAllocateInfo, &commandBuffer, device.table()));
+
+			computeCommandBufferHandle = rn::vki::HandleCommandBuffer{commandBuffer, device.table()};
+
+			RN_VKI_TRACE(computeCommandBufferHandle->begin({
+				/*.flags=*/ vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
+				/*.pInheritanceInfo=*/ nullptr
+			}, computeCommandBufferHandle.table()));
+			RN_VKI_TRACE(computeCommandBufferHandle->end(computeCommandBufferHandle.table()));
+		}
 
 		size_t renderingIndex = synchronization.renderingIndex;
 
@@ -256,7 +338,7 @@ void Context::commit(util::ThreadPool &threadPool) {
 				/*.pWaitSemaphores=*/ nullptr,
 				/*.pWaitDstStageMask=*/ nullptr,
 				/*.commandBufferCount=*/ 1,
-				/*.pCommandBuffers=*/ &computeCommandBuffer,
+				/*.pCommandBuffers=*/ &computeCommandBufferHandle.get(),
 				/*.signalSemaphoreCount=*/ 0,
 				/*.pSignalSemaphores=*/ nullptr,
 			}
@@ -268,8 +350,77 @@ void Context::commit(util::ThreadPool &threadPool) {
 	{
 		NGN_PROF_SCOPE("context commit: submit graphic commands");
 
-		vk::CommandBuffer graphicCommandBuffer = recorder.record(std::move(graphicCommandLists));
-		graphicCommandLists = {};
+		// vk::CommandBuffer graphicCommandBuffer = recorder.record(std::move(graphicCommandLists));
+		// graphicCommandLists = {};
+		rn::vki::HandleCommandBuffer graphicCommandBufferHandle{};
+		{
+			vk::CommandPool commandPool = getCommandPools(rn::QueueType::Graphic, 1)[0];
+
+			vk::CommandBufferAllocateInfo commandBufferAllocateInfo{
+				/*.commandPool=*/ commandPool,
+				/*.level=*/ vk::CommandBufferLevel::ePrimary,
+				/*.commandBufferCount=*/ 1,
+			};
+			vk::CommandBuffer commandBuffer{};
+			RN_VKI_TRACE(device->allocateCommandBuffers(&commandBufferAllocateInfo, &commandBuffer, device.table()));
+
+			graphicCommandBufferHandle = rn::vki::HandleCommandBuffer{commandBuffer, device.table()};
+
+			RN_VKI_TRACE(graphicCommandBufferHandle->begin({
+				/*.flags=*/ vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
+				/*.pInheritanceInfo=*/ nullptr
+			}, graphicCommandBufferHandle.table()));
+			{
+				vk::ImageMemoryBarrier imageMemoryBarrier{
+					/*.srcAccessMask=*/ vk::AccessFlags{},
+					/*.dstAccessMask=*/ vk::AccessFlagBits::eTransferWrite,
+					/*.oldLayout=*/ vk::ImageLayout::eUndefined,
+					/*.newLayout=*/ vk::ImageLayout::eTransferDstOptimal,
+					/*.srcQueueFamilyIndex=*/ queueFamilyIndex.presentation.family,
+					/*.dstQueueFamilyIndex=*/ queueFamilyIndex.presentation.family,
+					/*.image=*/ surfaceDescription.images[surfaceDescription.imageIndex],
+					/*.subresourceRange=*/ vk::ImageSubresourceRange{
+						/*.aspectMask=*/ vk::ImageAspectFlagBits::eColor,
+						/*.baseMipLevel=*/ 0,
+						/*.levelCount=*/ 1,
+						/*.baseArrayLayer=*/ 0,
+						/*.layerCount=*/ 1,
+					},
+				};
+				RN_VKI_TRACE(graphicCommandBufferHandle->pipelineBarrier(vk::PipelineStageFlagBits::eTopOfPipe, vk::PipelineStageFlagBits::eTransfer, vk::DependencyFlags{}, {}, {}, { imageMemoryBarrier }, graphicCommandBufferHandle.table()));
+			}
+			{
+				vk::ClearColorValue color{ std::array<float,4>{ dist(rd) / 256.f, dist(rd) / 256.f, dist(rd) / 256.f, 1.f } };
+				vk::ImageSubresourceRange range{
+					/*.aspectMask=*/ vk::ImageAspectFlagBits::eColor,
+					/*.baseMipLevel=*/ 0,
+					/*.levelCount=*/ 1,
+					/*.baseArrayLayer=*/ 0,
+					/*.layerCount=*/ 1,
+				};
+				RN_VKI_TRACE(graphicCommandBufferHandle->clearColorImage(surfaceDescription.images[surfaceDescription.imageIndex], vk::ImageLayout::eTransferDstOptimal, color, { range }, graphicCommandBufferHandle.table()));
+			}
+			{
+				vk::ImageMemoryBarrier imageMemoryBarrier{
+					/*.srcAccessMask=*/ vk::AccessFlagBits::eTransferWrite,
+					/*.dstAccessMask=*/ vk::AccessFlags{},
+					/*.oldLayout=*/ vk::ImageLayout::eTransferDstOptimal,
+					/*.newLayout=*/ vk::ImageLayout::ePresentSrcKHR,
+					/*.srcQueueFamilyIndex=*/ queueFamilyIndex.presentation.family,
+					/*.dstQueueFamilyIndex=*/ queueFamilyIndex.presentation.family,
+					/*.image=*/ surfaceDescription.images[surfaceDescription.imageIndex],
+					/*.subresourceRange=*/ vk::ImageSubresourceRange{
+						/*.aspectMask=*/ vk::ImageAspectFlagBits::eColor,
+						/*.baseMipLevel=*/ 0,
+						/*.levelCount=*/ 1,
+						/*.baseArrayLayer=*/ 0,
+						/*.layerCount=*/ 1,
+					},
+				};
+				graphicCommandBufferHandle->pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eBottomOfPipe, vk::DependencyFlags{}, {}, {}, { imageMemoryBarrier }, graphicCommandBufferHandle.table());
+			}
+			RN_VKI_TRACE(graphicCommandBufferHandle->end(graphicCommandBufferHandle.table()));
+		}
 
 		size_t renderingIndex = synchronization.renderingIndex;
 
@@ -283,7 +434,7 @@ void Context::commit(util::ThreadPool &threadPool) {
 				/*.pWaitSemaphores=*/ &acquireSemaphore,
 				/*.pWaitDstStageMask=*/ &acquireStageMask,
 				/*.commandBufferCount=*/ 1,
-				/*.pCommandBuffers=*/ &graphicCommandBuffer,
+				/*.pCommandBuffers=*/ &graphicCommandBufferHandle.get(),
 				/*.signalSemaphoreCount=*/ 1,
 				/*.pSignalSemaphores=*/ &graphicSemaphore,
 			}
@@ -312,7 +463,7 @@ void Context::commit(util::ThreadPool &threadPool) {
 		size_t renderingIndex = synchronization.renderingIndex;
 		size_t renderingCount = synchronization.renderingResources.size();
 
-		// I have no idea how to check if semaphore from graphic queue submit was reset in present
+		// I have no idea how to check if semaphore from graphic queue submit was reset by vkPresentKHR... so use double-buffer style semaphore swapping
 		std::swap(synchronization.renderingResources[renderingIndex].graphicSemaphores[0], synchronization.renderingResources[renderingIndex].graphicSemaphores[1]);
 
 		synchronization.renderingIndex = (renderingIndex + 1) % renderingCount;
@@ -418,9 +569,10 @@ rn::TextureHandle Context::createTexture(const rn::TextureDescription &descripti
 		RN_VKI_TRACE(device->createImageUnique(imageCreateInfo, nullptr, device.table())),
 		device.table()
 	};
-	ngn::log::debug("rn::vki::Context::createTexture() => id=0x{:x}", rn::vki::id(imageUnique.get()));
 
 	rn::vki::memory::Handle memory = allocator.texture.alloc(rn::vki::memory::Usage::GPU, imageUnique.get());
+
+	RN_VKI_TRACE(device->bindImageMemory(imageUnique.get(), memory.memory.get(), memory.offset, device.table()));
 
 	for (size_t i = 0; i < textureSlots.size(); i++) {
 		if ( ! textureSlots[i].image) {
@@ -533,6 +685,8 @@ rn::BufferHandle Context::createBuffer(const rn::BufferDescription &description)
 		memory = allocator.buffer.alloc(rn::vki::memory::Usage::GPU, bufferUnique.get());
 	}
 
+	RN_VKI_TRACE(device->bindBufferMemory(bufferUnique.get(), memory.memory.get(), memory.offset, device.table()));
+
 	for (size_t i = 0; i < bufferSlots.size(); i++) {
 		if ( ! bufferSlots[i].buffer) {
 			bufferSlots[i] = { std::move(description), std::move(bufferUnique), std::move(memory) };
@@ -551,7 +705,7 @@ rn::BufferHandle Context::createBuffer(const rn::BufferDescription &description)
 // 	return rn::end<rn::FenceHandle>();
 // }
 
-bool Context::uploadBufferSync(rn::BufferHandle handle, util::TrivialVector<rn::BufferCopyRange, 1> &&ranges) {
+bool Context::uploadBufferSync(rn::BufferHandle handle, util::Span<rn::BufferCopyRange> &&ranges) {
 	if (handle == rn::end<rn::BufferHandle>()) {
 		ngn::log::error("rn::vki::Context::uploadBufferSync(< {:x} >, [ .length={} ]) => upload failed, invalid buffer handle", handle.index, ranges.size());
 		return false;
@@ -632,14 +786,14 @@ rn::FenceStamp Context::resolvedFenceStamp(rn::QueueType queueType) {
 	}
 }
 
-rn::FenceStamp Context::enqueueCommands(std::vector<rn::GraphicCommandVariant> &&commands) {
-	graphicCommandLists.push_back(std::move(commands));
+rn::FenceStamp Context::enqueueCommands([[maybe_unused]] std::vector<rn::GraphicCommandVariant> &&commands) {
+	// graphicCommandLists.push_back(std::move(commands));
 
 	return pendingFenceStamps[static_cast<uint32_t>(rn::QueueType::Graphic) - 1];
 }
 
-rn::FenceStamp Context::enqueueCommands(std::vector<rn::ComputeCommandVariant> &&commands) {
-	computeCommandLists.push_back(std::move(commands));
+rn::FenceStamp Context::enqueueCommands([[maybe_unused]] std::vector<rn::ComputeCommandVariant> &&commands) {
+	// computeCommandLists.push_back(std::move(commands));
 
 	return pendingFenceStamps[static_cast<uint32_t>(rn::QueueType::Compute) - 1];
 }
@@ -650,38 +804,38 @@ rn::FenceStamp Context::enqueueCommands(std::vector<rn::TransferCommandVariant> 
 	return pendingFenceStamps[static_cast<uint32_t>(rn::QueueType::Transfer) - 1];
 }
 
-void Context::deferCommands(rn::FenceStamp fenceStamp, rn::QueueType fenceQueueType, std::vector<rn::GraphicCommandVariant> &&commands) {
-	assert(fenceStamp < rn::end<rn::FenceStamp>());
-	assert(fenceQueueType != rn::QueueType::None);
+// void Context::deferCommands(rn::FenceStamp fenceStamp, rn::QueueType fenceQueueType, std::vector<rn::GraphicCommandVariant> &&commands) {
+// 	assert(fenceStamp < rn::end<rn::FenceStamp>());
+// 	assert(fenceQueueType != rn::QueueType::None);
 
-	deferredGraphicCommandLists.push_back({
-		fenceStamp,
-		fenceQueueType,
-		std::move(commands)
-	});
-}
+// 	deferredGraphicCommandLists.push_back({
+// 		fenceStamp,
+// 		fenceQueueType,
+// 		std::move(commands)
+// 	});
+// }
 
-void Context::deferCommands(rn::FenceStamp fenceStamp, rn::QueueType fenceQueueType, std::vector<rn::ComputeCommandVariant> &&commands) {
-	assert(fenceStamp < rn::end<rn::FenceStamp>());
-	assert(fenceQueueType != rn::QueueType::None);
+// void Context::deferCommands(rn::FenceStamp fenceStamp, rn::QueueType fenceQueueType, std::vector<rn::ComputeCommandVariant> &&commands) {
+// 	assert(fenceStamp < rn::end<rn::FenceStamp>());
+// 	assert(fenceQueueType != rn::QueueType::None);
 
-	deferredComputeCommandLists.push_back({
-		fenceStamp,
-		fenceQueueType,
-		std::move(commands)
-	});
-}
+// 	deferredComputeCommandLists.push_back({
+// 		fenceStamp,
+// 		fenceQueueType,
+// 		std::move(commands)
+// 	});
+// }
 
-void Context::deferCommands(rn::FenceStamp fenceStamp, rn::QueueType fenceQueueType, std::vector<rn::TransferCommandVariant> &&commands) {
-	assert(fenceStamp < rn::end<rn::FenceStamp>());
-	assert(fenceQueueType != rn::QueueType::None);
+// void Context::deferCommands(rn::FenceStamp fenceStamp, rn::QueueType fenceQueueType, std::vector<rn::TransferCommandVariant> &&commands) {
+// 	assert(fenceStamp < rn::end<rn::FenceStamp>());
+// 	assert(fenceQueueType != rn::QueueType::None);
 
-	deferredTransferCommandLists.push_back({
-		fenceStamp,
-		fenceQueueType,
-		std::move(commands)
-	});
-}
+// 	deferredTransferCommandLists.push_back({
+// 		fenceStamp,
+// 		fenceQueueType,
+// 		std::move(commands)
+// 	});
+// }
 
 // void Context::submitEnqueuedCommands(rn::QueueType queueType, [[maybe_unused]] util::ThreadPool &threadPool) {
 // 	rn::vki::Recorder recorder{*this, threadPool};
@@ -727,8 +881,8 @@ void Context::reset() {
 	waitIdle();
 
 	transferCommandLists.clear();
-	computeCommandLists.clear();
-	graphicCommandLists.clear();
+	// computeCommandLists.clear();
+	// graphicCommandLists.clear();
 	pendingFenceStamps = {};
 	resolvedFenceStamps = {};
 	bufferSlots.clear();

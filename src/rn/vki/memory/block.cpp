@@ -119,6 +119,8 @@ void Block::reset() {
 			ngn::log::error("rn::vki::memory::Block::reset() <{:#x}> => some allocations were not freed before block destruction [{}]", rn::vki::id(deviceMemory.get()), util::join(util::map(leafs, [] (bool leaf) {
 				return std::string_view{leaf ? "1" : "0"};
 			}), ""));
+		} else {
+			ngn::log::error("rn::vki::memory::Block::reset() <{:#x}> => block destroyed", rn::vki::id(deviceMemory.get()));
 		}
 
 		mapping.reset();

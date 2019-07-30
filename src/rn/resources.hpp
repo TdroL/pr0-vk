@@ -10,12 +10,11 @@
 #include <vector>
 
 #include "../ngn/log.hpp"
+#include "../util/span.hpp"
 #include "commands.hpp"
 #include "types.hpp"
 
 namespace rn {
-
-
 
 template<class T>
 class TextureResources {
@@ -491,7 +490,7 @@ public:
 	Resources & operator=(const Resources &other) = delete;
 	Resources & operator=(Resources &&other) = delete;
 
-	rn::FenceStamp enqueueTextureUpload(rn::TextureHandle handle, const rn::TextureDataAccessor &accessor) {
+	[[nodiscard]] rn::FenceStamp enqueueTextureUpload(rn::TextureHandle handle, const rn::TextureDataAccessor &accessor) {
 		const auto textureSlotO = texture.describe(handle);
 		if ( ! textureSlotO) {
 			ngn::log::error("rn::Resources::enqueueTextureUpload(<{:x}>) => invalid texture handle", handle.index);
@@ -506,7 +505,7 @@ public:
 		util::TrivialVector<rn::CopyBufferToTextureCommand::Region, 1> regions{};
 		regions.reserve(description.levels * description.layers);
 
-		size_t dataFormatSize = rn::sizeOf(accessor.format());
+		// size_t dataFormatSize = rn::sizeOf(accessor.format());
 		size_t bufferSize = 0;
 
 		// vulkan requires each buffer address of layer and level to be aligned to 4 bytes
@@ -516,6 +515,7 @@ public:
 				uint32_t layerWidth = std::max(1u, description.dimensions.width >> level);
 				uint32_t layerHeight = std::max(1u, description.dimensions.height >> level);
 				uint32_t layerDepth = std::max(1u, description.dimensions.depth >> level);
+				size_t levelSize = ((accessor.size(level) + (alignment - 1u)) / alignment) * alignment;
 
 				ranges.push_back({
 					/*.bufferOffset=*/ bufferSize,
@@ -525,7 +525,7 @@ public:
 
 				regions.push_back({
 					/*.sourceOffset=*/ bufferSize,
-					/*.sourceRowLength=*/ static_cast<uint32_t>(layerWidth * dataFormatSize),
+					/*.sourceRowLength=*/ layerWidth,
 					/*.sourceRowCount=*/ layerHeight * layerDepth,
 					/*.mipLevel=*/ level,
 					/*.baseArrayLayer=*/ layer,
@@ -542,7 +542,7 @@ public:
 					},
 				});
 
-				bufferSize += ((accessor.size(level) + (alignment - 1u)) / alignment) * alignment;
+				bufferSize += levelSize;
 			}
 		}
 
@@ -556,7 +556,7 @@ public:
 		rn::BufferHandle stagingBufferHandle = buffer.create(stagingBufferName, stagingBufferDescription);
 
 		// upload texture to staging buffer
-		context->uploadBufferSync(stagingBufferHandle, std::move(ranges));
+		context->uploadBufferSync(stagingBufferHandle, util::makeSpan(ranges));
 
 		acquireTransitionCommand.textures.push_back(rn::TransitionCommand::Texture{
 			/*.handle=*/ handle,
@@ -594,9 +594,67 @@ public:
 		return pendingFenceStamp;
 	}
 
-	rn::FenceStamp enqueueBufferUpload() {
-		// TODO
-		return rn::end<rn::FenceStamp>();
+	[[nodiscard]] rn::FenceStamp enqueueBufferUpload(rn::BufferHandle handle, const rn::BufferDataAccessor &accessor) {
+		const auto bufferSlotO = buffer.describe(handle);
+		if ( ! bufferSlotO) {
+			ngn::log::error("rn::Resources::enqueueBufferUpload(<{:x}>) => invalid buffer handle", handle.index);
+			return rn::end<rn::FenceStamp>();
+		}
+
+		rn::BufferDescription stagingBufferDescription{
+			/*.size=*/ accessor.size(),
+			/*.usage=*/ rn::BufferUsage::TransferSource | rn::BufferUsage::Staging,
+			/*.paging=*/ rn::BufferPaging::Static,
+		};
+
+		std::string stagingBufferName = "BufferStagingBuffer:" + std::to_string(handle.index) + "#" + bufferSlotO->get().name;
+		rn::BufferHandle stagingBufferHandle = buffer.create(stagingBufferName, stagingBufferDescription);
+
+		// upload buffer to staging buffer
+		util::TrivialVector<rn::BufferCopyRange, 1> ranges{};
+		ranges.push_back({
+			/*.bufferOffset=*/ 0,
+			/*.data=*/ accessor.data(),
+			/*.length=*/ accessor.size()
+		});
+		context->uploadBufferSync(stagingBufferHandle, util::makeSpan(ranges));
+
+		acquireTransitionCommand.buffers.push_back(rn::TransitionCommand::Buffer{
+			/*.handle=*/ handle,
+			/*.oldAccess=*/ rn::BufferAccess::None,
+			/*.newAccess=*/ rn::BufferAccess::TransferWrite,
+			/*.oldQueueType=*/ rn::QueueType::None,
+			/*.newQueueType=*/ rn::QueueType::Transfer,
+			/*.offset=*/ 0,
+			/*.size=*/ accessor.size(),
+		});
+
+		// enqueue transfer from staging buffer to the texture
+		transferCommands.push_back(rn::CopyBufferToBufferCommand{
+			/*.source=*/ stagingBufferHandle,
+			/*.destination=*/ handle,
+			/*.regions=*/ {
+				{
+					/*.sourceOffset=*/ 0,
+					/*.destinationOffset=*/ 0,
+					/*.size=*/ accessor.size(),
+				}
+			}
+		});
+
+		releaseTransitionCommand.buffers.push_back(rn::TransitionCommand::Buffer{
+			/*.handle=*/ handle,
+			/*.oldAccess=*/ rn::BufferAccess::TransferWrite,
+			/*.newAccess=*/ rn::BufferAccess::VertexBufferRead,
+			/*.oldQueueType=*/ rn::QueueType::Transfer,
+			/*.newQueueType=*/ rn::QueueType::Graphic,
+			/*.offset=*/ 0,
+			/*.size=*/ accessor.size(),
+		});
+
+		buffer.retire(stagingBufferHandle);
+
+		return pendingFenceStamp;
 	}
 
 	void advance() {
@@ -611,9 +669,9 @@ public:
 
 	void commit() {
 		if ( ! transferCommands.empty()) {
-			context->enqueueCommands(std::vector<rn::TransferCommandVariant>{ std::move(acquireTransitionCommand) });
-			rn::FenceStamp fenceStamp = context->enqueueCommands(std::move(transferCommands));
-			context->deferCommands(fenceStamp, rn::QueueType::Transfer, std::vector<rn::GraphicCommandVariant>{ /*std::move(releaseTransitionCommand)*/ });
+			context->enqueueCommands(std::vector<rn::TransferCommandVariant>{ acquireTransitionCommand });
+			context->enqueueCommands(std::move(transferCommands));
+			context->enqueueCommands(std::vector<rn::TransferCommandVariant>{ releaseTransitionCommand });
 
 			acquireTransitionCommand = {};
 			transferCommands = {};

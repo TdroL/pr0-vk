@@ -54,9 +54,14 @@ struct Allocator {
 };
 
 struct CommandPoolGroups {
-	std::vector<std::vector<rn::vki::UniqueCommandPool>> graphicGroup{};
-	std::vector<std::vector<rn::vki::UniqueCommandPool>> computeGroup{};
-	std::vector<std::vector<rn::vki::UniqueCommandPool>> transferGroup{};
+	struct Group {
+		std::vector<rn::vki::UniqueCommandPool> owners{};
+		std::vector<vk::CommandPool> handles{};
+	};
+
+	std::vector<Group> graphicGroup{};
+	std::vector<Group> computeGroup{};
+	std::vector<Group> transferGroup{};
 };
 
 struct Synchronization {

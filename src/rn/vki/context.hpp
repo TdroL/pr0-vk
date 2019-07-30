@@ -85,20 +85,20 @@ public:
 	// // std::vector<std::vector<rn::vki::UniqueCommandPool>> computeCommandPoolLists{};
 	// // std::vector<std::vector<rn::vki::UniqueCommandPool>> transferCommandPoolLists{};
 
-	std::vector<std::vector<rn::GraphicCommandVariant>> graphicCommandLists{};
-	std::vector<std::vector<rn::ComputeCommandVariant>> computeCommandLists{};
+	// std::vector<std::vector<rn::GraphicCommandVariant>> graphicCommandLists{};
+	// std::vector<std::vector<rn::ComputeCommandVariant>> computeCommandLists{};
 	std::vector<std::vector<rn::TransferCommandVariant>> transferCommandLists{};
 
-	template<typename T>
-	struct DeferredCommands {
-		rn::FenceStamp fenceStamp{rn::end<rn::FenceStamp>()};
-		rn::QueueType fenceQueueType{rn::QueueType::None};
-		std::vector<T> commandList{};
-	};
+	// template<typename T>
+	// struct DeferredCommands {
+	// 	rn::FenceStamp fenceStamp{rn::end<rn::FenceStamp>()};
+	// 	rn::QueueType fenceQueueType{rn::QueueType::None};
+	// 	std::vector<T> commandList{};
+	// };
 
-	std::vector<DeferredCommands<rn::GraphicCommandVariant>> deferredGraphicCommandLists{};
-	std::vector<DeferredCommands<rn::ComputeCommandVariant>> deferredComputeCommandLists{};
-	std::vector<DeferredCommands<rn::TransferCommandVariant>> deferredTransferCommandLists{};
+	// std::vector<DeferredCommands<rn::GraphicCommandVariant>> deferredGraphicCommandLists{};
+	// std::vector<DeferredCommands<rn::ComputeCommandVariant>> deferredComputeCommandLists{};
+	// std::vector<DeferredCommands<rn::TransferCommandVariant>> deferredTransferCommandLists{};
 
 	Context() = default;
 
@@ -110,7 +110,7 @@ public:
 
 	~Context();
 
-	util::Span<vk::CommandPool> commandPools(rn::QueueType queueType, uint32_t count);
+	util::Span<vk::CommandPool> getCommandPools(rn::QueueType queueType, uint32_t count);
 	// void submitEnqueuedCommands(rn::QueueType queueType, util::ThreadPool &threadPool);
 
 	void advance() override;
@@ -120,7 +120,7 @@ public:
 	bool destroyTexture(rn::TextureHandle handle) override;
 
 	rn::BufferHandle createBuffer(const rn::BufferDescription &description) override;
-	bool uploadBufferSync(rn::BufferHandle handle, util::TrivialVector<rn::BufferCopyRange, 1> &&ranges) override;
+	bool uploadBufferSync(rn::BufferHandle handle, util::Span<rn::BufferCopyRange> &&ranges) override;
 	bool destroyBuffer(rn::BufferHandle handle) override;
 
 	rn::FenceStamp pendingFenceStamp(rn::QueueType queueType) override;
@@ -128,9 +128,9 @@ public:
 	rn::FenceStamp enqueueCommands(std::vector<rn::GraphicCommandVariant> &&commands) override;
 	rn::FenceStamp enqueueCommands(std::vector<rn::ComputeCommandVariant> &&commands) override;
 	rn::FenceStamp enqueueCommands(std::vector<rn::TransferCommandVariant> &&commands) override;
-	void deferCommands(rn::FenceStamp fenceStamp, rn::QueueType fenceQueueType, std::vector<rn::GraphicCommandVariant> &&commands) override;
-	void deferCommands(rn::FenceStamp fenceStamp, rn::QueueType fenceQueueType, std::vector<rn::ComputeCommandVariant> &&commands) override;
-	void deferCommands(rn::FenceStamp fenceStamp, rn::QueueType fenceQueueType, std::vector<rn::TransferCommandVariant> &&commands) override;
+	// void deferCommands(rn::FenceStamp fenceStamp, rn::QueueType fenceQueueType, std::vector<rn::GraphicCommandVariant> &&commands) override;
+	// void deferCommands(rn::FenceStamp fenceStamp, rn::QueueType fenceQueueType, std::vector<rn::ComputeCommandVariant> &&commands) override;
+	// void deferCommands(rn::FenceStamp fenceStamp, rn::QueueType fenceQueueType, std::vector<rn::TransferCommandVariant> &&commands) override;
 
 	void reset() override;
 	void waitIdle() override;

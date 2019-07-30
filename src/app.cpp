@@ -3,6 +3,7 @@
 
 #include <rn/window.hpp>
 #include <rn/resources.hpp>
+#include <rn/db/modelCollection.hpp>
 
 #include <ngn/log.hpp>
 #include <ngn/config.hpp>
@@ -48,13 +49,17 @@ int main(int argc, char *argv[]) {
 			ngn::log::debug("{}", ngn::config::Core::dump(config.core));
 		}
 
+		rn::Resources<app::rni::Context> resources{context};
+		rn::db::ModelCollection<app::rni::Context> modelCollection{resources};
+
 		util::ThreadPool threadPool{ngn::threading::concurrency(config)};
 
-		rn::Resources<app::rni::Context> resources{context};
+		auto sponzaModelHandle = modelCollection.create("sponza", "assets/models/sponza/Sponza.glb");
 
-		app::Dispatcher dispatcher{window, context, resources};
+		app::Dispatcher dispatcher{window, context, resources, modelCollection};
 		dispatcher.dispatch(app::action::Bootstrap{});
-		dispatcher.dispatch(app::action::LoadModel{"assets/models/sponza/Sponza.gltf"});
+		// dispatcher.dispatch(app::action::LoadModel{"assets/models/sponza/Sponza.gltf"});
+		dispatcher.dispatch(app::action::LoadModel{sponzaModelHandle});
 		// dispatcher.dispatch(app::action::LoadModel{"assets/models/minimal/minimal.gltf"});
 		// dispatcher.dispatch(app::action::LoadModel{"assets/models/BoxTextured/glTF/BoxTextured.gltf"});
 		// dispatcher.dispatch(app::action::LoadModel{"assets/models/BoxTextured/glTF-Binary/BoxTextured.glb"});
@@ -76,7 +81,7 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
-		for (size_t i = 0; i < 1 && ! window.shouldClose(); i++) {
+		for (size_t i = 0; true; i++) {
 			NGN_PROF_SCOPE("main loop");
 
 			{
@@ -87,6 +92,12 @@ int main(int argc, char *argv[]) {
 			{
 				NGN_PROF_SCOPE("resource advance");
 				resources.advance();
+			}
+
+			dispatcher.dispatch(app::action::CheckModels{});
+
+			if (i >= 10 || window.shouldClose()) {
+				break;
 			}
 
 			{
@@ -116,22 +127,26 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
-		threadPool.stop();
+		ngn::log::info("stop main loop, start cleanup");
 
+		threadPool.stop();
 		context.waitIdle();
 
-		ngn::log::debug("context.graphicCommandLists=<{}> [{}]", context.graphicCommandLists.size(), util::join(util::map(context.graphicCommandLists, [] (const auto &list) {
-			return std::to_string(list.size());
-		})));
-		ngn::log::debug("context.computeCommandLists=<{}> [{}]", context.computeCommandLists.size(), util::join(util::map(context.computeCommandLists, [] (const auto &list) {
-			return std::to_string(list.size());
-		})));
-		ngn::log::debug("context.transferCommandLists=<{}> [{}]", context.transferCommandLists.size(), util::join(util::map(context.transferCommandLists, [] (const auto &list) {
-			return std::to_string(list.size());
+		// ngn::log::debug("context.graphicCommandLists=<{}> [{}]", context.graphicCommandLists.size(), util::join(util::map(context.graphicCommandLists, [] (const auto &list) {
+		// 	return std::to_string(list.size());
+		// })));
+		// ngn::log::debug("context.computeCommandLists=<{}> [{}]", context.computeCommandLists.size(), util::join(util::map(context.computeCommandLists, [] (const auto &list) {
+		// 	return std::to_string(list.size());
+		// })));
+		ngn::log::debug("context.transferCommandLists=<{}> [{}]", context.transferCommandLists.size(), util::join(util::map(context.transferCommandLists, [] (const auto &commandList) {
+			return std::to_string(commandList.size());
 		})));
 
 		ngn::log::info("done, cleanup");
 		return EXIT_SUCCESS;
+	} catch (std::system_error const &e) {
+		ngn::log::critical("System exception: #{} {}", e.code().value(), e.what());
+		return EXIT_FAILURE;
 	} catch (std::runtime_error const &e) {
 		ngn::log::critical("Runtime exception: {}", e.what());
 		return EXIT_FAILURE;

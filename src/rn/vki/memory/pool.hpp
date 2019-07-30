@@ -24,18 +24,21 @@ public:
 	vk::PhysicalDeviceMemoryProperties2 memoryProperties{};
 	uint32_t baseLevels{};
 	vk::DeviceSize baseMemorySize{};
+	std::string name{};
 
 	std::vector<Block> blocks{};
 
 	Pool() = default;
 
-	Pool(rn::vki::HandleDevice &&device, vk::PhysicalDeviceMemoryProperties2 memoryProperties, uint32_t baseLevels, vk::DeviceSize baseMemorySize) noexcept;
+	Pool(rn::vki::HandleDevice &&device, vk::PhysicalDeviceMemoryProperties2 memoryProperties, uint32_t baseLevels, vk::DeviceSize baseMemorySize, std::string &&name = "Unnamed") noexcept;
 
 	Pool(Pool &&other) noexcept;
 	Pool & operator=(Pool &&other) noexcept;
 
 	Pool(const Pool &) = delete;
 	Pool & operator=(const Pool &) = delete;
+
+	~Pool();
 
 	void reset();
 

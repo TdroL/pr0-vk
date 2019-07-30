@@ -10,11 +10,12 @@
 
 namespace rn::vki::memory {
 
-Pool::Pool(rn::vki::HandleDevice &&device, vk::PhysicalDeviceMemoryProperties2 memoryProperties, uint32_t baseLevels, vk::DeviceSize baseMemorySize) noexcept :
+Pool::Pool(rn::vki::HandleDevice &&device, vk::PhysicalDeviceMemoryProperties2 memoryProperties, uint32_t baseLevels, vk::DeviceSize baseMemorySize, std::string &&name) noexcept :
 	device{std::move(device)},
 	memoryProperties{memoryProperties},
 	baseLevels{baseLevels},
-	baseMemorySize{baseMemorySize}
+	baseMemorySize{baseMemorySize},
+	name{std::move(name)}
 {}
 
 Pool::Pool(Pool &&other) noexcept :
@@ -22,23 +23,29 @@ Pool::Pool(Pool &&other) noexcept :
 	memoryProperties{std::move(other.memoryProperties)},
 	baseLevels{other.baseLevels},
 	baseMemorySize{std::move(other.baseMemorySize)},
+	name{std::move(other.name)},
 	blocks{std::move(other.blocks)}
 {
-	other.blocks.clear();
+	other.reset();
 }
 
 Pool & Pool::operator=(Pool &&other) noexcept {
-	blocks.clear();
+	reset();
 
 	device = std::move(other.device);
 	memoryProperties = std::move(other.memoryProperties);
 	baseLevels = other.baseLevels;
 	baseMemorySize = std::move(other.baseMemorySize);
+	name = std::move(other.name);
 	blocks = std::move(other.blocks);
 
-	other.blocks.clear();
+	other.reset();
 
 	return *this;
+}
+
+Pool::~Pool() {
+	reset();
 }
 
 Handle Pool::alloc(const Usage usage, const vk::Image &image) {
@@ -122,7 +129,7 @@ Handle Pool::alloc(const Usage usage, const vk::MemoryRequirements2 &requirement
 
 				BlockAllocationHandle allocation = block.alloc(requirements);
 				if (allocation.memory) {
-					ngn::log::debug("rn::vki::memory::Pool::alloc({} bytes) => allocated memory: {} bytes offset, {} leaf(s), block {}", requirements.memoryRequirements.size, allocation.offset, 1u << (block.levels - block.levelFromIdx(allocation.leafIdx)), blockIdx);
+					// ngn::log::debug("rn::vki::memory::Pool::alloc({} bytes) => allocated memory: {} bytes offset, {} leaf(s), block {}", requirements.memoryRequirements.size, allocation.offset, 1u << (block.levels - block.levelFromIdx(allocation.leafIdx)), blockIdx);
 					return Handle{
 						std::move(allocation.memory),
 						allocation.offset,
@@ -141,7 +148,7 @@ Handle Pool::alloc(const Usage usage, const vk::MemoryRequirements2 &requirement
 
 			BlockAllocationHandle allocation = block.alloc(requirements);
 			if (allocation.memory) {
-				ngn::log::debug("rn::vki::memory::Pool::alloc({} bytes) => allocated memory: {} bytes offset, {} leaf(s)", requirements.memoryRequirements.size, allocation.offset, 1u << (block.levels - block.levelFromIdx(allocation.leafIdx)));
+				// ngn::log::debug("rn::vki::memory::Pool::alloc({} bytes) => allocated memory: {} bytes offset, {} leaf(s)", requirements.memoryRequirements.size, allocation.offset, 1u << (block.levels - block.levelFromIdx(allocation.leafIdx)));
 				return Handle{
 					std::move(allocation.memory),
 					allocation.offset,
@@ -179,7 +186,12 @@ Handle Pool::alloc(const Usage usage, const vk::MemoryRequirements2 &requirement
 }
 
 void Pool::reset() {
-	blocks.clear();
+	if ( ! blocks.empty()) {
+		// ngn::log::debug("rn::vki::memory::Pool::reset() => reset pool \"{}\"", name);
+		blocks.clear();
+	}
+
+	name = {};
 }
 
 void Pool::free(const Handle &handle) {
@@ -193,10 +205,11 @@ void Pool::free(const Handle &handle) {
 		blocks[handle.blockIdx].free(handle.leafIdx);
 
 		if (blocks[handle.blockIdx].isEmpty()) {
+			// ngn::log::debug("rn::vki::memory::Pool::free({:#x} \"{}\") => reset block {}", rn::vki::id(handle.memory.get()), name, handle.blockIdx);
 			blocks[handle.blockIdx].reset();
-			ngn::log::debug("rn::vki::memory::Pool::free({:#x}, {}, {}) => memory block reset", rn::vki::id(handle.memory.get()), handle.blockIdx, handle.leafIdx);
+			// ngn::log::debug("rn::vki::memory::Pool::free({:#x}, {}, {}) => memory block reset", rn::vki::id(handle.memory.get()), handle.blockIdx, handle.leafIdx);
 		} else {
-			ngn::log::debug("rn::vki::memory::Pool::free({:#x}, {}, {}) => memory block freed", rn::vki::id(handle.memory.get()), handle.blockIdx, handle.leafIdx);
+			// ngn::log::debug("rn::vki::memory::Pool::free({:#x}, {}, {}) => memory block freed", rn::vki::id(handle.memory.get()), handle.blockIdx, handle.leafIdx);
 		}
 	}
 }
@@ -263,7 +276,7 @@ Block & Pool::createBlock(uint32_t memoryTypeIndex, vk::MemoryPropertyFlags flag
 		if (size > baseMemorySize) {
 			ngn::log::warn("rn::vki::memory::Pool::createBlock({:#x}, {}, {} bytes) => created bigger block than expected: {} bytes > {} bytes, leaf {} bytes [{:#x}: {}]", memoryTypeIndex, vk::to_string(flags), requirements.memoryRequirements.size, size, baseMemorySize, leafSize);
 		} else {
-			ngn::log::debug("rn::vki::memory::Pool::createBlock({:#x}, {}, {} bytes) => created new block: {} bytes, leaf {} bytes", memoryTypeIndex, vk::to_string(flags), requirements.memoryRequirements.size, size, leafSize);
+			// ngn::log::debug("rn::vki::memory::Pool::createBlock({:#x}, {}, {} bytes) => created new block: {} bytes, leaf {} bytes", memoryTypeIndex, vk::to_string(flags), requirements.memoryRequirements.size, size, leafSize);
 		}
 
 		deviceMemory = rn::vki::UniqueDeviceMemory{
@@ -274,7 +287,7 @@ Block & Pool::createBlock(uint32_t memoryTypeIndex, vk::MemoryPropertyFlags flag
 		size = requirements.memoryRequirements.size;
 		leafSize = requirements.memoryRequirements.size;
 
-		ngn::log::debug("rn::vki::memory::Pool::createBlock({:#x}, {}, {} bytes) => created new dedicated block: {} bytes", memoryTypeIndex, vk::to_string(flags), requirements.memoryRequirements.size, size);
+		// ngn::log::debug("rn::vki::memory::Pool::createBlock({:#x}, {}, {} bytes) => created new dedicated block: {} bytes", memoryTypeIndex, vk::to_string(flags), requirements.memoryRequirements.size, size);
 
 		auto imageValue = std::get_if<vk::Image>(&dedicatedFor);
 		auto bufferValue = std::get_if<vk::Buffer>(&dedicatedFor);

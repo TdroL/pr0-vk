@@ -369,11 +369,11 @@ rn::vki::context::QueueFamilyIndex QueueFamilyIndexSelector::select(rn::vki::Han
 	}
 #ifdef RN_VKI_REINDEX_QUEUE_FAMILIES
 	std::vector<std::vector<uint32_t>> indexMapping = util::map(reservations, [] (const auto &familyReservation) {
-		uint32_t offset = 0;
+		uint32_t cursor = 0;
 
 		return util::map(familyReservation, [&] (const auto &isReserved) {
 			if (isReserved) {
-				return offset++;
+				return cursor++;
 			} else {
 				return 0u;
 			}

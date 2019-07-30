@@ -97,7 +97,7 @@ rn::BufferHandle Context::createBuffer([[maybe_unused]] const rn::BufferDescript
 	return rn::BufferHandle{ static_cast<rn::BufferHandle::InternalType>(index) };
 }
 
-bool Context::uploadBufferSync([[maybe_unused]] rn::BufferHandle handle, [[maybe_unused]] util::TrivialVector<rn::BufferCopyRange, 1> &&ranges) {
+bool Context::uploadBufferSync([[maybe_unused]] rn::BufferHandle handle, [[maybe_unused]] util::Span<rn::BufferCopyRange> &&ranges) {
 	if (handle == rn::end<rn::BufferHandle>()) {
 		return false;
 	}
@@ -161,17 +161,17 @@ rn::FenceStamp Context::enqueueCommands([[maybe_unused]] std::vector<rn::Transfe
 	return pendingFenceStamps[static_cast<uint32_t>(rn::QueueType::Transfer) - 1];
 }
 
-void Context::deferCommands([[maybe_unused]] rn::FenceStamp fenceStamp, [[maybe_unused]] rn::QueueType fenceQueueType, [[maybe_unused]] std::vector<rn::GraphicCommandVariant> &&commands) {
-	return;
-}
+// void Context::deferCommands([[maybe_unused]] rn::FenceStamp fenceStamp, [[maybe_unused]] rn::QueueType fenceQueueType, [[maybe_unused]] std::vector<rn::GraphicCommandVariant> &&commands) {
+// 	return;
+// }
 
-void Context::deferCommands([[maybe_unused]] rn::FenceStamp fenceStamp, [[maybe_unused]] rn::QueueType fenceQueueType, [[maybe_unused]] std::vector<rn::ComputeCommandVariant> &&commands) {
-	return;
-}
+// void Context::deferCommands([[maybe_unused]] rn::FenceStamp fenceStamp, [[maybe_unused]] rn::QueueType fenceQueueType, [[maybe_unused]] std::vector<rn::ComputeCommandVariant> &&commands) {
+// 	return;
+// }
 
-void Context::deferCommands([[maybe_unused]] rn::FenceStamp fenceStamp, [[maybe_unused]] rn::QueueType fenceQueueType, [[maybe_unused]] std::vector<rn::TransferCommandVariant> &&commands) {
-	return;
-}
+// void Context::deferCommands([[maybe_unused]] rn::FenceStamp fenceStamp, [[maybe_unused]] rn::QueueType fenceQueueType, [[maybe_unused]] std::vector<rn::TransferCommandVariant> &&commands) {
+// 	return;
+// }
 
 void Context::reset() {
 	waitIdle();

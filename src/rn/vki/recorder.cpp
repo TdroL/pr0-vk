@@ -2,107 +2,72 @@
 
 #include <numeric>
 #include <tuple>
-#include <thread>
 
 #include "../../ngn/log.hpp"
 #include "../../ngn/prof.hpp"
+#include "id.hpp"
 #include "trace.hpp"
 
 namespace rn::vki {
 
 template<class T>
-std::pair<uint32_t, uint32_t> findCommandListGroupIndex(const std::vector<std::vector<T>> &commandLists, size_t offset) {
-	size_t currentCount = 0;
-	for (size_t i = 0; i < commandLists.size(); i++) {
-		if (currentCount + commandLists[i].size() >= offset) {
-			return std::make_pair(static_cast<uint32_t>(i), static_cast<uint32_t>((currentCount + commandLists[i].size()) - offset));
-		}
+std::pair<uint32_t, uint32_t> findCommandListGroupIndex(const std::vector<std::vector<T>> &commandLists, uint32_t offset) {
+	for (uint32_t i = 0, l = static_cast<uint32_t>(commandLists.size()); i < l; i++) {
+		uint32_t commandListSize = static_cast<uint32_t>(commandLists[i].size());
 
-		currentCount += commandLists[i].size();
+		if (commandListSize <= offset) {
+			offset -= commandListSize;
+		} else {
+			return std::make_pair(i, offset);
+		}
 	}
 
 	return std::make_pair(static_cast<uint32_t>(commandLists.size()), 0);
 }
 
-vk::CommandBuffer Recorder::record([[maybe_unused]] std::vector<std::vector<rn::GraphicCommandVariant>> &&commandLists) {
-	const size_t commandCount = std::accumulate(std::begin(commandLists), std::end(commandLists), 0, [] (size_t acc, const auto &list) {
-		return acc + list.size();
+template<class T>
+rn::vki::HandleCommandBuffer processCommandLists(rn::vki::Recorder &recorder, rn::QueueType queueType, std::vector<std::vector<T>> &&commandLists) {
+	rn::vki::Context &context = recorder.context;
+	util::ThreadPool &threadPool = recorder.threadPool;
+	rn::vki::Executor &executor = recorder.executor;
+
+	const uint32_t commandCount = std::accumulate(std::begin(commandLists), std::end(commandLists), 0, [] (uint32_t acc, const auto &commandList) {
+		return acc + static_cast<uint32_t>(commandList.size());
 	});
 
-	ngn::log::debug("GraphicCommandVariant commandCount={}", commandCount);
+	constexpr uint32_t minimalCommandCountPerThread = 25; // 100;
 
-	// std::vector<vk::CommandPool> commandPools = context.getAvailableCommandPools(rn::QueueType::Graphic, threadPool.size());
-	// if (commandPools.empty()) {
-	// 	throw std::runtime_error{"Unable to build command buffers - no command pools available"};
-	// }
+	uint32_t approxCommandsPerThread = std::max(static_cast<uint32_t>(threadPool.size()) * minimalCommandCountPerThread, commandCount) / static_cast<uint32_t>(threadPool.size());
+	uint32_t threadCount = static_cast<uint32_t>(std::max(1u, commandCount / approxCommandsPerThread));
 
-	// vk::CommandBuffer primary = commandPools[0];
+	util::Span<vk::CommandPool> commandPools = context.getCommandPools(queueType, threadCount);
+	assert(commandPools.size() >= threadCount);
 
-	// const size_t commandCount = std::accumulate(std::begin(commandLists), std::end(commandLists), 0, [] (size_t acc, const auto &list) {
-	// 	return acc + list.size();
-	// });
+	rn::vki::HandleCommandBuffer primaryCommandBufferHandle{};
+	{
+		// create primary command buffer
+		vk::CommandBufferAllocateInfo primaryCommandBufferAllocateInfo{
+			/*.commandPool=*/ commandPools[0],
+			/*.level=*/ vk::CommandBufferLevel::ePrimary,
+			/*.commandBufferCount=*/ 1,
+		};
+		vk::CommandBuffer primaryCommandBuffer{};
+		RN_VKI_TRACE(context.device->allocateCommandBuffers(&primaryCommandBufferAllocateInfo, &primaryCommandBuffer, context.device.table()));
 
-	// const size_t threadCount = threadPool.size()
-
-	return vk::CommandBuffer{};
-}
-
-vk::CommandBuffer Recorder::record([[maybe_unused]] std::vector<std::vector<rn::ComputeCommandVariant>> &&commandLists) {
-	const size_t commandCount = std::accumulate(std::begin(commandLists), std::end(commandLists), 0, [] (size_t acc, const auto &list) {
-		return acc + list.size();
-	});
-
-	ngn::log::debug("ComputeCommandVariant commandCount={}", commandCount);
-
-	// std::vector<vk::CommandPool> commandPools = context.getAvailableCommandPools(rn::QueueType::Compute, threadPool.size());
-	// if (commandPools.empty()) {
-	// 	throw std::runtime_error{"Unable to build command buffers - no command pools available"};
-	// }
-
-	// vk::CommandBuffer primary = commandPools[0];
-
-	// const size_t commandCount = std::accumulate(std::begin(commandLists), std::end(commandLists), 0, [] (size_t acc, const auto &list) {
-	// 	return acc + list.size();
-	// });
-
-	// const size_t threadCount = threadPool.size()
-
-	return vk::CommandBuffer{};
-}
-
-vk::CommandBuffer Recorder::record([[maybe_unused]] std::vector<std::vector<rn::TransferCommandVariant>> &&commandLists) {
-	const size_t commandCount = std::accumulate(std::begin(commandLists), std::end(commandLists), 0, [] (size_t acc, const auto &list) {
-		return acc + list.size();
-	});
-
-	ngn::log::debug("TransferCommandVariant commandCount={}", commandCount);
-
-	if (commandCount == 0) {
-		return vk::CommandBuffer{};
+		primaryCommandBufferHandle = rn::vki::HandleCommandBuffer{primaryCommandBuffer, context.device.table()};
 	}
 
-	auto start = ngn::prof::now();
+	if (commandCount == 0) {
+		RN_VKI_TRACE(primaryCommandBufferHandle->begin({
+			/*.flags=*/ vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
+			/*.pInheritanceInfo=*/ nullptr
+		}, primaryCommandBufferHandle.table()));
+		RN_VKI_TRACE(primaryCommandBufferHandle->end(primaryCommandBufferHandle.table()));
 
-	constexpr size_t minimalCommandCountPerThread = 25; // 100;
+		return primaryCommandBufferHandle;
+	}
 
-	size_t approxCommandsPerThread = std::max(threadPool.size() * minimalCommandCountPerThread, commandCount) / threadPool.size();
-	uint32_t threadCount = static_cast<uint32_t>(std::max(1ull, commandCount / approxCommandsPerThread));
-	std::vector<std::future<vk::CommandBuffer>> futures{};
-	futures.reserve(threadCount);
-
-	util::Span<vk::CommandPool> commandPools = context.commandPools(rn::QueueType::Transfer, threadCount);
-	assert(commandPools.size() == threadCount);
-
-	// create primary command buffer
-	vk::CommandBufferAllocateInfo primaryCommandBufferAllocateInfo{
-		/*.commandPool=*/ commandPools[0],
-		/*.level=*/ vk::CommandBufferLevel::ePrimary,
-		/*.commandBufferCount=*/ 1,
-	};
-	vk::CommandBuffer primaryCommandBuffer{};
-	RN_VKI_TRACE(context.device->allocateCommandBuffers(&primaryCommandBufferAllocateInfo, &primaryCommandBuffer, context.device.table()));
-
-	// create secondary command buffers - one for each work thread
+	// create secondary command buffers - one for each thread
 	std::vector<vk::CommandBuffer> secondaryCommandBuffers{};
 	secondaryCommandBuffers.resize(threadCount);
 	for (uint32_t i = 0; i < threadCount; i++) {
@@ -111,74 +76,65 @@ vk::CommandBuffer Recorder::record([[maybe_unused]] std::vector<std::vector<rn::
 			/*.level=*/ vk::CommandBufferLevel::eSecondary,
 			/*.commandBufferCount=*/ 1,
 		};
-
 		RN_VKI_TRACE(context.device->allocateCommandBuffers(&secondaryCommandBufferAllocateInfo, &secondaryCommandBuffers[i], context.device.table()));
 	}
 
 	for (uint32_t i = 0; i < threadCount; i++) {
-		size_t begin = approxCommandsPerThread * i;
-		size_t end = (i + 1 >= threadCount) ? commandCount : approxCommandsPerThread * (i + 1);
+		uint32_t threadIndex = i;
+		uint32_t begin = approxCommandsPerThread * i;
+		uint32_t end = (i + 1 >= threadCount) ? commandCount : approxCommandsPerThread * (i + 1);
 
-		// futures.emplace_back(threadPool.enqueue<vk::CommandBuffer>([&] ([[maybe_unused]] size_t threadIndex) {
-		// 	return vk::CommandBuffer{};
-		// }));
+		auto [commandListsGroup, commandListsIndex] = findCommandListGroupIndex(commandLists, begin);
 
-		auto &dispatchTable = context.device.table();
+		rn::vki::HandleCommandBuffer commandBufferHandle{secondaryCommandBuffers[threadIndex], context.device.table()};
 
-		futures.emplace_back(threadPool.enqueue([begin, end, &commandLists, &secondaryCommandBuffers, &dispatchTable] ([[maybe_unused]] uint32_t threadIndex) {
-			auto &commandBuffer = secondaryCommandBuffers[threadIndex];
+		vk::CommandBufferInheritanceInfo commandBufferInheritanceInfo{};
+		RN_VKI_TRACE(commandBufferHandle->begin({
+			/*.flags=*/ vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
+			/*.pInheritanceInfo=*/ &commandBufferInheritanceInfo,
+		}, commandBufferHandle.table()));
 
-			vk::CommandBufferInheritanceInfo commandBufferInheritanceInfo{};
-			RN_VKI_TRACE(commandBuffer.begin({
-				/*.flags=*/ vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
-				/*.pInheritanceInfo=*/ &commandBufferInheritanceInfo,
-			}, dispatchTable));
+		while (begin++ < end) {
+			executor.executeCommand(commandBufferHandle.handle(), commandLists[commandListsGroup][commandListsIndex]);
 
-			uint32_t commandListsGroup;
-			uint32_t commandListsIndex;
-			std::tie(commandListsGroup, commandListsIndex) = findCommandListGroupIndex(commandLists, begin);
-
-			ngn::log::debug("thread={} begin={} end={} count={} commandListsGroup={} commandListsIndex={}", threadIndex, begin, end, end - begin, commandListsGroup, commandListsIndex);
-
-			for (size_t j = begin; j < end; j++) {
-				// switch ()
+			commandListsIndex++;
+			if (commandListsIndex >= commandLists[commandListsGroup].size()) {
+				commandListsIndex = 0;
+				commandListsGroup++;
 			}
+		}
 
-			RN_VKI_TRACE(commandBuffer.end(dispatchTable));
-
-			return secondaryCommandBuffers[threadIndex];
-		}));
+		RN_VKI_TRACE(commandBufferHandle->end(commandBufferHandle.table()));
 	}
 
-	for (auto &&future : futures) {
-		future.get();
-	}
-
-	auto stop = ngn::prof::now();
-
-	RN_VKI_TRACE(primaryCommandBuffer.begin({
+	RN_VKI_TRACE(primaryCommandBufferHandle->begin({
 		/*.flags=*/ vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
 		/*.pInheritanceInfo=*/ nullptr
-	}, context.device.table()));
-	RN_VKI_TRACE(primaryCommandBuffer.executeCommands(secondaryCommandBuffers, context.device.table()));
-	RN_VKI_TRACE(primaryCommandBuffer.end(context.device.table()));
+	}, primaryCommandBufferHandle.table()));
+	{
+		RN_VKI_TRACE(primaryCommandBufferHandle->executeCommands(secondaryCommandBuffers, primaryCommandBufferHandle.table()));
+	}
+	RN_VKI_TRACE(primaryCommandBufferHandle->end(primaryCommandBufferHandle.table()));
 
-	ngn::log::debug("ComputeCommandVariant commandCount={} threadCount={} time={}", commandCount, threadCount, (stop - start) * 1000.0);
+	return primaryCommandBufferHandle;
+}
 
-	// std::vector<vk::CommandPool> commandPools = context.getAvailableCommandPools(rn::QueueType::Transfer, threadPool.size());
-	// if (commandPools.empty()) {
-	// 	return vk::CommandBuffer{};
-	// }
+rn::vki::HandleCommandBuffer Recorder::record(std::vector<std::vector<rn::GraphicCommandVariant>> &&commandLists) {
+	NGN_PROF_SCOPE("rn::vki::Recorder::record<Graphic>");
 
-	// vk::CommandBuffer primary = commandPools[0];
+	return processCommandLists(*this, rn::QueueType::Transfer, std::move(commandLists));
+}
 
-	// const size_t commandCount = std::accumulate(std::begin(commandLists), std::end(commandLists), 0, [] (size_t acc, const auto &list) {
-	// 	return acc + list.size();
-	// });
+rn::vki::HandleCommandBuffer Recorder::record(std::vector<std::vector<rn::ComputeCommandVariant>> &&commandLists) {
+	NGN_PROF_SCOPE("rn::vki::Recorder::record<Compute>");
 
-	// const size_t threadCount = std::thread::hardware_concurrency
+	return processCommandLists(*this, rn::QueueType::Transfer, std::move(commandLists));
+}
 
-	return vk::CommandBuffer{};
+rn::vki::HandleCommandBuffer Recorder::record(std::vector<std::vector<rn::TransferCommandVariant>> &&commandLists) {
+	NGN_PROF_SCOPE("rn::vki::Recorder::record<Transfer>");
+
+	return processCommandLists(*this, rn::QueueType::Transfer, std::move(commandLists));
 }
 
 } // rn::vki

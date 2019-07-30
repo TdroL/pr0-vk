@@ -413,7 +413,7 @@ util::EitherOption<std::string, ParsedTextureResult> GLI::parse(const std::byte 
 			/*.type=*/ textureType,
 			/*.levels=*/ static_cast<uint32_t>(tex.levels()),
 			/*.layers=*/ static_cast<uint32_t>(tex.layers() * tex.faces()),
-			/*.usage=*/ rn::TextureUsage::Sampled,
+			/*.usage=*/ rn::TextureUsage::Sampled | rn::TextureUsage::TransferDestination,
 		},
 	};
 }

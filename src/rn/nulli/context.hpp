@@ -55,7 +55,7 @@ public:
 	bool destroyTexture(rn::TextureHandle handle) override;
 
 	rn::BufferHandle createBuffer(const rn::BufferDescription &description) override;
-	bool uploadBufferSync(rn::BufferHandle handle, util::TrivialVector<rn::BufferCopyRange, 1> &&ranges) override;
+	bool uploadBufferSync(rn::BufferHandle handle, util::Span<rn::BufferCopyRange> &&ranges) override;
 	bool destroyBuffer(rn::BufferHandle handle) override;
 
 	rn::FenceStamp pendingFenceStamp(rn::QueueType queueType) override;
@@ -63,9 +63,9 @@ public:
 	rn::FenceStamp enqueueCommands(std::vector<rn::GraphicCommandVariant> &&commands) override;
 	rn::FenceStamp enqueueCommands(std::vector<rn::ComputeCommandVariant> &&commands) override;
 	rn::FenceStamp enqueueCommands(std::vector<rn::TransferCommandVariant> &&commands) override;
-	void deferCommands(rn::FenceStamp fenceStamp, rn::QueueType fenceQueueType, std::vector<rn::GraphicCommandVariant> &&commands) override;
-	void deferCommands(rn::FenceStamp fenceStamp, rn::QueueType fenceQueueType, std::vector<rn::ComputeCommandVariant> &&commands) override;
-	void deferCommands(rn::FenceStamp fenceStamp, rn::QueueType fenceQueueType, std::vector<rn::TransferCommandVariant> &&commands) override;
+	// void deferCommands(rn::FenceStamp fenceStamp, rn::QueueType fenceQueueType, std::vector<rn::GraphicCommandVariant> &&commands) override;
+	// void deferCommands(rn::FenceStamp fenceStamp, rn::QueueType fenceQueueType, std::vector<rn::ComputeCommandVariant> &&commands) override;
+	// void deferCommands(rn::FenceStamp fenceStamp, rn::QueueType fenceQueueType, std::vector<rn::TransferCommandVariant> &&commands) override;
 
 	void reset() override;
 	void waitIdle() override;

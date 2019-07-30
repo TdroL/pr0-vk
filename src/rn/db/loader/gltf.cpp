@@ -2,6 +2,7 @@
 
 #include <nlohmann/json.hpp>
 
+// tinygltf and Draco generate too many warnings...
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -9,9 +10,13 @@
 #pragma GCC diagnostic ignored "-Wignored-qualifiers"
 #pragma GCC diagnostic ignored "-Wsign-compare"
 #pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
 
-// something defines "ERROR" macro and it breaks tinygltf :/
-#undef ERROR
+#if defined(ERROR)
+	// wingdi.h defines "ERROR" macro and it breaks draco :/
+	#undef ERROR
+	#define WINGDI_ERROR_UNDEFINED
+#endif
 
 #define TINYGLTF_IMPLEMENTATION
 #define TINYGLTF_NO_STB_IMAGE
@@ -23,24 +28,32 @@
 #define TINYGLTF_ENABLE_DRACO
 #include <tiny_gltf.h>
 
+#if defined(WINGDI_ERROR_UNDEFINED)
+	// restore ERROR macro
+	#define ERROR 0
+	#undef WINGDI_ERROR_UNDEFINED
+#endif
+
 #pragma GCC diagnostic pop
 
 #include <ngn/fs.hpp>
 #include <ngn/log.hpp>
 #include <util/scope.hpp>
 
+#include "../../../ngn/prof.hpp"
 #include "../parser/gli.hpp"
 #include "../parser/stbi.hpp"
 
 namespace rn::db::loader {
 
 std::string indentValue(const int indent) {
-	std::string s;
-	for (int i = 0; i < indent; i++) {
-		s += "  ";
-	}
+	return std::string(static_cast<size_t>(indent * 2), ' ');
+	// std::string s{};
+	// for (int i = 0; i < indent; i++) {
+	// 	s += "  ";
+	// }
 
-	return s;
+	// return s;
 }
 
 std::string printValue(const std::string &name, const tinygltf::Value &value, const int indent, const bool tag = true) {
@@ -96,79 +109,68 @@ std::string printValue(const std::string &name, const tinygltf::Value &value, co
 namespace details {
 
 bool parseImage(tinygltf::Image *image, const int imageIdx, std::string *error, [[maybe_unused]] std::string *warning, [[maybe_unused]] int width, [[maybe_unused]] int height, const unsigned char *data, int dataLength, void *userData) {
- if ( ! image->mimeType.empty()) {
-		if (image->mimeType != "image/jpeg" && image->mimeType != "image/png" && image->mimeType != "image/bmp" && image->mimeType != "image/gif") {
-			ngn::log::error("rn::db::loader::details::parseImage({}) => unsupported mimeType \"{}\"", imageIdx, image->mimeType);
-			*error += fmt::format("image #{} parsing: Unsupported mimeType \"{}\"\n", imageIdx, image->mimeType);
-			return false;
-		}
-	} else if ( ! image->uri.empty()) {
-		std::string uriExt = ngn::fs::ext(image->uri);
-		if (uriExt != ".jpeg" && uriExt != ".jpg" && uriExt != ".png" && uriExt != ".tga" && uriExt != ".bmp" && uriExt != ".psd" && uriExt != ".gif" && uriExt != ".hdr" && uriExt != ".pic" && uriExt != ".pnm") {
-			ngn::log::error("rn::db::loader::details::parseImage({}) => unsupported uri extension \"{}\"", imageIdx, uriExt);
-			*error += fmt::format("image #{} parsing: unsupported uri extension \"{}\"\n", imageIdx, uriExt);
-			return false;
-		}
-	} else {
-		ngn::log::error("rn::db::loader::details::parseImage({}) => uri is empty", imageIdx);
-		*error += fmt::format("image #{} parsing: uri is empty\n", imageIdx);
-		return false;
-	}
-
-	GlTF::Upload &upload = *static_cast<GlTF::Upload *>(userData);
+	GlTF::Uploader &uploader = *static_cast<GlTF::Uploader *>(userData);
 
 	if (rn::db::parser::GLI::isParsable(image->mimeType, image->uri)) {
+		double startParseTime = ngn::prof::now();
 		rn::db::parser::GLI gliParser{};
 		auto resultEither = gliParser.parse(reinterpret_cast<const std::byte *>(data), dataLength);
 
 		if (resultEither.isLeft()) {
-			ngn::log::error("rn::db::loader::details::parseImage({}) => GLI parser error: {}", imageIdx, resultEither.left());
+			double stopParseTime = ngn::prof::now();
+			ngn::log::error("rn::db::loader::details::parseImage({}) => GLI parser error: {} ({}ms)", imageIdx, resultEither.left(), 1000.0 * (stopParseTime - startParseTime));
 			*error += fmt::format("image #{} GLI parser error: {}\n", imageIdx, resultEither.left());
 			return false;
 		} else {
 			const auto &stagedTextureResult = resultEither.right();
 
 			rn::TextureDataAccessor accessor{
-				/*.data=*/ [&] (uint32_t layer, uint32_t level) {
+				/*.data=*/ [&stagedTextureResult] (uint32_t layer, uint32_t level) {
 					return stagedTextureResult.data->data(layer, level);
 				},
-				/*.size=*/ [&] (uint32_t level) {
+				/*.size=*/ [&stagedTextureResult] (uint32_t level) {
 					return stagedTextureResult.data->size(0, level);
 				},
-				/*.format=*/ [&] () {
+				/*.format=*/ [&stagedTextureResult] () {
 					return stagedTextureResult.data->format();
 				},
 			};
 
-			upload.texture(imageIdx, stagedTextureResult.description, accessor);
+			uploader.texture(static_cast<uint32_t>(imageIdx), stagedTextureResult.description, accessor);
 
+			// double stopParseTime = ngn::prof::now();
+			// ngn::log::debug("rn::db::loader::details::parseImage({}) => GLI parser done ({}ms)", imageIdx, 1000.0 * (stopParseTime - startParseTime));
 			return true;
 		}
 	} else if (rn::db::parser::Stbi::isParsable(image->mimeType, image->uri)) {
+		double startParseTime = ngn::prof::now();
 		rn::db::parser::Stbi stbiParser{};
 		auto resultEither = stbiParser.parse(reinterpret_cast<const std::byte *>(data), dataLength);
 
 		if (resultEither.isLeft()) {
-			ngn::log::error("rn::db::loader::details::parseImage({}) => stbi parser error: {}", imageIdx, resultEither.left());
+			double stopParseTime = ngn::prof::now();
+			ngn::log::error("rn::db::loader::details::parseImage({}) => stbi parser error: {} ({}ms)", imageIdx, resultEither.left(), 1000.0 * (stopParseTime - startParseTime));
 			*error += fmt::format("image #{} stbi parser error: {}\n", imageIdx, resultEither.left());
 			return false;
 		} else {
 			const auto &stagedTextureResult = resultEither.right();
 
 			rn::TextureDataAccessor accessor{
-				/*.data=*/ [&] (uint32_t layer, uint32_t level) {
+				/*.data=*/ [&stagedTextureResult] (uint32_t layer, uint32_t level) {
 					return stagedTextureResult.data->data(layer, level);
 				},
-				/*.size=*/ [&] (uint32_t level) {
+				/*.size=*/ [&stagedTextureResult] (uint32_t level) {
 					return stagedTextureResult.data->size(0, level);
 				},
-				/*.format=*/ [&] () {
+				/*.format=*/ [&stagedTextureResult] () {
 					return stagedTextureResult.data->format();
 				},
 			};
 
-			upload.texture(imageIdx, stagedTextureResult.description, accessor);
+			uploader.texture(static_cast<uint32_t>(imageIdx), stagedTextureResult.description, accessor);
 
+			// double stopParseTime = ngn::prof::now();
+			// ngn::log::debug("rn::db::loader::details::parseImage({}) => stbi parser done ({}ms)", imageIdx, 1000.0 * (stopParseTime - startParseTime));
 			return true;
 		}
 	} else {
@@ -176,196 +178,23 @@ bool parseImage(tinygltf::Image *image, const int imageIdx, std::string *error, 
 		*error += fmt::format("image #{} parsing: unsupported file format: {} ({})\n", imageIdx, image->mimeType, image->uri);
 		return false;
 	}
-
-	// if (stbi_is_hdr_from_memory(data, dataLength)) {
-	// 	int x = -1;
-	// 	int y = -1;
-	// 	int components = -1;
-	// 	float *parsedData = stbi_loadf_from_memory(data, dataLength, &x, &y, &components, 0);
-	// 	const auto scopeOnExitFreeImage = util::createScopeExit([&] () {
-	// 		if (parsedData != nullptr) {
-	// 			stbi_image_free(parsedData);
-	// 		}
-	// 	});
-
-	// 	if (x <= 0 || y <= 0) {
-	// 		ngn::log::error("rn::db::loader::details::parseImage({}) => (32b) invalid texture dimensions: {}, {}", imageIdx, x, y);
-	// 		*error += fmt::format("invalid texture dimensions: {}, {}\n", imageIdx, x, y);
-	// 		return false;
-	// 	}
-
-	// 	rn::PixelFormat pixelFormat{rn::PixelFormat::Undefined};
-	// 	rn::DataFormat dataFormat{rn::DataFormat::Undefined};
-	// 	switch (components) {
-	// 		case 1: {
-	// 			pixelFormat = rn::PixelFormat::R32Float;
-	// 			dataFormat = rn::DataFormat::Float1;
-	// 			break;
-	// 		}
-	// 		case 2: {
-	// 			pixelFormat = rn::PixelFormat::R32G32Float;
-	// 			dataFormat = rn::DataFormat::Float2;
-	// 			break;
-	// 		}
-	// 		case 3: {
-	// 			pixelFormat = rn::PixelFormat::R32G32B32Float;
-	// 			dataFormat = rn::DataFormat::Float3;
-	// 			break;
-	// 		}
-	// 		case 4: {
-	// 			pixelFormat = rn::PixelFormat::R32G32B32A32Float;
-	// 			dataFormat = rn::DataFormat::Float4;
-	// 			break;
-	// 		}
-	// 		default: {
-	// 			ngn::log::error("rn::db::loader::details::parseImage({}) => (32b) invalid number of texture color components: {}", imageIdx, components);
-	// 			*error += fmt::format("invalid number of texture color components: {}\n", imageIdx, components);
-	// 			return false;
-	// 		}
-	// 	}
-
-	// 	upload.texture(imageIdx, { static_cast<uint32_t>(x), static_cast<uint32_t>(y), 1u }, pixelFormat, dataFormat, reinterpret_cast<std::byte *>(parsedData));
-	// } else if (stbi_is_16_bit_from_memory(data, dataLength)) {
-	// 	int x = -1;
-	// 	int y = -1;
-	// 	int components = -1;
-	// 	if ( ! stbi_info_from_memory(data, dataLength, &x, &y, &components)) {
-	// 		ngn::log::error("rn::db::loader::details::parseImage({}) => (16b) failed to read info", imageIdx);
-	// 		*error += fmt::format("failed to read info\n", imageIdx);
-	// 		return false;
-	// 	}
-
-	// 	int outputComponents = components == 3 ? 4 : components;
-
-	// 	stbi_us *parsedData = stbi_load_16_from_memory(data, dataLength, &x, &y, &components, outputComponents);
-	// 	const auto scopeOnExitFreeImage = util::createScopeExit([&] () {
-	// 		if (parsedData != nullptr) {
-	// 			stbi_image_free(parsedData);
-	// 		}
-	// 	});
-
-	// 	if (x <= 0 || y <= 0) {
-	// 		ngn::log::error("rn::db::loader::details::parseImage({}) => (16b) invalid texture dimensions: {}, {}", imageIdx, x, y);
-	// 		*error += fmt::format("invalid texture dimensions: {}, {}\n", imageIdx, x, y);
-	// 		return false;
-	// 	}
-
-	// 	rn::PixelFormat pixelFormat{rn::PixelFormat::Undefined};
-	// 	rn::DataFormat dataFormat{rn::DataFormat::Undefined};
-	// 	switch (outputComponents) {
-	// 		case 1: {
-	// 			pixelFormat = rn::PixelFormat::R16UInt;
-	// 			dataFormat = rn::DataFormat::UShort1;
-	// 			break;
-	// 		}
-	// 		case 2: {
-	// 			pixelFormat = rn::PixelFormat::R16G16UInt;
-	// 			dataFormat = rn::DataFormat::UShort2;
-	// 			break;
-	// 		}
-	// 		case 4: {
-	// 			pixelFormat = rn::PixelFormat::R16G16B16A16UInt;
-	// 			dataFormat = rn::DataFormat::UShort4;
-	// 			break;
-	// 		}
-	// 		default: {
-	// 			ngn::log::error("rn::db::loader::details::parseImage({}) => (16b) invalid number of texture color components: {}", imageIdx, outputComponents);
-	// 			*error += fmt::format("invalid number of texture color components: {}\n", imageIdx, outputComponents);
-	// 			return false;
-	// 		}
-	// 	}
-
-	// 	upload.texture(imageIdx, { static_cast<uint32_t>(x), static_cast<uint32_t>(y), 1u }, pixelFormat, dataFormat, reinterpret_cast<std::byte *>(parsedData));
-	// } else {
-	// 	int x = -1;
-	// 	int y = -1;
-	// 	int components = -1;
-	// 	if ( ! stbi_info_from_memory(data, dataLength, &x, &y, &components)) {
-	// 		ngn::log::error("rn::db::loader::details::parseImage({}) => (8b) failed to read info", imageIdx);
-	// 		*error += fmt::format("failed to read info\n", imageIdx);
-	// 		return false;
-	// 	}
-
-	// 	int outputComponents = components == 3 ? 4 : components;
-	// 	stbi_uc *parsedData = stbi_load_from_memory(data, dataLength, &x, &y, &components, outputComponents);
-	// 	const auto scopeOnExitFreeImage = util::createScopeExit([&] () {
-	// 		if (parsedData != nullptr) {
-	// 			stbi_image_free(parsedData);
-	// 		}
-	// 	});
-
-	// 	if (x <= 0 || y <= 0) {
-	// 		ngn::log::error("rn::db::loader::details::parseImage({}) => (8b) invalid texture dimensions: {}, {}", imageIdx, x, y);
-	// 		*error += fmt::format("invalid texture dimensions: {}, {}\n", imageIdx, x, y);
-	// 		return false;
-	// 	}
-
-	// 	rn::PixelFormat pixelFormat{rn::PixelFormat::Undefined};
-	// 	rn::DataFormat dataFormat{rn::DataFormat::Undefined};
-	// 	switch (outputComponents) {
-	// 		case 1: {
-	// 			pixelFormat = rn::PixelFormat::R8UInt;
-	// 			dataFormat = rn::DataFormat::UChar1;
-	// 			break;
-	// 		}
-	// 		case 2: {
-	// 			pixelFormat = rn::PixelFormat::R8G8UInt;
-	// 			dataFormat = rn::DataFormat::UChar2;
-	// 			break;
-	// 		}
-	// 		case 4: {
-	// 			pixelFormat = rn::PixelFormat::R8G8B8A8UInt;
-	// 			dataFormat = rn::DataFormat::UChar4;
-	// 			break;
-	// 		}
-	// 		default: {
-	// 			ngn::log::error("rn::db::loader::details::parseImage({}) => (8b) invalid number of texture color components: {}", imageIdx, outputComponents);
-	// 			*error += fmt::format("invalid number of texture color components: {}\n", imageIdx, outputComponents);
-	// 			return false;
-	// 		}
-	// 	}
-
-	// 	upload.texture(imageIdx, { static_cast<uint32_t>(x), static_cast<uint32_t>(y), 1u }, pixelFormat, dataFormat, reinterpret_cast<std::byte *>(parsedData));
-	// }
-
-	return true;
 }
 
 } // details
 
-void GlTF::readFile(std::string_view filePath, Upload &upload) {
+bool GlTF::readFile(std::string_view filePath, Uploader &uploader) {
 	ngn::log::info("rn::db::loader::GlTF::readFile({}) => start", filePath);
+	double startParseTime = ngn::prof::now();
 
 	tinygltf::Model model{};
 	tinygltf::TinyGLTF loader{};
 
-	loader.SetImageLoader(details::parseImage, &upload);
-	// loader.SetImageLoader([] ([[maybe_unused]]  tinygltf::Image *image, [[maybe_unused]] const int imageIdx, [[maybe_unused]] std::string *error, [[maybe_unused]] std::string *warning, [[maybe_unused]] int width, [[maybe_unused]] int height, [[maybe_unused]] const unsigned char *data, [[maybe_unused]] int dataLength, [[maybe_unused]] void *userData) {
-	// 	ngn::log::debug("parseImage: image={}", fmt::ptr(image));
-	// 	if (image) {
-	// 		ngn::log::debug("parseImage: image->mimeType={}", image->mimeType);
-	// 		ngn::log::debug("parseImage: image->pixel_type={}", image->pixel_type);
-	// 		ngn::log::debug("parseImage: image->width={}", image->width);
-	// 		ngn::log::debug("parseImage: image->height={}", image->height);
-	// 	}
+	loader.SetImageLoader(details::parseImage, &uploader);
 
-	// 	int x, y, comp;
-	// 	int infoResult = stbi_info_from_memory(data, dataLength, &x, &y, &comp);
-	// 	ngn::log::debug("parseImage: stbi_info_from_memory={} {} {} {}", infoResult, x, y, comp);
-	// 	ngn::log::debug("parseImage: imageIdx={}", imageIdx);
-	// 	ngn::log::debug("parseImage: width={}", width);
-	// 	ngn::log::debug("parseImage: height={}", height);
-	// 	ngn::log::debug("parseImage: data={}", fmt::ptr(data));
-	// 	ngn::log::debug("parseImage: dataLength={}", dataLength);
-	// 	ngn::log::debug("parseImage: userData={}", fmt::ptr(userData));
-	// 	return true;
-	// }, nullptr);
-
-	std::string_view fileExt = ngn::fs::ext(filePath);
+	std::string fileExt = ngn::fs::ext(filePath);
 
 	std::string error;
 	std::string warning;
-
 	bool result;
 	if (fileExt == ".gltf") {
 		result = loader.LoadASCIIFromFile(&model, &error, &warning, std::string{filePath});
@@ -373,7 +202,7 @@ void GlTF::readFile(std::string_view filePath, Upload &upload) {
 		result = loader.LoadBinaryFromFile(&model, &error, &warning, std::string{filePath});
 	} else {
 		ngn::log::error("rn::db::loader::GlTF::readFile({}) => unsupported file extension \"{}\"", filePath, fileExt);
-		return;
+		return false;
 	}
 
 	if ( ! warning.empty()) {
@@ -386,18 +215,46 @@ void GlTF::readFile(std::string_view filePath, Upload &upload) {
 
 	if ( ! result) {
 		ngn::log::error("rn::db::loader::GlTF::readFile({}) => failed to load file", filePath);
-		return;
+		return false;
 	}
 
-	for (size_t i = 0; i < model.buffers.size(); i++) {
-		ngn::log::debug("buffer#{}: name={}, data.length={}", i, model.buffers[i].name, model.buffers[i].data.size()); // printValue("extras", model.buffers[i].extras, 2));
+	for (uint32_t index = 0; index < model.buffers.size(); index++) {
+		auto &buffer = model.buffers[index];
+
+		rn::BufferDescription description{
+			/*.size=*/ buffer.data.size(),
+			/*.usage=*/ rn::BufferUsage::Index | rn::BufferUsage::Vertex | rn::BufferUsage::TransferDestination,
+			/*.paging=*/ rn::BufferPaging::Static,
+		};
+
+		rn::BufferDataAccessor accessor{
+				/*.data=*/ [&buffer] () {
+					return reinterpret_cast<std::byte *>(buffer.data.data());
+				},
+				/*.size=*/ [&buffer] () {
+					return buffer.data.size();
+				},
+				/*.format=*/ [] () {
+					return rn::DataFormat::Char1;
+				},
+		};
+
+		uploader.buffer(index, description, accessor);
 	}
 
-	for (size_t i = 0; i < model.images.size(); i++) {
-		ngn::log::debug("image#{}: name={}, width={}, height={}", i, model.images[i].name, model.images[i].width, model.images[i].height); // printValue("extras", model.buffers[i].extras, 2));
-	}
+	// for (size_t i = 0; i < model.buffers.size(); i++) {
+	// 	ngn::log::debug("buffer#{}: name={}, data.length={}", i, model.buffers[i].name, model.buffers[i].data.size()); // printValue("extras", model.buffers[i].extras, 2));
+	// }
 
-	ngn::log::info("rn::db::loader::GlTF::readFile({}) => done", filePath);
+	// for (size_t i = 0; i < model.images.size(); i++) {
+	// 	ngn::log::debug("image#{}: name={}, width={}, height={}", i, model.images[i].name, model.images[i].width, model.images[i].height); // printValue("extras", model.buffers[i].extras, 2));
+	// }
+
+	double stopParseTime = ngn::prof::now();
+
+	ngn::log::info("rn::db::loader::GlTF::readFile({}) => done ({}ms)", filePath, 1000.0 * (stopParseTime - startParseTime));
+
+	return true;
 }
 
 } // rn::db::loader
