@@ -8,11 +8,15 @@ if (WIN32)
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		set(VULKAN_LIBRARY_PATH
 			"$ENV{VULKAN_SDK}/Source/lib"
-			"$ENV{VK_SDK_PATH}/Source/lib")
+			"$ENV{VK_SDK_PATH}/Source/lib"
+			"$ENV{VULKAN_SDK}/Lib"
+			"$ENV{VK_SDK_PATH}/Lib")
 	else ()
 		set(VULKAN_LIBRARY_PATH
 			"$ENV{VULKAN_SDK}/Bin"
-			"$ENV{VK_SDK_PATH}/Bin")
+			"$ENV{VK_SDK_PATH}/Bin"
+			"$ENV{VULKAN_SDK}/Lib"
+			"$ENV{VK_SDK_PATH}/Lib")
 	endif ()
 
 	find_path(VULKAN_INCLUDE_DIR NAMES vulkan/vulkan.h HINTS
@@ -22,7 +26,8 @@ if (WIN32)
 else ()
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		set(VULKAN_LIBRARY_PATH
-			"$ENV{VULKAN_SDK}/Source/lib")
+			"$ENV{VULKAN_SDK}/Source/lib"
+			"$ENV{VULKAN_SDK}/lib")
 	else ()
 		set(VULKAN_LIBRARY_PATH
 			"$ENV{VULKAN_SDK}/lib")
