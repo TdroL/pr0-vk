@@ -5,13 +5,16 @@
 
 namespace util {
 
-template<class T, class Deleter = void (*)(T)>
+template<class T, class D = void (*)(T)>
 class UniqueResource {
 public:
-	std::optional<std::pair<T, Deleter>> resource{std::nullopt};
+	using Type = T;
+	using Deleter = D;
+
+	std::optional<std::pair<Type, Deleter>> resource{std::nullopt};
 
 	UniqueResource() = default;
-	UniqueResource(T &&handle, Deleter deleter)
+	UniqueResource(Type &&handle, Deleter deleter)
 		: resource{{handle, deleter}}
 	{}
 
@@ -35,7 +38,15 @@ public:
 
 	UniqueResource & operator=(const UniqueResource &other) = delete;
 
-	T & get() {
+	operator bool() const {
+		return resource.has_value();
+	}
+
+	Type * operator->() {
+		return &resource->first;
+	}
+
+	Type & get() {
 		return resource->first;
 	}
 

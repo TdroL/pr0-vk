@@ -1,5 +1,7 @@
 #include "config.hpp"
 
+#include <tracy/Tracy.hpp>
+
 namespace ware::config {
 
 State setup() {
@@ -12,6 +14,8 @@ State setup() {
 			.mode = WindowMode::Windowed,
 		},
 		.vk = {
+			.enableValidation = true,
+			.enableLogging = true,
 			.logLevel = 1,
 			.appName = "pr0-vk",
 			.appVersion = 1,
@@ -31,8 +35,12 @@ State setup() {
 	};
 }
 
-void refresh([[maybe_unused]] State &state) {}
+void refresh([[maybe_unused]] State &state) {
+	ZoneScopedN("ware::config::refresh()");
+}
 
-void process([[maybe_unused]] State &state) {}
+void process([[maybe_unused]] State &state) {
+	ZoneScopedN("ware::config::process()");
+}
 
 } // ware::config

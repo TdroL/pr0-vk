@@ -8,6 +8,7 @@
 
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
+#include <tracy/Tracy.hpp>
 
 #include <util/contains.hpp>
 #include <util/map.hpp>
@@ -35,8 +36,8 @@ namespace ware::swapchainVK {
 	}
 
 	vk::Extent2D imageExtent{
-		.width = static_cast<uint32_t>(std::max(1, window.description->next.width)),
-		.height = static_cast<uint32_t>(std::max(1, window.description->next.height)),
+		.width = static_cast<uint32_t>(std::max(1, window.description->width)),
+		.height = static_cast<uint32_t>(std::max(1, window.description->height)),
 	};
 
 	const auto presentModes = context.physicalDevice.getSurfacePresentModesKHR(context.surface.get());
@@ -185,7 +186,7 @@ void acquireNextImage(State &state) {
 // 	const auto &imageResources = state.imageResources[state.imageIndex];
 // 	const auto &frameResources = state.frameResources[state.frameIndex];
 
-// 	context.device->resetCommandPool(frameResources.renderingCommandPool.get(), vk::CommandPoolResetFlagBits::eReleaseResources);
+// 	context.device->resetCommandPool(frameResources.renderingCommandPool.get());
 
 // 	frameResources.renderingCommandBuffer.begin({
 // 		.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
@@ -269,6 +270,8 @@ void presentImage(State &state) {
 	vk::Result result = context.presentationQueue.presentKHR(&presentInfo);
 
 	if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR) {
+		spdlog::debug("ware::swapchainVK::recreateSwapchain() => recreate swapchain (result: {})", vk::to_string(result));
+
 		recreateSwapchain(state);
 	} else if (result != vk::Result::eSuccess) {
 		throw std::runtime_error{fmt::format("Unable to present swapchain image (error: {})", vk::to_string(result))};
@@ -294,27 +297,30 @@ State setup(ware::config::State &config, ware::windowGLFW::State &window, ware::
 		.frameResources = std::move(frameResources),
 		.frameIndex = 0,
 		.description = {
-			.current = {
-				.swapchainResized = false,
-			},
-			.next = {
-				.swapchainResized = false,
-			},
+			.width = window.description->width,
+			.height = window.description->height,
+			.mode = window.description->mode,
+			.swapchainResized = false,
 			.changed = false,
 		},
 	};
 }
 
 void refresh(State &state) {
+	ZoneScopedN("ware::swapchainVK::refresh()");
+
 	const auto &window = state.window;
 	const auto &context = state.context;
 
-	if (window.description->changed && (window.description->current.width != window.description->next.width || window.description->current.height != window.description->next.height || window.description->current.mode != window.description->next.mode)) {
+	if (window.description->changed && (state.description.width != window.description->width || state.description.height != window.description->height || state.description.mode != window.description->mode)) {
 		recreateSwapchain(state);
-		state.description.next.swapchainResized = true;
+		state.description.width = window.description->width;
+		state.description.height = window.description->height;
+		state.description.mode = window.description->mode;
+		state.description.swapchainResized = true;
 		state.description.changed = true;
-	} else if (state.description.current.swapchainResized) {
-		state.description.next.swapchainResized = false;
+	} else if (state.description.swapchainResized) {
+		state.description.swapchainResized = false;
 		state.description.changed = true;
 	}
 
@@ -333,6 +339,8 @@ void refresh(State &state) {
 }
 
 void process(State &state) {
+	ZoneScopedN("ware::swapchainVK::process()");
+
 	// render(state);
 
 	presentImage(state);
@@ -340,7 +348,6 @@ void process(State &state) {
 	state.frameIndex = static_cast<uint32_t>((state.frameIndex + 1) % state.frameResources.size());
 
 	if (state.description.changed) {
-		state.description.current = state.description.next;
 		state.description.changed = false;
 	}
 }

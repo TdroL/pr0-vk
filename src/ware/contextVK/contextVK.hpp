@@ -46,14 +46,31 @@ struct BufferState {
 	vk::DeviceSize size;
 	void *mappedData;
 	VmaAllocation allocation;
-	VmaAllocator &allocator;
+	VmaAllocator *allocator;
+};
+
+struct ImageState {
+	vk::Image image;
+	vk::Format format;
+	vk::Extent3D extent;
+	vk::DeviceMemory memory;
+	vk::DeviceSize offset;
+	vk::DeviceSize size;
+	void *mappedData;
+	VmaAllocation allocation;
+	VmaAllocator *allocator;
 };
 
 using UniqueBuffer = util::UniqueResource<BufferState, void (*)(BufferState &)>;
+using UniqueImage = util::UniqueResource<ImageState, void (*)(ImageState &)>;
 
 void requestWaitIdle(State &context);
 
-UniqueBuffer createBuffer(State &context, vk::BufferCreateInfo &bufferCreateInfo, VmaAllocationCreateInfo &allocationCreateInfo);
+UniqueBuffer createBuffer(State &context, vk::BufferCreateInfo &bufferCreateInfo, vma::AllocationCreateInfo &allocationCreateInfo);
+UniqueImage createImage(State &context, vk::ImageCreateInfo &imageCreateInfo, vma::AllocationCreateInfo &allocationCreateInfo);
+
+void flushMappedData(UniqueBuffer &buffer, vk::DeviceSize offset = 0, vk::DeviceSize size = VK_WHOLE_SIZE);
+void flushMappedData(UniqueImage &image, vk::DeviceSize offset = 0, vk::DeviceSize size = VK_WHOLE_SIZE);
 
 State setup(ware::config::State &config, ware::contextGLFW::State &glfw, ware::windowGLFW::State &window);
 

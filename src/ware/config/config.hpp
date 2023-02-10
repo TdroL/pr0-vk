@@ -23,6 +23,8 @@ struct State {
 	} window;
 
 	struct VK {
+		uint32_t enableValidation;
+		uint32_t enableLogging;
 		int32_t logLevel;
 		std::string appName;
 		uint32_t appVersion;

@@ -20,7 +20,8 @@ if (CMAKE_COMPILER_IS_GNUCXX OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
 
 	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -m64 -static")
 	set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -m64 -static")
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -m64 -static")
+	set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS} -m64 -static")
+	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} -m64 -static -flto")
 elseif (CMAKE_CL_64)
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
@@ -42,8 +43,8 @@ include_directories(${Vulkan_INCLUDE_DIR})
 add_definitions(-DVULKAN_HPP_NO_CONSTRUCTORS -DVK_NO_PROTOTYPES -DVULKAN_HPP_NO_SETTERS)
 
 message("Add VMA")
-set(VMA_STATIC_VULKAN_FUNCTIONS OFF CACHE BOOL "Use static loader for Vulkan functions")
-set(VMA_DYNAMIC_VULKAN_FUNCTIONS ON CACHE BOOL "Use dynamic loader for Vulkan functions")
+option(VMA_STATIC_VULKAN_FUNCTIONS "" OFF)
+option(VMA_DYNAMIC_VULKAN_FUNCTIONS "" ON)
 add_subdirectory(external/vma)
 
 message("Add fmt")
@@ -58,12 +59,66 @@ add_subdirectory(external/json)
 message("Add spdlog")
 add_subdirectory(external/spdlog)
 
+message("Add tracy")
+option(TRACY_ENABLE "" ON)
+option(TRACY_ON_DEMAND "" ON)
+option(TRACY_NO_FRAME_IMAGE "" ON)
+option(TRACY_NO_VSYNC_CAPTURE "" ON)
+option(TRACY_NO_FRAME_IMAGE "" ON)
+option(TRACY_NO_CRASH_HANDLER "" ON)
+add_subdirectory(external/tracy)
+
+message("Add imgui")
+add_library(imgui STATIC)
+target_include_directories(
+	imgui
+	PUBLIC
+		external/imgui
+)
+target_sources(
+	imgui
+	PRIVATE
+		external/imgui/imgui.cpp
+		external/imgui/imgui_widgets.cpp
+		external/imgui/imgui_tables.cpp
+		external/imgui/imgui_draw.cpp
+		external/imgui/imgui_demo.cpp
+)
+target_compile_definitions(
+	imgui
+	PRIVATE
+		-DImTextureID=ImU64
+)
+target_link_libraries(
+	imgui
+)
+
 # C++ sources
 file(GLOB_RECURSE SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp" "${CMAKE_SOURCE_DIR}/src/*.hpp")
 
-add_executable(${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/src/main.cpp" ${SOURCES})
-target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/src")
-target_link_libraries(${PROJECT_NAME} PRIVATE Vulkan::Headers VulkanMemoryAllocator fmt::fmt glfw nlohmann_json::nlohmann_json spdlog::spdlog)
+add_executable(${PROJECT_NAME} "${CMAKE_SOURCE_DIR}/src/main.cpp")
+target_include_directories(
+	${PROJECT_NAME}
+	PRIVATE
+		"${CMAKE_SOURCE_DIR}/src"
+)
+target_sources(
+	${PROJECT_NAME}
+	PRIVATE
+		${SOURCES}
+)
+target_link_libraries(
+	${PROJECT_NAME}
+	PRIVATE
+		Vulkan::Headers
+		VulkanMemoryAllocator
+		fmt::fmt
+		glfw
+		nlohmann_json::nlohmann_json
+		spdlog::spdlog
+		Tracy::TracyClient
+		imgui
+)
 
 # shader sources
 file(

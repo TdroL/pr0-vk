@@ -5,7 +5,7 @@
 
 namespace util {
 
-std::optional<std::vector<std::byte>> fsReadBytes(const std::filesystem::path &filePath) {
+inline std::optional<std::vector<std::byte>> fsReadBytes(const std::filesystem::path &filePath) {
 	std::ifstream in{filePath, std::ios::in | std::ios::binary};
 
 	if ( ! in || ! in.good()) {

@@ -7,18 +7,19 @@
 
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
+#include <tracy/Tracy.hpp>
 
 #include <util/fs.hpp>
 #include <util/map.hpp>
 
 namespace ware::rendererVK::passes::simple {
 
-uint32_t uniformBufferMaxCount = 1024;
-uint32_t sampledImageMaxCount = 1024;
-uint32_t storageImageMaxCount = 1024;
-uint32_t samplerMaxCount = 32;
+const uint32_t uniformBufferMaxCount = 1024;
+const uint32_t sampledImageMaxCount = 1024;
+const uint32_t storageImageMaxCount = 1024;
+const uint32_t samplerMaxCount = 32;
 
-[[nodiscard]] vk::UniqueDescriptorPool createDescriptorPool(const ware::contextVK::State &context) {
+[[nodiscard]] vk::UniqueDescriptorPool createDescriptorPool(ware::contextVK::State &context) {
 	std::array poolSizes{
 		 vk::DescriptorPoolSize{
 			.type = vk::DescriptorType::eUniformBuffer,
@@ -46,7 +47,7 @@ uint32_t samplerMaxCount = 32;
 	});
 }
 
-[[nodiscard]] std::vector<vk::UniqueDescriptorSetLayout> createDescriptorSetLayouts(const ware::contextVK::State &context) {
+[[nodiscard]] std::vector<vk::UniqueDescriptorSetLayout> createDescriptorSetLayouts(ware::contextVK::State &context) {
 	std::array buffersSetLayoutBindings{
 		vk::DescriptorSetLayoutBinding{
 			.binding = 0,
@@ -158,7 +159,7 @@ uint32_t samplerMaxCount = 32;
 	return setLayouts;
 }
 
-[[nodiscard]] vk::UniquePipelineLayout createPipelineLayout(const ware::contextVK::State &context, const std::vector<vk::UniqueDescriptorSetLayout> &descriptorSetLayouts) {
+[[nodiscard]] vk::UniquePipelineLayout createPipelineLayout(ware::contextVK::State &context, const std::vector<vk::UniqueDescriptorSetLayout> &descriptorSetLayouts) {
 	std::vector setLayouts = util::map(descriptorSetLayouts, [] (const auto &setLayout) { return setLayout.get(); });
 
 	return context.device->createPipelineLayoutUnique({
@@ -169,7 +170,7 @@ uint32_t samplerMaxCount = 32;
 	});
 }
 
-[[nodiscard]] vk::UniqueShaderModule createShaderModule(const ware::contextVK::State &context, const std::filesystem::path &filePath) {
+[[nodiscard]] vk::UniqueShaderModule createShaderModule(ware::contextVK::State &context, const std::filesystem::path &filePath) {
 	auto contentsO = util::fsReadBytes(filePath);
 
 	if ( ! contentsO) {
@@ -192,7 +193,7 @@ uint32_t samplerMaxCount = 32;
 	});
 }
 
-[[nodiscard]] vk::UniquePipeline createPipeline([[maybe_unused]] const ware::windowGLFW::State &window, const ware::contextVK::State &context, const ware::swapchainVK::State &swapchain, vk::PipelineLayout layout) {
+[[nodiscard]] vk::UniquePipeline createPipeline([[maybe_unused]] ware::windowGLFW::State &window, ware::contextVK::State &context, ware::swapchainVK::State &swapchain, vk::PipelineLayout layout) {
 	auto vertexShaderModule = createShaderModule(context, "shaders/simple.vert.spv");
 	auto fragmentShaderModule = createShaderModule(context, "shaders/simple.frag.spv");
 
@@ -297,7 +298,7 @@ uint32_t samplerMaxCount = 32;
 	return std::move(resultValue.value);
 }
 
-[[nodiscard]] std::vector<vk::DescriptorSet> allocateDescriptorSets(const ware::contextVK::State &context, vk::DescriptorPool descriptorPool, const std::vector<vk::UniqueDescriptorSetLayout> &descriptorSetLayouts) {
+[[nodiscard]] std::vector<vk::DescriptorSet> allocateDescriptorSets(ware::contextVK::State &context, vk::DescriptorPool descriptorPool, const std::vector<vk::UniqueDescriptorSetLayout> &descriptorSetLayouts) {
 	std::vector setLayouts = util::map(descriptorSetLayouts, [] (const auto &setLayout) { return setLayout.get(); });
 
 	std::array descriptorCounts{
@@ -327,35 +328,23 @@ std::tuple<ware::contextVK::UniqueBuffer, ware::contextVK::UniqueBuffer> createB
 		.size = 3 * 2 * sizeof(float),
 		.usage = vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
 	};
-	VmaAllocationCreateInfo vertexAllocationCreateInfo{
-		.flags = {},
-		.usage = VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
-		.requiredFlags = {},
-		.preferredFlags = {},
-		.memoryTypeBits = {},
-		.pool = {},
-		.pUserData = {},
-		.priority = {},
+	vma::AllocationCreateInfo vertexAllocationCreateInfo{
+		.usage = vma::MemoryUsage::eAutoPreferDevice,
 	};
 
-	ware::contextVK::UniqueBuffer vertexBuffer = ware::contextVK::createBuffer(context, vertexBufferCreateInfo, vertexAllocationCreateInfo);
+	auto vertexBuffer = ware::contextVK::createBuffer(context, vertexBufferCreateInfo, vertexAllocationCreateInfo);
 
 	vk::BufferCreateInfo stagingBufferCreateInfo{
 		.size = 3 * 2 * sizeof(float),
 		.usage = vk::BufferUsageFlagBits::eTransferSrc,
 	};
-	VmaAllocationCreateInfo stagingAllocationCreateInfo{
-		.flags = VmaAllocationCreateFlagBits::VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VmaAllocationCreateFlagBits::VMA_ALLOCATION_CREATE_MAPPED_BIT,
-		.usage = VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
-		.requiredFlags = static_cast<VkMemoryPropertyFlags>(vk::MemoryPropertyFlagBits::eHostVisible),
-		.preferredFlags = {},
-		.memoryTypeBits = {},
-		.pool = {},
-		.pUserData = {},
-		.priority = {},
+	vma::AllocationCreateInfo stagingAllocationCreateInfo{
+		.flags = vma::AllocationCreateFlagBits::eHostAccessSequentialWrite | vma::AllocationCreateFlagBits::eMapped,
+		.usage = vma::MemoryUsage::eAutoPreferHost,
+		.requiredFlags = vk::MemoryPropertyFlagBits::eHostVisible,
 	};
 
-	ware::contextVK::UniqueBuffer stagingBuffer = ware::contextVK::createBuffer(context, stagingBufferCreateInfo, stagingAllocationCreateInfo);
+	auto stagingBuffer = ware::contextVK::createBuffer(context, stagingBufferCreateInfo, stagingAllocationCreateInfo);
 
 	// upload data to staging buffer
 	std::array vertices{
@@ -363,38 +352,38 @@ std::tuple<ware::contextVK::UniqueBuffer, ware::contextVK::UniqueBuffer> createB
 		 0.5f,  0.5f,
 		-0.5f,  0.5f,
 	};
-	std::copy_n(vertices.data(), vertices.size(), reinterpret_cast<float *>(stagingBuffer.get().mappedData));
+	std::copy_n(vertices.data(), vertices.size(), reinterpret_cast<float *>(stagingBuffer->mappedData));
 
-	vmaFlushAllocation(stagingBuffer.get().allocator, stagingBuffer.get().allocation, 0, stagingBuffer.get().size);
+	ware::contextVK::flushMappedData(stagingBuffer);
 
 	return { std::move(vertexBuffer), std::move(stagingBuffer) };
 }
 
-std::vector<FrameResources> createFrameResources(const ware::contextVK::State &context, const ware::swapchainVK::State &swapchain) {
+std::vector<FrameResources> createFrameResources(ware::contextVK::State &context, ware::swapchainVK::State &swapchain) {
 	return util::mapRange(swapchain.frameResources.size(), [&] ([[maybe_unused]] const auto &index) {
 		auto renderingCommandPool = context.device->createCommandPoolUnique({
 			.flags = vk::CommandPoolCreateFlagBits::eTransient,
 			.queueFamilyIndex = context.graphicQueueFamily,
 		});
 
-		std::vector<vk::CommandBuffer> commandBuffers = context.device->allocateCommandBuffers({
+		std::vector<vk::CommandBuffer> renderingCommandBuffers = context.device->allocateCommandBuffers({
 			.commandPool = renderingCommandPool.get(),
-			.level = vk::CommandBufferLevel::ePrimary,
+			.level = vk::CommandBufferLevel::eSecondary,
 			.commandBufferCount = 1,
 		});
 
 		return FrameResources{
 			.renderingCommandPool = std::move(renderingCommandPool),
-			.renderingCommandBuffer = commandBuffers[0],
+			.renderingCommandBuffer = renderingCommandBuffers[0],
 		};
 	});
 }
 
 void recreateFrameResources(State &state) {
 	auto &context = state.context;
-	const auto &swapchain = state.swapchain;
+	auto &swapchain = state.swapchain;
 
-	if (state.swapchain.description.next.swapchainResized && state.frameResources.size() != swapchain.frameResources.size()) {
+	if (state.swapchain.description.swapchainResized && state.frameResources.size() != swapchain.frameResources.size()) {
 		ware::contextVK::requestWaitIdle(context);
 
 		state.frameResources.clear();
@@ -403,17 +392,17 @@ void recreateFrameResources(State &state) {
 	}
 }
 
-void render(State &state) {
+vk::CommandBuffer render(State &state) {
 	const auto &context = state.context;
 	const auto &swapchain = state.swapchain;
 	const auto &swapchainImageResources = swapchain.imageResources[swapchain.imageIndex];
-	const auto &swapchainFrameResources = swapchain.frameResources[swapchain.frameIndex];
-	const auto &frameResources = state.frameResources[swapchain.frameIndex];
+	// const auto &swapchainFrameResources = swapchain.frameResources[swapchain.frameIndex];
+	auto &frameResources = state.frameResources[swapchain.frameIndex];
 
-	const auto width = static_cast<uint32_t>(state.window.description->next.width);
-	const auto height = static_cast<uint32_t>(state.window.description->next.height);
+	const auto width = static_cast<uint32_t>(state.window.description->width);
+	const auto height = static_cast<uint32_t>(state.window.description->height);
 
-	context.device->resetCommandPool(frameResources.renderingCommandPool.get(), vk::CommandPoolResetFlagBits::eReleaseResources);
+	context.device->resetCommandPool(frameResources.renderingCommandPool.get());
 
 	auto &cmd = frameResources.renderingCommandBuffer;
 
@@ -425,8 +414,10 @@ void render(State &state) {
 		.layerCount = 1,
 	};
 
+	vk::CommandBufferInheritanceInfo inheritanceInfo{};
 	cmd.begin({
 		.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
+		.pInheritanceInfo = &inheritanceInfo,
 	});
 
 	if ( ! state.vertexBufferUploaded) {
@@ -444,6 +435,7 @@ void render(State &state) {
 			.regionCount = static_cast<uint32_t>(regions.size()),
 			.pRegions = regions.data(),
 		});
+
 		std::array bufferMemoryBerries{
 			vk::BufferMemoryBarrier2{
 				.srcStageMask = vk::PipelineStageFlagBits2::eTopOfPipe,
@@ -493,9 +485,10 @@ void render(State &state) {
 			vk::RenderingAttachmentInfo{
 				.imageView = swapchainImageResources.imageView.get(),
 				.imageLayout = vk::ImageLayout::eAttachmentOptimal,
-				.loadOp = vk::AttachmentLoadOp::eClear,
+				// .loadOp = vk::AttachmentLoadOp::eClear,
+				.loadOp = vk::AttachmentLoadOp::eDontCare,
 				.storeOp = vk::AttachmentStoreOp::eStore,
-				.clearValue = vk::ClearColorValue{std::array<float, 4>{ 1.0f, 1.0f, 1.0f, 0.0f }},
+				// .clearValue = vk::ClearColorValue{std::array<float, 4>{ 1.0f, 1.0f, 1.0f, 0.0f }},
 			},
 		};
 
@@ -566,55 +559,57 @@ void render(State &state) {
 
 		cmd.endRendering();
 
-		{
-			std::array imageMemoryBerries{
-				vk::ImageMemoryBarrier2{
-					.srcStageMask = vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-					.srcAccessMask = vk::AccessFlagBits2::eColorAttachmentRead | vk::AccessFlagBits2::eColorAttachmentWrite,
-					.dstStageMask = vk::PipelineStageFlagBits2::eBottomOfPipe,
-					.dstAccessMask = vk::AccessFlagBits2::eMemoryRead,
-					.oldLayout = vk::ImageLayout::eAttachmentOptimal,
-					.newLayout = vk::ImageLayout::ePresentSrcKHR,
-					.srcQueueFamilyIndex = context.graphicQueueFamily,
-					.dstQueueFamilyIndex = context.presentationQueueFamily,
-					.image = swapchainImageResources.image,
-					.subresourceRange = swapchainSubresourceRange,
-				},
-			};
+		// {
+		// 	std::array imageMemoryBerries{
+		// 		vk::ImageMemoryBarrier2{
+		// 			.srcStageMask = vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		// 			.srcAccessMask = vk::AccessFlagBits2::eColorAttachmentRead | vk::AccessFlagBits2::eColorAttachmentWrite,
+		// 			.dstStageMask = vk::PipelineStageFlagBits2::eBottomOfPipe,
+		// 			.dstAccessMask = vk::AccessFlagBits2::eMemoryRead,
+		// 			.oldLayout = vk::ImageLayout::eAttachmentOptimal,
+		// 			.newLayout = vk::ImageLayout::ePresentSrcKHR,
+		// 			.srcQueueFamilyIndex = context.graphicQueueFamily,
+		// 			.dstQueueFamilyIndex = context.presentationQueueFamily,
+		// 			.image = swapchainImageResources.image,
+		// 			.subresourceRange = swapchainSubresourceRange,
+		// 		},
+		// 	};
 
-			cmd.pipelineBarrier2({
-				.imageMemoryBarrierCount = static_cast<uint32_t>(imageMemoryBerries.size()),
-				.pImageMemoryBarriers = imageMemoryBerries.data(),
-			});
-		}
+		// 	cmd.pipelineBarrier2({
+		// 		.imageMemoryBarrierCount = static_cast<uint32_t>(imageMemoryBerries.size()),
+		// 		.pImageMemoryBarriers = imageMemoryBerries.data(),
+		// 	});
+		// }
 	}
 
 	cmd.end();
 
-	vk::SemaphoreSubmitInfo waitSemaphoreInfo{
-		.semaphore = swapchainFrameResources.acquireSemaphore.get(),
-		.stageMask = vk::PipelineStageFlagBits2::eBottomOfPipe,
-		.deviceIndex = 0,
-	};
-	vk::CommandBufferSubmitInfo commandBufferInfo{
-		.commandBuffer = cmd,
-		.deviceMask = 0x0001,
-	};
-	vk::SemaphoreSubmitInfo signalSemaphoreInfo{
-		.semaphore = swapchainImageResources.presentSemaphore.get(),
-		.stageMask = vk::PipelineStageFlagBits2::eTopOfPipe,
-		.deviceIndex = 0,
-	};
-	context.graphicQueue.submit2({
-		{
-			.waitSemaphoreInfoCount = 1,
-			.pWaitSemaphoreInfos = &waitSemaphoreInfo,
-			.commandBufferInfoCount = 1,
-			.pCommandBufferInfos = &commandBufferInfo,
-			.signalSemaphoreInfoCount = 1,
-			.pSignalSemaphoreInfos = &signalSemaphoreInfo,
-		}
-	}, swapchainFrameResources.renderingFence.get());
+	// vk::SemaphoreSubmitInfo waitSemaphoreInfo{
+	// 	.semaphore = swapchainFrameResources.acquireSemaphore.get(),
+	// 	.stageMask = vk::PipelineStageFlagBits2::eBottomOfPipe,
+	// 	.deviceIndex = 0,
+	// };
+	// vk::CommandBufferSubmitInfo commandBufferInfo{
+	// 	.commandBuffer = cmd,
+	// 	.deviceMask = 0x0001,
+	// };
+	// vk::SemaphoreSubmitInfo signalSemaphoreInfo{
+	// 	.semaphore = swapchainImageResources.presentSemaphore.get(),
+	// 	.stageMask = vk::PipelineStageFlagBits2::eTopOfPipe,
+	// 	.deviceIndex = 0,
+	// };
+	// context.graphicQueue.submit2({
+	// 	{
+	// 		.waitSemaphoreInfoCount = 1,
+	// 		.pWaitSemaphoreInfos = &waitSemaphoreInfo,
+	// 		.commandBufferInfoCount = 1,
+	// 		.pCommandBufferInfos = &commandBufferInfo,
+	// 		.signalSemaphoreInfoCount = 1,
+	// 		.pSignalSemaphoreInfos = &signalSemaphoreInfo,
+	// 	}
+	// }, swapchainFrameResources.renderingFence.get());
+
+	return cmd;
 }
 
 State::~State() {
@@ -650,23 +645,23 @@ State setup(ware::windowGLFW::State &window, ware::contextVK::State &context, wa
 		.vertexBufferUploaded = false,
 		.frameResources = std::move(frameResources),
 		.description = {
-			.current = {
-			},
-			.next = {
-			},
 			.changed = false,
 		},
 	};
 }
 
 void refresh(State &state) {
+	ZoneScopedN("ware::rendererVK::passes::simple::refresh()");
+
 	if (state.swapchain.description.changed) {
 		recreateFrameResources(state);
 	}
 }
 
-void process(State &state) {
-	render(state);
+vk::CommandBuffer process(State &state) {
+	ZoneScopedN("ware::rendererVK::passes::simple::process()");
+
+	return render(state);
 }
 
 } // ware::rendererVK::passes::simple

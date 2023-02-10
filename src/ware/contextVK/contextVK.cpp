@@ -10,6 +10,7 @@
 
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
+#include <tracy/Tracy.hpp>
 
 #include <util/contains.hpp>
 #include <util/map.hpp>
@@ -209,16 +210,16 @@ bool hasFeatures(const vk::StructureChain<vk::PhysicalDeviceFeatures2, vk::Physi
 	#undef X
 }
 
-[[nodiscard]] std::tuple<vk::UniqueInstance, bool> createInstance(const ware::config::State &config) {
+[[nodiscard]] std::tuple<vk::UniqueInstance, bool> createInstance(const ware::config::State &config, [[maybe_unused]] ware::contextGLFW::State &glfw) {
 	using namespace std::literals;
 
 	// check GLFW support
-	if (glfwVulkanSupported() != GLFW_TRUE) {
+	if ( ! ware::contextGLFW::isVulkanSupported(glfw)) {
 		throw std::runtime_error{"Vulkan rendering requires surface"};
 	}
 
 	// check if required Vulkan version is available
-	VULKAN_HPP_DEFAULT_DISPATCHER.init(reinterpret_cast<PFN_vkGetInstanceProcAddr>(glfwGetInstanceProcAddress(VK_NULL_HANDLE, "vkGetInstanceProcAddr")));
+	VULKAN_HPP_DEFAULT_DISPATCHER.init(ware::contextGLFW::loadVulkanGetInstanceProcAddr(glfw));
 	if (VULKAN_HPP_DEFAULT_DISPATCHER.vkEnumerateInstanceVersion == nullptr || vk::enumerateInstanceVersion() < VK_API_VERSION_1_3) {
 		throw std::runtime_error{"Vulkan 1.3 or later is required"};
 	}
@@ -237,28 +238,29 @@ bool hasFeatures(const vk::StructureChain<vk::PhysicalDeviceFeatures2, vk::Physi
 	std::vector<const char *> enabledLayers{};
 
 	// enable validation
-	if (util::contains(availableLayers, "VK_LAYER_KHRONOS_validation"sv)) {
+	if (config.vk.enableValidation && util::contains(availableLayers, "VK_LAYER_KHRONOS_validation"sv)) {
 		enabledLayers.push_back("VK_LAYER_KHRONOS_validation");
 	}
 
 	// select extensions
 	std::vector<const char *> enabledExtensions{};
 
-	// surface extensions
-	uint32_t count;
-	const char **extensions = glfwGetRequiredInstanceExtensions(&count);
-	enabledExtensions.assign(extensions, std::next(extensions, count));
+	// select surface extensions
+	{
+		auto extensions = ware::contextGLFW::getVulkanRequiredInstanceExtensions(glfw);
+		enabledExtensions.assign(std::begin(extensions), std::end(extensions));
+	}
 
 	// enable debugging
 	bool hasDebugUtilsExtension = false;
-	if (util::contains(availableExtensions, "VK_EXT_debug_utils"sv)) {
+	if (config.vk.enableLogging && util::contains(availableExtensions, "VK_EXT_debug_utils"sv)) {
 		enabledExtensions.push_back("VK_EXT_debug_utils");
 		hasDebugUtilsExtension = true;
 	}
 
 	// enable validation layer features
 	bool hasValidationFeaturesEnabled = false;
-	if (util::contains(availableExtensions, "VK_EXT_validation_features"sv)) {
+	if (config.vk.enableValidation && util::contains(availableExtensions, "VK_EXT_validation_features"sv)) {
 		enabledExtensions.push_back("VK_EXT_validation_features");
 		hasValidationFeaturesEnabled = true;
 	}
@@ -347,20 +349,9 @@ bool hasFeatures(const vk::StructureChain<vk::PhysicalDeviceFeatures2, vk::Physi
 	return instance.createDebugUtilsMessengerEXTUnique(debugUtilsMessengerCreateInfo);
 }
 
-[[nodiscard]] vk::UniqueSurfaceKHR createSurface(vk::Instance &instance, GLFWwindow *window) {
-	if (window == nullptr) {
-		throw std::runtime_error{"Vulkan surface could not be created"};
-	}
-
-	VkSurfaceKHR surface = VK_NULL_HANDLE;
-	const auto result = static_cast<vk::Result>(glfwCreateWindowSurface(static_cast<VkInstance>(instance), window, nullptr, &surface));
-	if (result != vk::Result::eSuccess) {
-		throw std::runtime_error{fmt::format("Vulkan surface could not be created (result: {})", vk::to_string(result))};
-	}
-
-	return vk::UniqueSurfaceKHR{surface, { instance }};
+[[nodiscard]] vk::UniqueSurfaceKHR createSurface(ware::windowGLFW::State &window, vk::Instance &instance) {
+	return ware::windowGLFW::createVulkanSurface(window, instance);
 }
-
 
 std::string decodeVulkanDriverVersion(uint32_t vendorID, uint32_t driverVersion) {
 	// from https://github.com/SaschaWillems/vulkan.gpuinfo.org/blob/1e6ca6e3c0763daabd6a101b860ab4354a07f5d3/functions.php#L294
@@ -375,10 +366,10 @@ std::string decodeVulkanDriverVersion(uint32_t vendorID, uint32_t driverVersion)
 
 	// NVIDIA
 	if (vendorID == 0x10de) {
-		return fmt::format("{}.{}.{}.{}", ((driverVersion >> 22) & 0x3ff), ((driverVersion >> 14) & 0x0ff), ((driverVersion >> 6) & 0x0ff), ((driverVersion) & 0x003f));
+		return fmt::format("{}.{}.{}.{}", ((driverVersion >> 22) & 0x3ff), ((driverVersion >> 14) & 0x0ff), ((driverVersion >> 6) & 0x0ff), (driverVersion & 0x003f));
 	}
 
-#if WIN32
+#if defined(_WIN32)
 	// INTEL
 	if (vendorID == 0x8086)
 	{
@@ -899,21 +890,22 @@ void requestWaitIdle(State &context) {
 		return;
 	}
 
+	spdlog::debug("ware::contextVK::requestWaitIdle() => waiting");
 	context.device->waitIdle();
 	context.presentationQueue.waitIdle();
 	context.requestedWaitIdle = true;
 }
 
 void destroyBuffer(BufferState &state) {
-	vmaDestroyBuffer(state.allocator, static_cast<VkBuffer>(state.buffer), state.allocation);
+	vmaDestroyBuffer(*state.allocator, static_cast<VkBuffer>(state.buffer), state.allocation);
 }
 
-UniqueBuffer createBuffer(State &context, vk::BufferCreateInfo &bufferCreateInfo, VmaAllocationCreateInfo &allocationCreateInfo) {
+UniqueBuffer createBuffer(State &context, vk::BufferCreateInfo &bufferCreateInfo, vma::AllocationCreateInfo &allocationCreateInfo) {
 	vk::Buffer buffer{};
 	VmaAllocation allocation{};
 	VmaAllocationInfo allocationInfo{};
 
-	vmaCreateBuffer(context.allocator.get(), reinterpret_cast<VkBufferCreateInfo *>(&bufferCreateInfo), &allocationCreateInfo, reinterpret_cast<VkBuffer *>(&buffer), &allocation, &allocationInfo);
+	vmaCreateBuffer(context.allocator.get(), reinterpret_cast<VkBufferCreateInfo *>(&bufferCreateInfo), reinterpret_cast<VmaAllocationCreateInfo *>(&allocationCreateInfo), reinterpret_cast<VkBuffer *>(&buffer), &allocation, &allocationInfo);
 
 	return UniqueBuffer{
 		BufferState{
@@ -923,21 +915,64 @@ UniqueBuffer createBuffer(State &context, vk::BufferCreateInfo &bufferCreateInfo
 			.size = allocationInfo.size,
 			.mappedData = allocationInfo.pMappedData,
 			.allocation = allocation,
-			.allocator = context.allocator.get()
+			.allocator = &context.allocator.get()
 		},
 		destroyBuffer
 	};
 }
 
+void destroyImage(ImageState &state) {
+	vmaDestroyImage(*state.allocator, static_cast<VkImage>(state.image), state.allocation);
+}
+
+UniqueImage createImage(State &context, vk::ImageCreateInfo &imageCreateInfo, vma::AllocationCreateInfo &allocationCreateInfo) {
+	vk::Image image{};
+	VmaAllocation allocation{};
+	VmaAllocationInfo allocationInfo{};
+
+	vmaCreateImage(context.allocator.get(), reinterpret_cast<VkImageCreateInfo *>(&imageCreateInfo), reinterpret_cast<VmaAllocationCreateInfo *>(&allocationCreateInfo), reinterpret_cast<VkImage *>(&image), &allocation, &allocationInfo);
+
+	return UniqueImage{
+		ImageState{
+			.image = image,
+			.format = imageCreateInfo.format,
+			.extent = imageCreateInfo.extent,
+			.memory = static_cast<vk::DeviceMemory>(allocationInfo.deviceMemory),
+			.offset = allocationInfo.offset,
+			.size = allocationInfo.size,
+			.mappedData = allocationInfo.pMappedData,
+			.allocation = allocation,
+			.allocator = &context.allocator.get()
+		},
+		destroyImage
+	};
+}
+
+void flushMappedData(UniqueBuffer &buffer, vk::DeviceSize offset, vk::DeviceSize size) {
+	if (size == VK_WHOLE_SIZE) {
+		size = buffer->size - std::min(buffer->size, offset);
+	}
+
+	vmaFlushAllocation(*buffer->allocator, buffer->allocation, offset, size);
+}
+
+void flushMappedData(UniqueImage &image, vk::DeviceSize offset, vk::DeviceSize size) {
+	if (size == VK_WHOLE_SIZE) {
+		size = image->size - std::min(image->size, offset);
+	}
+
+	vmaFlushAllocation(*image->allocator, image->allocation, offset, size);
+}
+
 State setup(ware::config::State &config, [[maybe_unused]] ware::contextGLFW::State &glfw, ware::windowGLFW::State &window) {
-	auto [instance, hasDebugUtilsExtension] = createInstance(config);
+	auto [instance, hasDebugUtilsExtension] = createInstance(config, glfw);
 
 	vk::UniqueDebugUtilsMessengerEXT debugUtilsMessanger{};
 	if (hasDebugUtilsExtension) {
 		debugUtilsMessanger = createDebugUtilsMessanger(config, instance.get());
 	}
 
-	auto surface = createSurface(instance.get(), window.window.get());
+	auto surface = createSurface(window, instance.get());
 
 	auto [features, physicalDevice, physicalDeviceProperties2, physicalDeviceMemoryProperties2, queueFamilyProperties2] = selectPhysicalDevice(config, instance.get(), surface.get());
 
@@ -981,12 +1016,16 @@ State setup(ware::config::State &config, [[maybe_unused]] ware::contextGLFW::Sta
 }
 
 void refresh([[maybe_unused]] State &state) {
+	ZoneScopedN("ware::contextVK::refresh()");
+
 	if (state.requestedWaitIdle) {
 		state.requestedWaitIdle = false;
 	}
 }
 
 void process([[maybe_unused]] State &state) {
+	ZoneScopedN("ware::contextVK::process()");
+
 	if (state.requestedWaitIdle) {
 		state.requestedWaitIdle = false;
 	}

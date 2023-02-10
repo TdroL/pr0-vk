@@ -18,13 +18,11 @@ struct FrameResources {
 	// vk::CommandBuffer renderingCommandBuffer;
 };
 
-struct Properties {
-	bool swapchainResized;
-};
-
 struct Description {
-	Properties current;
-	Properties next;
+	int32_t width;
+	int32_t height;
+	ware::config::WindowMode mode;
+	bool swapchainResized;
 	bool changed;
 };
 
